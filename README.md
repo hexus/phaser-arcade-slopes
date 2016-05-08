@@ -6,7 +6,7 @@ Physics engine.
 ## Features
 
 - 24 new tile types :tada:
-- SAT-driven collision handling :gear:
+- SAT-driven collision handling :ok_hand:
 - Unobtrusive and cooperative integration with Arcade Physics :v:
 - Heuristic SAT restraints that prevent AABBs catching on hidden edges :clap:
 - Works with sprites :rocket:, groups :busts_in_silhouette: and particle emitters :sparkles:
@@ -141,6 +141,7 @@ My thanks go out to those made this Plugin possible.
 
 - [Richard Davey](https://twitter.com/photonstorm) - for Phaser :rocket:; what an
   incredible framework
+- [jriecken](https://github.com/jriecken) - [SAT.js](https://github.com/jriecken/sat-js) is awesome and saved me loads of time
 - [Metanet](http://www.metanetsoftware.com/) - for their incredibly helpful
   tutorials involving SAT, as well as bounce and friction calculation
 - [Oliver Renault](http://elancev.name/oliver/2D%20polygon.htm#tut4) - also for
