@@ -1,0 +1,36 @@
+{
+  "name": "phaser-arcade-slopes",
+  "version": "0.1.0-alpha",
+  "description": "A Phaser plugin that provides sloped tiles for the Arcade Physics engine.",
+  "main": "dist/phaser-arcade-slopes.js",
+  "scripts": {},
+  "repository": {
+    "type": "git",
+    "url": "git@github.com:hexus/phaser-arcade-slopes.git"
+  },
+  "keywords": [
+    "phaser",
+    "plugin",
+    "arcade",
+    "physics",
+    "slopes",
+    "tiles",
+    "sloped",
+    "tiles",
+    "collision",
+    "collisions",
+    "collision handling",
+    "collision detection",
+    "games"
+  ],
+  "author": "Chris Andrew <chris@hexus.io>",
+  "license": "MIT",
+  "homepage": "https://github.com/hexus/phaser-arcade-slopes",
+  "devDependencies": {
+    "gulp": "^3.9.1",
+    "gulp-concat": "^2.6.0",
+    "gulp-rename": "^1.2.2",
+    "gulp-uglify": "^1.5.3"
+    "gulp-util": "^3.0.7"
+  }
+}
