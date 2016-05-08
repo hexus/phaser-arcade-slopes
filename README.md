@@ -76,7 +76,7 @@ the tilemap.
 
 ```js
 game.slopes.enable(player);
-game.slopes.enable(emitter); // Call this after makeParticles()!
+game.slopes.enable(emitter); // Call this after emitter.makeParticles()!
 ```
 
 Now you can collide your player against the tilemap in the
@@ -103,6 +103,7 @@ collision flags and a way to stop AABBs catching on tiles. So I built this.
 
 ## Roadmap
 
+- [ ] Full support for body and tile collision callbacks
 - [ ] An Arcade Slopes tilesheet
   - [ ] Image files
   - [ ] Automatic mapping from Tiled
@@ -112,11 +113,11 @@ collision flags and a way to stop AABBs catching on tiles. So I built this.
   - [ ] Collision vectors
   - [ ] Tile face properties
   - [ ] Tile polygons
-- [ ] Metroid collision solver :robot:
+- [ ] [Metroid collision solver](https://github.com/geselle-jan/Metroid/commit/9c213e9f5779df1dcd6f7d2bed2a9b676a9e3c6b#diff-467b4e6069f6692511fc5e60f3c426cc)
 - [ ] More consistent naming
   - [ ] Tile slope type constants
   - [ ] Direction/neighbour names
-- [ ] Swept intersection tests :comet:
+- [ ] Swept intersection tests
 - [ ] Automatically generated tile maps
 - [ ] Memory consumption improvements
 
