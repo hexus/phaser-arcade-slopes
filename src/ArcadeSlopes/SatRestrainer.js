@@ -659,7 +659,7 @@ Phaser.Plugin.ArcadeSlopes.SatRestrainer.prototype.resolve = function () {
 			continue;
 		}
 		
-		var vertexMap = Phaser.Plugin.ArcadeSlopes.SatRestrainer[location + 'Vertices'];
+		var vertexMap = Array.prototype.slice.call(Phaser.Plugin.ArcadeSlopes.SatRestrainer[location + 'Vertices']);
 		
 		// If we only have one location to match, we can return its vertex map
 		if (arguments.length === 1) {
