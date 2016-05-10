@@ -445,7 +445,7 @@ Phaser.Plugin.ArcadeSlopes.SatRestrainer.prototype.setDefaultRestraints = functi
 		{
 			direction: 'right',
 			neighbour: 'below',
-			types: this.resolve('topLeft', 'top')
+			types: this.resolve('topLeft', 'top', 'bottomRight')
 		}
 	];
 	
@@ -476,7 +476,7 @@ Phaser.Plugin.ArcadeSlopes.SatRestrainer.prototype.setDefaultRestraints = functi
 		{
 			direction: 'left',
 			neighbour: 'below',
-			types: this.resolve('top', 'topRight')
+			types: this.resolve('top', 'topRight', 'bottomLeft')
 		}
 	];
 	
@@ -814,7 +814,8 @@ Phaser.Plugin.ArcadeSlopes.SatRestrainer.bottomLeftVertices = [
 	'QUARTER_BOTTOM_RIGHT_HIGH',
 	'QUARTER_LEFT_TOP_HIGH',
 	'QUARTER_LEFT_BOTTOM_LOW',
-	'QUARTER_LEFT_BOTTOM_HIGH'
+	'QUARTER_LEFT_BOTTOM_HIGH',
+	'QUARTER_RIGHT_BOTTOM_LOW'
 ];
 
 /**
