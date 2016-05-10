@@ -363,12 +363,13 @@ Phaser.Plugin.ArcadeSlopes.SatRestrainer.prototype.setDefaultRestraints = functi
 		{
 			direction: 'up',
 			neighbour: 'left',
-			types: this.resolve('right', 'bottomRight')
+			types: this.resolve('topLeft', 'right', 'bottomRight')
 		},
 		{
 			direction: 'left',
 			neighbour: 'left',
-			types: this.resolve('right', 'bottomRight')
+			types: this.resolve('right', 'bottomRight'),
+			separate: false
 		}
 	];
 
@@ -394,12 +395,13 @@ Phaser.Plugin.ArcadeSlopes.SatRestrainer.prototype.setDefaultRestraints = functi
 		{
 			direction: 'up',
 			neighbour: 'right',
-			types: this.resolve('left', 'bottomLeft')
+			types: this.resolve('topRight', 'left', 'bottomLeft')
 		},
 		{
 			direction: 'right',
 			neighbour: 'right',
-			types: this.resolve('left', 'bottomLeft')
+			types: this.resolve('left', 'bottomLeft'),
+			separate: false
 		}
 	];
 
@@ -554,12 +556,13 @@ Phaser.Plugin.ArcadeSlopes.SatRestrainer.prototype.setDefaultRestraints = functi
 		{
 			direction: 'left',
 			neighbour: 'left',
-			types: this.resolve('topRight', 'right')
+			types: this.resolve('topRight', 'right'),
+			separate: false
 		},
 		{
 			direction: 'down',
 			neighbour: 'left',
-			types: this.resolve('topRight', 'right')
+			types: this.resolve('bottomLeft', 'topRight', 'right')
 		}
 	];
 	
@@ -585,12 +588,13 @@ Phaser.Plugin.ArcadeSlopes.SatRestrainer.prototype.setDefaultRestraints = functi
 		{
 			direction: 'right',
 			neighbour: 'right',
-			types: this.resolve('topLeft', 'left')
+			types: this.resolve('topLeft', 'left'),
+			separate: false
 		},
 		{
 			direction: 'down',
 			neighbour: 'right',
-			types: this.resolve('topLeft', 'left')
+			types: this.resolve('bottomRight', 'topLeft', 'left')
 		}
 	];
 	
