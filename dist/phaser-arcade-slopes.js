@@ -754,12 +754,13 @@ Phaser.Plugin.ArcadeSlopes.SatRestrainer.prototype.setDefaultRestraints = functi
 		{
 			direction: 'up',
 			neighbour: 'left',
-			types: this.resolve('right', 'bottomRight')
+			types: this.resolve('topLeft', 'right', 'bottomRight')
 		},
 		{
 			direction: 'left',
 			neighbour: 'left',
-			types: this.resolve('right', 'bottomRight')
+			types: this.resolve('right', 'bottomRight'),
+			separate: false
 		}
 	];
 
@@ -785,12 +786,13 @@ Phaser.Plugin.ArcadeSlopes.SatRestrainer.prototype.setDefaultRestraints = functi
 		{
 			direction: 'up',
 			neighbour: 'right',
-			types: this.resolve('left', 'bottomLeft')
+			types: this.resolve('topRight', 'left', 'bottomLeft')
 		},
 		{
 			direction: 'right',
 			neighbour: 'right',
-			types: this.resolve('left', 'bottomLeft')
+			types: this.resolve('left', 'bottomLeft'),
+			separate: false
 		}
 	];
 
@@ -834,7 +836,7 @@ Phaser.Plugin.ArcadeSlopes.SatRestrainer.prototype.setDefaultRestraints = functi
 		{
 			direction: 'right',
 			neighbour: 'below',
-			types: this.resolve('topLeft', 'top')
+			types: this.resolve('topLeft', 'top', 'bottomRight')
 		}
 	];
 	
@@ -865,7 +867,7 @@ Phaser.Plugin.ArcadeSlopes.SatRestrainer.prototype.setDefaultRestraints = functi
 		{
 			direction: 'left',
 			neighbour: 'below',
-			types: this.resolve('top', 'topRight')
+			types: this.resolve('top', 'topRight', 'bottomLeft')
 		}
 	];
 	
@@ -945,12 +947,13 @@ Phaser.Plugin.ArcadeSlopes.SatRestrainer.prototype.setDefaultRestraints = functi
 		{
 			direction: 'left',
 			neighbour: 'left',
-			types: this.resolve('topRight', 'right')
+			types: this.resolve('topRight', 'right'),
+			separate: false
 		},
 		{
 			direction: 'down',
 			neighbour: 'left',
-			types: this.resolve('topRight', 'right')
+			types: this.resolve('bottomLeft', 'topRight', 'right')
 		}
 	];
 	
@@ -976,12 +979,13 @@ Phaser.Plugin.ArcadeSlopes.SatRestrainer.prototype.setDefaultRestraints = functi
 		{
 			direction: 'right',
 			neighbour: 'right',
-			types: this.resolve('topLeft', 'left')
+			types: this.resolve('topLeft', 'left'),
+			separate: false
 		},
 		{
 			direction: 'down',
 			neighbour: 'right',
-			types: this.resolve('topLeft', 'left')
+			types: this.resolve('bottomRight', 'topLeft', 'left')
 		}
 	];
 	
@@ -1050,7 +1054,7 @@ Phaser.Plugin.ArcadeSlopes.SatRestrainer.prototype.resolve = function () {
 			continue;
 		}
 		
-		var vertexMap = Phaser.Plugin.ArcadeSlopes.SatRestrainer[location + 'Vertices'];
+		var vertexMap = Array.prototype.slice.call(Phaser.Plugin.ArcadeSlopes.SatRestrainer[location + 'Vertices']);
 		
 		// If we only have one location to match, we can return its vertex map
 		if (arguments.length === 1) {
@@ -1201,7 +1205,8 @@ Phaser.Plugin.ArcadeSlopes.SatRestrainer.bottomLeftVertices = [
 	'QUARTER_BOTTOM_RIGHT_HIGH',
 	'QUARTER_LEFT_TOP_HIGH',
 	'QUARTER_LEFT_BOTTOM_LOW',
-	'QUARTER_LEFT_BOTTOM_HIGH'
+	'QUARTER_LEFT_BOTTOM_HIGH',
+	'QUARTER_RIGHT_BOTTOM_LOW'
 ];
 
 /**
