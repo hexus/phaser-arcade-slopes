@@ -25,7 +25,11 @@
  *       axis-aligned overlap vectors, not anything else.
  *
  * TODO: Move away from these heuristics and start flagging edge visibility
- *       automatically, if that could at all work out as well as this.
+ *       automatically, if that could at all work out as well as this has.
+ *       Imagine using the normals of each face to prevent separation on
+ *       that axis, and instead using the next shortest axis to collide.
+ *       TL;DR: Disable separation on the normals of internal faces
+ *       by flagging them and further customising SAT.js.
  * 
  * @class Phaser.Plugin.ArcadeSlopes.SatRestrainer
  * @constructor
@@ -34,7 +38,7 @@ Phaser.Plugin.ArcadeSlopes.SatRestrainer = function () {
 	/**
 	 * Restraint definitions for SAT collision handling.
 	 *
-	 * Each restraint is an array of rules, keyed by a tile slope type.
+	 * Each restraint is an array of rules, keyed by a corresponding tile type.
 	 *
 	 * Each rule defines a neighbour to check, overlap ranges to match and
 	 * optionally neighbouring tile slope types to match (the same type is used
@@ -48,7 +52,7 @@ Phaser.Plugin.ArcadeSlopes.SatRestrainer = function () {
 	 *       overlapX:  {integer}|[{integer}, {integer}]
 	 *       overlapY:  {integer}|[{integer}, {integer}]
 	 *       types:     {array of neighbour TileSlope type constants}
-	 *       separate:  {boolean}
+	 *       separate:  {boolean|function(body, tile, response)}
 	 *    },
 	 *    {
 	 *      ...
@@ -61,6 +65,7 @@ Phaser.Plugin.ArcadeSlopes.SatRestrainer = function () {
 	 *       neighbour: 'above'|'below'|'left'|'right'|'topLeft'|'topRight'|'bottomLeft'|'bottomRight'
 	 *       direction: 'up'|'down'|'left'|'right'
 	 *       types:     {array of neighbour TileSlope type constants}
+	 *       separate:  {boolean=true|function(body, tile, response)}
 	 *     },
 	 *     {
 	 *       ...
@@ -130,8 +135,15 @@ Phaser.Plugin.ArcadeSlopes.SatRestrainer.prototype.restrain = function (solver, 
 		
 		// Return false if the restraint condition has been matched
 		if (condition) {
+			var separate = restraint.separate;
+			
+			// Resolve the restraint separation decision if it's a function
+			if (typeof separate === 'function') {
+				separate = separate.call(this, body, tile, response);
+			}
+			
 			// Collide on the tile's preferred axis if desired and available
-			if (restraint.separate && tile.slope.axis) {
+			if (separate && tile.slope.axis) {
 				solver.collideOnAxis(body, tile, tile.slope.axis);
 			}
 			
@@ -216,7 +228,7 @@ Phaser.Plugin.ArcadeSlopes.SatRestrainer.prepareRestraints = function(restraints
 			}
 			
 			// Conveniently set separate to true unless it's already false
-			if (rule.separate !== false) {
+			if (rule.separate !== false && typeof rule.separate !== 'function') {
 				rule.separate = true;
 			}
 		}
@@ -377,7 +389,10 @@ Phaser.Plugin.ArcadeSlopes.SatRestrainer.prototype.setDefaultRestraints = functi
 		{
 			direction: 'right',
 			neighbour: 'right',
-			types: this.resolve('left', 'bottomLeft')
+			types: this.resolve('left', 'bottomLeft'),
+			separate: function (body, tile) {
+				return body.bottom < tile.bottom;
+			}
 		},
 		{
 			direction: 'up',
@@ -409,7 +424,10 @@ Phaser.Plugin.ArcadeSlopes.SatRestrainer.prototype.setDefaultRestraints = functi
 		{
 			direction: 'left',
 			neighbour: 'left',
-			types: this.resolve('right', 'bottomRight')
+			types: this.resolve('right', 'bottomRight'),
+			separate: function (body, tile) {
+				return body.bottom < tile.bottom;
+			}
 		},
 		{
 			direction: 'up',
@@ -422,7 +440,10 @@ Phaser.Plugin.ArcadeSlopes.SatRestrainer.prototype.setDefaultRestraints = functi
 		{
 			direction: 'up',
 			neighbour: 'above',
-			types: this.resolve('topLeft', 'left')
+			types: this.resolve('topLeft', 'left'),
+			separate: function (body, tile) {
+				return body.left > tile.left;
+			}
 		},
 		{
 			direction: 'right',
@@ -440,7 +461,8 @@ Phaser.Plugin.ArcadeSlopes.SatRestrainer.prototype.setDefaultRestraints = functi
 		{
 			direction: 'down',
 			neighbour: 'below',
-			types: this.resolve('topLeft', 'top')
+			types: this.resolve('topLeft', 'top'),
+			separate: false
 		},
 		{
 			direction: 'right',
@@ -453,7 +475,10 @@ Phaser.Plugin.ArcadeSlopes.SatRestrainer.prototype.setDefaultRestraints = functi
 		{
 			direction: 'up',
 			neighbour: 'above',
-			types: this.resolve('bottom', 'bottomRight')
+			types: this.resolve('bottom', 'bottomRight'),
+			separate: function (body, tile) {
+				return body.right < tile.right;
+			}
 		},
 		{
 			direction: 'left',
@@ -471,7 +496,8 @@ Phaser.Plugin.ArcadeSlopes.SatRestrainer.prototype.setDefaultRestraints = functi
 		{
 			direction: 'down',
 			neighbour: 'below',
-			types: this.resolve('top', 'topRight')
+			types: this.resolve('top', 'topRight'),
+			separate: false
 		},
 		{
 			direction: 'left',
@@ -489,7 +515,8 @@ Phaser.Plugin.ArcadeSlopes.SatRestrainer.prototype.setDefaultRestraints = functi
 		{
 			direction: 'right',
 			neighbour: 'above',
-			types: this.resolve('bottomLeft', 'bottom')
+			types: this.resolve('bottomLeft', 'bottom'),
+			separate: false
 		},
 		{
 			direction: 'down',
@@ -507,7 +534,10 @@ Phaser.Plugin.ArcadeSlopes.SatRestrainer.prototype.setDefaultRestraints = functi
 		{
 			direction: 'down',
 			neighbour: 'below',
-			types: this.resolve('topLeft', 'top')
+			types: this.resolve('topLeft', 'top'),
+			separate: function (body, tile) {
+				return body.left > tile.left;
+			}
 		}
 	];
 	
@@ -520,7 +550,8 @@ Phaser.Plugin.ArcadeSlopes.SatRestrainer.prototype.setDefaultRestraints = functi
 		{
 			direction: 'left',
 			neighbour: 'above',
-			types: this.resolve('bottom', 'bottomRight')
+			types: this.resolve('bottom', 'bottomRight'),
+			separate: false
 		},
 		{
 			direction: 'down',
@@ -543,7 +574,10 @@ Phaser.Plugin.ArcadeSlopes.SatRestrainer.prototype.setDefaultRestraints = functi
 		{
 			direction: 'down',
 			neighbour: 'below',
-			types: this.resolve('top', 'topRight')
+			types: this.resolve('top', 'topRight'),
+			separate: function (body, tile) {
+				return body.right < tile.right;
+			}
 		}
 	];
 	
@@ -570,7 +604,10 @@ Phaser.Plugin.ArcadeSlopes.SatRestrainer.prototype.setDefaultRestraints = functi
 		{
 			direction: 'right',
 			neighbour: 'right',
-			types: this.resolve('topLeft', 'left')
+			types: this.resolve('topLeft', 'left'),
+			separate: function (body, tile) {
+				return body.top > tile.top;
+			}
 		},
 		{
 			direction: 'down',
@@ -602,7 +639,10 @@ Phaser.Plugin.ArcadeSlopes.SatRestrainer.prototype.setDefaultRestraints = functi
 		{
 			direction: 'left',
 			neighbour: 'left',
-			types: this.resolve('topRight', 'right')
+			types: this.resolve('topRight', 'right'),
+			separate: function (body, tile) {
+				return body.top > tile.top;
+			}
 		},
 		{
 			direction: 'down',
