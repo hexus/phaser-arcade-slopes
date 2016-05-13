@@ -99,53 +99,77 @@ this.game.slopes.solvers.sat.options.preferY = true;
 
 The Ninja Physics engine provides the same tiles (in fact, a few more) but is
 now deprecated and lacking in features that I was in need of, like robust
-collision flags and a way to stop AABBs catching on tiles. So I built this.
+collision flags and a way to stop AABBs catching on tiles. 
+
+Ninja Physics also wasn't as concise or as well divided as I'd have liked. I
+wanted something that I could understand well, and what better way to learn
+than to build something yourself?
+
+So I built this.
 
 ## Roadmap
 
-- [ ] Full support for body and tile collision callbacks
-- [ ] An Arcade Slopes tilesheet
-  - [ ] Image files
-  - [ ] Automatic mapping from Tiled
-- [ ] Keeping bodies on slopes
-- [ ] Friction
-- [ ] Debugging
-  - [ ] Collision vectors
-  - [ ] Tile face properties
-  - [ ] Tile polygons
-- [ ] [Metroid collision solver](https://github.com/geselle-jan/Metroid/commit/9c213e9f5779df1dcd6f7d2bed2a9b676a9e3c6b#diff-467b4e6069f6692511fc5e60f3c426cc)
-- [ ] More consistent naming
-  - [ ] Tile slope type constants
-  - [ ] Direction/neighbour names
-- [ ] Swept intersection tests
-- [ ] Automatically generated tile maps
-- [ ] Memory consumption improvements
+- [ ] v0.1.0
+  - [ ] Full support for body and tile collision callbacks
+  - [ ] Keeping bodies on slopes
+  - [ ] Friction
+  - [ ] An Arcade Slopes tile sheet
+    - [ ] Premade tilesheets
+    - [ ] Automatic mapping from Tiled
+    - [ ] Tilesheet generator
+- [ ] v0.2.0
+  - [ ] Debugging
+    - [ ] Collision vectors
+    - [ ] Tile face properties
+    - [ ] Tile polygons
+  - [ ] [Metroid collision solver](https://github.com/geselle-jan/Metroid/commit/9c213e9f5779df1dcd6f7d2bed2a9b676a9e3c6b#diff-467b4e6069f6692511fc5e60f3c426cc)
+- [ ] v0.3.0
+  - [ ] Replace heuristics with custom SAT implementation that automates the
+    prevention of internal edge collisions ([like this](http://www.wildbunny.co.uk/blog/2012/10/31/2d-polygonal-collision-detection-and-internal-edges/comment-page-1/#comment-1978))
+  - [ ] More consistent naming
+    - [ ] Tile slope type constants
+    - [ ] Direction/neighbour names
+  - [ ] Swept intersection tests
+  - [ ] Memory consumption improvements
 
 ## Building
 
-This plugin is built fairly simply and isn't properly modular, as I wanted it to
-keep in line with Phaser's coding standards for the most part.
+This plugin is built fairly simply and isn't properly modular. I wanted it to
+keep in line with Phaser's coding standards so that anyone familiar with its
+source could understand this plugin with relative ease.
 
 If you want to build the plugin yourself from source, install Bower, clone the
 repository and run NPM, Bower and Gulp like so.
 
-```
+```bash
 npm i -g bower
 npm install
 bower install
 gulp build
 ```
 
+There's also a watch task that runs the build task whenever you make changes
+to the source.
+
+```bash
+gulp watch
+```
+
 ## Thanks
 
 My thanks go out to those made this Plugin possible.
 
-- [Richard Davey](https://twitter.com/photonstorm) - for Phaser :rocket:; what an
-  incredible framework
-- [jriecken](https://github.com/jriecken) - [SAT.js](https://github.com/jriecken/sat-js) is awesome and saved me loads of time
+- [Richard Davey](https://twitter.com/photonstorm) - for Phaser :rocket:; what
+  an incredible framework
+- [jriecken](https://github.com/jriecken) - [SAT.js](https://github.com/jriecken/sat-js)
+  is awesome and saved me loads of time
 - [Metanet](http://www.metanetsoftware.com/) - for their incredibly helpful
   tutorials involving SAT, as well as bounce and friction calculation
 - [Oliver Renault](http://elancev.name/oliver/2D%20polygon.htm#tut4) - also for
   their tutorial on 2D polygon collision and response (from 2004!)
-- Bethany - for listening to me blabber on about slopes for about a month
+- [Jan Geselle](https://github.com/geselle-jan) - for writing [a sloped tile
+  implementation](https://github.com/geselle-jan/Metroid/commit/9c213e9f5779df1dcd6f7d2bed2a9b676a9e3c6b#diff-467b4e6069f6692511fc5e60f3c426ccR158)
+  in Phaser that finally made me believe I could write a plugin for the same 
+  purpose
+- Bethany - for listening to me blabber on about slopes for well over a month
   :full_moon_with_face:
