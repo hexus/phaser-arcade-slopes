@@ -165,11 +165,22 @@ Phaser.Plugin.ArcadeSlopes.prototype.enable = function (object) {
  * @param {Phaser.Physics.Arcade.Body} body - The physics body to enable.
  */
 Phaser.Plugin.ArcadeSlopes.prototype.enableBody = function (body) {
+	// Create an SAT polygon from the body's bounding box
 	body.polygon = new SAT.Box(
 		new SAT.Vector(body.x, body.y),
 		body.width,
 		body.height
 	).toPolygon();
+	
+	// Attach a new set of properties that configure the body's interaction
+	// with sloped tiles (TODO: Formalize as a class?)
+	body.slopes = {
+		friction: new Phaser.Point(),
+		preferY: false,
+		sat: {
+			response: null,
+		}
+	};
 };
 
 /**

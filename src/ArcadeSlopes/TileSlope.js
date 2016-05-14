@@ -79,8 +79,6 @@ Phaser.Plugin.ArcadeSlopes.TileSlope = function (type, tile, polygon, line, edge
 	this.friction = new Phaser.Point();
 };
 
-
-
 /**
  * Resolve a tile slope type constant from the given value.
  *
@@ -104,6 +102,22 @@ Phaser.Plugin.ArcadeSlopes.TileSlope.resolveType = function (type) {
 	
 	return -1;
 };
+
+/**
+ * The slope of the tile.
+ *
+ * @name Phaser.Plugin.ArcadeSlopes.TileSlope#slope
+ * @property {number} slope
+ */
+Object.defineProperty(Phaser.Plugin.ArcadeSlopes.TileSlope.prototype, 'slope', {
+	get: function () {
+		if (!this.line) {
+			return 0;
+		}
+		
+		return (this.line.start.y - this.line.end.y) / (this.line.start.x - this.line.end.x);
+	}
+});
 
 /**
  * The name of the tile slope type.
