@@ -166,30 +166,40 @@ var ArcadeSlopesDemo = (function(Phaser) {
 		},
 		
 		update: function () {
-			// Keep the particle emitter attached to the player (probably a better way)
-			this.emitter.x = this.player.x + this.player.body.halfWidth;
-			this.emitter.y = this.player.y + this.player.body.halfHeight;
+			// Define some shortcuts to some useful objects
+			var body = this.player.body;
+			var camera = this.camera;
+			var gravity = this.physics.arcade.gravity;
+			var blocked = body.blocked;
+			var touching = body.touching;
+			var controls = this.controls;
 			
-			if (this.controls.gravity.justDown) {
-				if (this.physics.arcade.gravity.y) {
-					this.physics.arcade.gravity.y = 0;
-					this.player.body.drag.y = 1200;
+			// Keep the particle emitter attached to the player (though there's
+			// probably a better way)
+			this.emitter.x = this.player.x + body.halfWidth;
+			this.emitter.y = this.player.y + body.halfHeight;
+			
+			if (controls.gravity.justDown) {
+				if (gravity.y) {
+					gravity.y = 0;
+					body.drag.y = 1200;
 				} else {
-					this.physics.arcade.gravity.y = 1000;
-					this.player.body.drag.y = 0;
+					gravity.y = 1000;
+					body.drag.y = 0;
 				}
-				//this.physics.arcade.gravity.y = -this.physics.arcade.gravity.y;
+				
+				// this.physics.arcade.gravity.y = -this.physics.arcade.gravity.y;
 			}
 			
-			if (this.controls.follow.justDown) {
-				if (this.camera.target) {
-					this.camera.unfollow();
+			if (controls.follow.justDown) {
+				if (camera.target) {
+					camera.unfollow();
 				} else {
-					this.camera.follow(this.player);
+					camera.follow(this.player);
 				}
 			}
 			
-			if (this.controls.particles.justDown) {
+			if (controls.particles.justDown) {
 				if (this.emitter.on) {
 					this.emitter.kill();
 				} else {
@@ -197,7 +207,7 @@ var ArcadeSlopesDemo = (function(Phaser) {
 				}
 			}
 			
-			if (this.controls.toggle.justDown) {
+			if (controls.toggle.justDown) {
 				if (this.game.slopes) {
 					this.game.plugins.remove(this.game.slopes);
 				} else {
@@ -208,22 +218,16 @@ var ArcadeSlopesDemo = (function(Phaser) {
 			
 			// Camera shake for the fun of it
 			if (this.input.keyboard.isDown(Phaser.KeyCode.H)) {
-				this.camera.shake(0.005, 50); // Very cool
+				camera.shake(0.005, 50); // Very cool
 			}
 			
 			// Collide the player against the collision layer
 			this.physics.arcade.collide(this.player, this.ground);
 			//this.physics.arcade.collide(this.emitter, this.player);
-			//this.physics.arcade.collide(this.emitter, this.emitter); // This kills performance, haha
+			//this.physics.arcade.collide(this.emitter, this.emitter); // This kills performance, no surprise, haha
 			
 			// Collide the particles against the collision layer
 			this.physics.arcade.collide(this.emitter, this.ground);
-			
-			// Set some shortcuts to some useful objects
-			var body = this.player.body;
-			var controls = this.controls;
-			var blocked = this.player.body.blocked;
-			var touching = this.player.body.touching;
 
 			// Reset the player acceleration
 			body.acceleration.x = 0;
@@ -241,26 +245,32 @@ var ArcadeSlopesDemo = (function(Phaser) {
 			
 			// Move down
 			if (controls.down.isDown) {
-				body.acceleration.y = Math.abs(this.physics.arcade.gravity.y) + 1000;
+				body.acceleration.y = Math.abs(gravity.y) + 1000;
 			}
 			
 			// Jump, and wall jump
 			if (controls.up.isDown) {
-				if (!(blocked.down || blocked.up || touching.up)) {
-					// Would be even better to use collision normals here
-					if (blocked.left || touching.left) {
-						body.velocity.x = 300;
-						body.velocity.y = -500;
+				if (gravity.y) {
+					// Wall jumping
+					if (!(blocked.down || blocked.up || touching.up)) {
+						// Would be even better to use collision normals here
+						if (blocked.left || touching.left) {
+							body.velocity.x = 300;
+							body.velocity.y = -500;
+						}
+						
+						if (blocked.right || touching.right) {
+							body.velocity.x = -250;
+							body.velocity.y = -500;
+						}
 					}
 					
-					if (blocked.right || touching.right) {
-						body.velocity.x = -250;
+					// Jumping
+					if (blocked.down || touching.down || !this.physics.arcade.gravity.y) {
 						body.velocity.y = -500;
 					}
-				}
-				
-				if (blocked.down || touching.down || !this.physics.arcade.gravity.y) {
-					body.velocity.y = -500;
+				} else {
+					body.acceleration.y = -Math.abs(gravity.y) - 1000;
 				}
 			}
 			
