@@ -118,8 +118,8 @@ learn than to build something yourself?
     - [x] `physics.arcade.collide` callbacks
     - [x] Tile callbacks
   - [ ] Sticky slopes
-  - [ ] Friction
-  - [ ] `body.slope` properties for friction, sticky slopes, preferred
+  - [x] Friction
+  - [x] `body.slope` properties for friction, sticky slopes, preferred
     separation axis and last overlap response
 - [ ] v0.2.0
   - [ ] Arcade Slopes tilesheet
