@@ -93,10 +93,13 @@ Phaser.Plugin.ArcadeSlopes.prototype.init = function () {
 	// Keep a reference to the original collideSpriteVsTilemapLayer method
 	this.originalCollideSpriteVsTilemapLayer = Phaser.Physics.Arcade.prototype.collideSpriteVsTilemapLayer;
 	
-	// Replace the original with the Arcade Slopes override
+	// Replace the original method with the Arcade Slopes override, along with
+	// some extra methods that break down the functionality a little more
+	Phaser.Physics.Arcade.prototype.collideSpriteVsTile = Phaser.Plugin.ArcadeSlopes.Overrides.collideSpriteVsTile;
+	Phaser.Physics.Arcade.prototype.collideSpriteVsTiles = Phaser.Plugin.ArcadeSlopes.Overrides.collideSpriteVsTiles;
 	Phaser.Physics.Arcade.prototype.collideSpriteVsTilemapLayer = Phaser.Plugin.ArcadeSlopes.Overrides.collideSpriteVsTilemapLayer;
 	
-	// Add some helpful methods to the Tilemap class
+	// Add some extra neighbour methods to the Tilemap class
 	Phaser.Tilemap.prototype.getTileTopLeft = Phaser.Plugin.ArcadeSlopes.Overrides.getTileTopLeft;
 	Phaser.Tilemap.prototype.getTileTopRight = Phaser.Plugin.ArcadeSlopes.Overrides.getTileTopRight;
 	Phaser.Tilemap.prototype.getTileBottomLeft = Phaser.Plugin.ArcadeSlopes.Overrides.getTileBottomLeft;
@@ -112,10 +115,12 @@ Phaser.Plugin.ArcadeSlopes.prototype.destroy = function () {
 	// Null the game's reference to the facade.
 	this.game.slopes = null;
 	
-	// Restore the original collideSpriteVsTilemapLayer method
+	// Restore the original collideSpriteVsTilemapLayer method and null the rest
+	Phaser.Physics.Arcade.prototype.collideSpriteVsTile = null;
+	Phaser.Physics.Arcade.prototype.collideSpriteVsTiles = null;
 	Phaser.Physics.Arcade.prototype.collideSpriteVsTilemapLayer = this.originalCollideSpriteVsTilemapLayer;
 	
-	// Remove the helpful methods from the Tilemap class.
+	// Remove the extra neighbour methods from the Tilemap class
 	Phaser.Tilemap.prototype.getTileTopLeft = null;
 	Phaser.Tilemap.prototype.getTileTopRight = null;
 	Phaser.Tilemap.prototype.getTileBottomLeft = null;
@@ -126,7 +131,7 @@ Phaser.Plugin.ArcadeSlopes.prototype.destroy = function () {
 };
 
 /**
- * Enable the physics body of the given sprite for sloped tile interaction.
+ * Enable the physics body of the given object for sloped tile interaction.
  *
  * @method Phaser.Plugin.ArcadeSlopes#enable
  * @param {Phaser.Sprite|Phaser.Group} object - The object to enable sloped tile physics for.

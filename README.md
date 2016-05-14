@@ -1,7 +1,12 @@
 # Phaser Arcade Slopes Plugin :triangular_ruler:
 
-**Arcade Slopes** brings sloped tile collision handling to Phaser's Arcade
-Physics engine.
+**Arcade Slopes** brings sloped tile collision handling to
+[Phaser](http://phaser.io)'s [Arcade
+Physics](http://phaser.io/examples/v2/category/arcade-physics) engine.
+
+## Demo
+
+Check out the **[demo](http://hexus.github.io/phaser-arcade-slopes)**!
 
 ## Features
 
@@ -9,7 +14,8 @@ Physics engine.
 - SAT-driven collision handling :ok_hand:
 - Unobtrusive and cooperative integration with Arcade Physics :v:
 - Heuristic SAT restraints that prevent AABBs catching on hidden edges :clap:
-- Works with sprites :rocket:, groups :busts_in_silhouette: and particle emitters :sparkles:
+- Works with sprites :rocket:, groups :busts_in_silhouette: and particle
+  emitters :sparkles:
 
 ## Usage
 
@@ -99,33 +105,35 @@ this.game.slopes.solvers.sat.options.preferY = true;
 
 The Ninja Physics engine provides the same tiles (in fact, a few more) but is
 now deprecated and lacking in features that I was in need of, like robust
-collision flags and a way to stop AABBs catching on tiles. 
+collision flags and a way to stop AABBs catching on tiles.
 
-Ninja Physics also wasn't as concise or as well divided as I'd have liked. I
-wanted something that I could understand well, and what better way to learn
-than to build something yourself?
-
-So I built this.
+The implementation also wasn't as concise or as well-divided as I'd have
+liked. I wanted something that I could understand well, and what better way to
+learn than to build something yourself?
 
 ## Roadmap
 
 - [ ] v0.1.0
-  - [ ] Full support for body and tile collision callbacks
-  - [ ] Keeping bodies on slopes
+  - [ ] Full support for collision callbacks
+    - [x] `physics.arcade.collide` callbacks
+    - [ ] Tile callbacks
+  - [ ] Sticky slopes
   - [ ] Friction
+  - [ ] `body.slope` properties for friction, sticky slopes and preferred
+    separation axis
   - [ ] An Arcade Slopes tile sheet
     - [ ] Premade tilesheets
     - [ ] Automatic mapping from Tiled
     - [ ] Tilesheet generator
 - [ ] v0.2.0
-  - [ ] Debugging
+  - [ ] Graphical debug output
     - [ ] Collision vectors
     - [ ] Tile face properties
     - [ ] Tile polygons
   - [ ] [Metroid collision solver](https://github.com/geselle-jan/Metroid/commit/9c213e9f5779df1dcd6f7d2bed2a9b676a9e3c6b#diff-467b4e6069f6692511fc5e60f3c426cc)
 - [ ] v0.3.0
-  - [ ] Replace heuristics with custom SAT implementation that automates the
-    prevention of internal edge collisions ([like this](http://www.wildbunny.co.uk/blog/2012/10/31/2d-polygonal-collision-detection-and-internal-edges/comment-page-1/#comment-1978))
+  - [ ] Custom SAT.js implementation that can prevent internal edge collisions
+    ([like this](http://www.wildbunny.co.uk/blog/2012/10/31/2d-polygonal-collision-detection-and-internal-edges/comment-page-1/#comment-1978))
   - [ ] More consistent naming
     - [ ] Tile slope type constants
     - [ ] Direction/neighbour names
@@ -157,19 +165,19 @@ gulp watch
 
 ## Thanks
 
-My thanks go out to those made this Plugin possible.
+My thanks go out to those who made this Plugin possible.
 
 - [Richard Davey](https://twitter.com/photonstorm) - for Phaser :rocket:; what
   an incredible framework
-- [jriecken](https://github.com/jriecken) - [SAT.js](https://github.com/jriecken/sat-js)
+- [Jim Riecken](https://github.com/jriecken) - [SAT.js](https://github.com/jriecken/sat-js)
   is awesome and saved me loads of time
 - [Metanet](http://www.metanetsoftware.com/) - for their incredibly helpful
-  tutorials involving SAT, as well as bounce and friction calculation
-- [Oliver Renault](http://elancev.name/oliver/2D%20polygon.htm#tut4) - also for
-  their tutorial on 2D polygon collision and response (from 2004!)
+  tutorials about [collision](http://www.metanetsoftware.com/technique/tutorialA.html)
+  [detection](http://www.metanetsoftware.com/technique/tutorialB.html)
+- [Oliver Renault](http://elancev.name/oliver/2D%20polygon.htm#tut4) - for their
+  tutorial on 2D polygon collision and response (from 2004!)
 - [Jan Geselle](https://github.com/geselle-jan) - for writing [a sloped tile
   implementation](https://github.com/geselle-jan/Metroid/commit/9c213e9f5779df1dcd6f7d2bed2a9b676a9e3c6b#diff-467b4e6069f6692511fc5e60f3c426ccR158)
-  in Phaser that finally made me believe I could write a plugin for the same 
-  purpose
+  in Phaser that gave me the idea to write this plugin
 - Bethany - for listening to me blabber on about slopes for well over a month
   :full_moon_with_face:

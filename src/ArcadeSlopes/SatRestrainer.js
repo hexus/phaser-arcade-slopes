@@ -567,11 +567,6 @@ Phaser.Plugin.ArcadeSlopes.SatRestrainer.prototype.setDefaultRestraints = functi
 			types: this.resolve('bottomRight')
 		},
 		{
-			direction: 'left',
-			neighbour: 'below',
-			types: this.resolve('top', 'topRight')
-		},
-		{
 			direction: 'down',
 			neighbour: 'below',
 			types: this.resolve('top', 'topRight'),

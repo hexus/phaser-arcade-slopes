@@ -79,6 +79,8 @@ Phaser.Plugin.ArcadeSlopes.TileSlope = function (type, tile, polygon, line, edge
 	this.friction = new Phaser.Point();
 };
 
+
+
 /**
  * Resolve a tile slope type constant from the given value.
  *
@@ -89,7 +91,7 @@ Phaser.Plugin.ArcadeSlopes.TileSlope = function (type, tile, polygon, line, edge
  * @param  {string|integer} type - The value to resolve.
  * @return {integer}             - The resolved tile slope type constant.
  */
-Phaser.Plugin.ArcadeSlopes.TileSlope.resolveType = function(type, fallback) {
+Phaser.Plugin.ArcadeSlopes.TileSlope.resolveType = function (type) {
 	if (parseInt(type) > -1) {
 		return type;
 	}
@@ -101,6 +103,72 @@ Phaser.Plugin.ArcadeSlopes.TileSlope.resolveType = function(type, fallback) {
 	console.warn('Unresolved slope type \'' + type + '\'');
 	
 	return -1;
+};
+
+/**
+ * The name of the tile slope type.
+ *
+ * @name Phaser.Plugin.ArcadeSlopes.TileSlope#typeName
+ * @property {string} typeName
+ */
+Object.defineProperty(Phaser.Plugin.ArcadeSlopes.TileSlope.prototype, 'typeName', {
+	get: function () {
+		return Phaser.Plugin.ArcadeSlopes.TileSlope.resolveTypeName(this.type);
+	},
+	set: function (type) {
+		this.type = Phaser.Plugin.ArcadeSlopes.TileSlope.resolveType(type);
+	}
+});
+
+/**
+ * Resolve a tile slope type name from the given type constant.
+ *
+ * @static
+ * @method Phaser.Plugin.ArcadeSlopes.TileSlope#resolveTypeName
+ * @param  {integer} type - The type constant.
+ * @return {integer}      - The type name.
+ */
+Phaser.Plugin.ArcadeSlopes.TileSlope.resolveTypeName = function (type) {
+	if (Phaser.Plugin.ArcadeSlopes.TileSlope.typeNames.hasOwnProperty(type)) {
+		return Phaser.Plugin.ArcadeSlopes.TileSlope.typeNames[type];
+	}
+	
+	return Phaser.Plugin.ArcadeSlopes.TileSlope.typeNames[-1];
+};
+
+/**
+ * The map of tile slope types to their corresponding type names.
+ *
+ * @static
+ * @property {object} typeNames
+ */
+Phaser.Plugin.ArcadeSlopes.TileSlope.typeNames = {
+	'-1': 'UNKNOWN',
+	0:  'FULL',
+	21: 'HALF_BOTTOM',
+	22: 'HALF_TOP',
+	23: 'HALF_LEFT',
+	24: 'HALF_RIGHT',
+	1:  'HALF_BOTTOM_LEFT',
+	2:  'HALF_BOTTOM_RIGHT',
+	3:  'HALF_TOP_LEFT',
+	4:  'HALF_TOP_RIGHT',
+	5:  'QUARTER_BOTTOM_LEFT_LOW',
+	6:  'QUARTER_BOTTOM_LEFT_HIGH',
+	7:  'QUARTER_BOTTOM_RIGHT_LOW',
+	8:  'QUARTER_BOTTOM_RIGHT_HIGH',
+	9:  'QUARTER_LEFT_BOTTOM_LOW',
+	10: 'QUARTER_LEFT_BOTTOM_HIGH',
+	11: 'QUARTER_RIGHT_BOTTOM_LOW',
+	12: 'QUARTER_RIGHT_BOTTOM_HIGH',
+	13: 'QUARTER_LEFT_TOP_LOW',
+	14: 'QUARTER_LEFT_TOP_HIGH',
+	15: 'QUARTER_RIGHT_TOP_LOW',
+	16: 'QUARTER_RIGHT_TOP_HIGH',
+	17: 'QUARTER_TOP_LEFT_LOW',
+	18: 'QUARTER_TOP_LEFT_HIGH',
+	19: 'QUARTER_TOP_RIGHT_LOW',
+	20: 'QUARTER_TOP_RIGHT_HIGH',
 };
 
 // TODO: Misleading constants here - they aren't tile slope types, they're edges
@@ -128,6 +196,14 @@ Phaser.Plugin.ArcadeSlopes.TileSlope.SOLID = 1;
  * @type {integer}
  */
 Phaser.Plugin.ArcadeSlopes.TileSlope.INTERESTING = 2;
+
+/**
+ * An undefined tile slope type.
+ *
+ * @constant
+ * @type {integer}
+ */
+Phaser.Plugin.ArcadeSlopes.TileSlope.UNKNOWN = -1;
 
 /**
  * A full square tile.
