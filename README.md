@@ -121,11 +121,14 @@ learn than to build something yourself?
   - [ ] Friction
   - [ ] `body.slope` properties for friction, sticky slopes and preferred
     separation axis
-  - [ ] An Arcade Slopes tile sheet
-    - [ ] Premade tilesheets
-    - [ ] Automatic mapping from Tiled
-    - [ ] Tilesheet generator
 - [ ] v0.2.0
+  - [ ] Arcade Slopes tilesheet
+    - [ ] Premade tilesheets
+    - [ ] Tilesheet generator
+  - [ ] Mapping shortcuts
+    - [ ] Ninja Physics debug tilesheet
+    - [ ] Arcade Slopes tilesheet
+    - [ ] Tile properties (`tile.properties.type`)
   - [ ] Graphical debug output
     - [ ] Collision vectors
     - [ ] Tile face properties
