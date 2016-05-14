@@ -199,9 +199,11 @@ Phaser.Plugin.ArcadeSlopes.SatSolver.prototype.separate = function (body, tile, 
 		return false;
 	}
 	
-	// TODO: Check for custom tile callbacks.
-	
-	if (!tile.collides) {
+	// Run any custom tile callbacks, with local callbacks taking priority over
+	// layer level callbacks
+	if (tile.collisionCallback && !tile.collisionCallback.call(tile.collisionCallbackContext, body.sprite, tile)) {
+		return false;
+	} else if (tile.layer.callbacks[tile.index] && !tile.layer.callbacks[tile.index].callback.call(tile.layer.callbacks[tile.index].callbackContext, body.sprite, tile)) {
 		return false;
 	}
 	
@@ -289,7 +291,7 @@ Phaser.Plugin.ArcadeSlopes.SatSolver.prototype.updateFlags = function (body, res
  */
 Phaser.Plugin.ArcadeSlopes.SatSolver.prototype.collide = function (i, body, tile, overlapOnly) {
 	// Bail out if we don't have everything we need
-	if (!body.enable || !body.polygon || !tile.slope || !tile.slope.polygon) {
+	if (!(body.enable && body.polygon && tile.collides && tile.slope && tile.slope.polygon)) {
 		return false;
 	}
 	
@@ -344,7 +346,7 @@ Phaser.Plugin.ArcadeSlopes.SatSolver.prototype.collide = function (i, body, tile
  */
 Phaser.Plugin.ArcadeSlopes.SatSolver.prototype.collideOnAxis = function (body, tile, axis, response) {
 	// Bail out if we don't have everything we need
-	if (!(body.polygon && tile.slope && tile.slope.polygon)) {
+	if (!(body.enable && body.polygon && tile.slope && tile.slope.polygon)) {
 		return false;
 	}
 	
@@ -380,7 +382,7 @@ Phaser.Plugin.ArcadeSlopes.SatSolver.prototype.collideOnAxis = function (body, t
  * @return {boolean}                             - Whether to pursue the narrow phase.
  */
 Phaser.Plugin.ArcadeSlopes.SatSolver.prototype.shouldSeparate = function (i, body, tile, response) {
-	if (!response.overlap) {
+	if (!body.enable || !response.overlap) {
 		return false;
 	}
 	

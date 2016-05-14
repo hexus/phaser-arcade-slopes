@@ -114,13 +114,13 @@ learn than to build something yourself?
 ## Roadmap
 
 - [ ] v0.1.0
-  - [ ] Full support for collision callbacks
+  - [x] Full support for collision callbacks
     - [x] `physics.arcade.collide` callbacks
-    - [ ] Tile callbacks
+    - [x] Tile callbacks
   - [ ] Sticky slopes
   - [ ] Friction
-  - [ ] `body.slope` properties for friction, sticky slopes and preferred
-    separation axis
+  - [ ] `body.slope` properties for friction, sticky slopes, preferred
+    separation axis and last overlap response
 - [ ] v0.2.0
   - [ ] Arcade Slopes tilesheet
     - [ ] Premade tilesheets
