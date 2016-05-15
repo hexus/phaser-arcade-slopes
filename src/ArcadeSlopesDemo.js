@@ -27,6 +27,7 @@ var ArcadeSlopesDemo = (function(Phaser) {
 			// Give it a bit of a boost ;)
 			this.game.plugins.add(Phaser.Plugin.ArcadeSlopes);
 			
+			// Set the stage background colour
 			this.stage.backgroundColor = '#8d549b';
 			
 			// Add the demo tilemap and attach a tilesheet for its collision layer
@@ -92,12 +93,18 @@ var ArcadeSlopesDemo = (function(Phaser) {
 			
 			this.physics.arcade.enable(this.player);
 			this.game.slopes.enable(this.player);
-			this.game.slopes.solvers.sat.options.preferY = true;
+			this.player.body.slopes.preferY = true;
+			//this.player.body.slopes.snapDown = 1;
+			//this.player.body.slopes.snapLeft = 1;
+			//this.player.body.slopes.snapRight = 1;
+			//this.player.body.tilePadding.x = 1;
+			//this.player.body.tilePadding.y = 1;
 			
 			this.player.body.drag.x = 1200;
 			this.player.body.bounce.x = 0;
 			this.player.body.bounce.y = 0;
-			//this.player.body.friction.x = 1; // Not yet supported by ArcadeSlopes (may even become body.slopes.friction)
+			this.player.body.slopes.friction.x = 0;
+			this.player.body.slopes.friction.y = 0;
 			this.player.body.maxVelocity.x = 500;
 			this.player.body.maxVelocity.y = 1000;
 			this.player.body.collideWorldBounds = true;
