@@ -1,8 +1,24 @@
 body {
 	background: #eee;
+	font-family: sans-serif;
 }
 
 .container {
 	width: 1280px;
 	margin: 0 auto;
+}
+
+.controls {
+	margin-top: 8px;
+}
+
+.controls label {
+	display: inline-block;
+	vertical-align: top;
+}
+
+.controls label input {
+	width: 125.6px;
+	display: block;
+	margin-top: 8px;
 }
