@@ -58,13 +58,13 @@ Phaser.Plugin.ArcadeSlopes.Overrides.collideSpriteVsTile = function (i, sprite, 
  * Collide a sprite against a set of tiles.
  *
  * @method Phaser.Plugin.ArcadeSlopes.Overrides#collideSpriteVsTiles
- * @param {Phaser.Sprite}       sprite           - The sprite to check.
- * @param {Phaser.Tile[]}       tiles            - The tiles to check.
- * @param {function}            collideCallback  - An optional collision callback.
- * @param {function}            processCallback  - An optional overlap processing callback.
- * @param {object}              callbackContext  - The context in which to run the callbacks.
- * @param {boolean}             overlapOnly      - Whether to only check for an overlap.
- * @return {boolean}                             - Whether a collision occurred.
+ * @param  {Phaser.Sprite}       sprite           - The sprite to check.
+ * @param  {Phaser.Tile[]}       tiles            - The tiles to check.
+ * @param  {function}            collideCallback  - An optional collision callback.
+ * @param  {function}            processCallback  - An optional overlap processing callback.
+ * @param  {object}              callbackContext  - The context in which to run the callbacks.
+ * @param  {boolean}             overlapOnly      - Whether to only check for an overlap.
+ * @return {boolean}                              - Whether a collision occurred.
  */
 Phaser.Plugin.ArcadeSlopes.Overrides.collideSpriteVsTiles = function (sprite, tiles, collideCallback, processCallback, callbackContext, overlapOnly) {
 	var collided = false;
@@ -74,14 +74,12 @@ Phaser.Plugin.ArcadeSlopes.Overrides.collideSpriteVsTiles = function (sprite, ti
 	}
 	
 	for (var i = 0; i < tiles.length; i++) {
-		var tile = tiles[i];
-		
 		if (processCallback) {
 			if (processCallback.call(callbackContext, sprite, tiles[i])) {
 				collided = this.collideSpriteVsTile(i, sprite, tiles[i], collideCallback, processCallback, callbackContext, overlapOnly) || collided;
 			}
 		} else {
-			collided = this.collideSpriteVsTile(i, sprite, tile, collideCallback, processCallback, callbackContext, overlapOnly) || collided;
+			collided = this.collideSpriteVsTile(i, sprite, tiles[i], collideCallback, processCallback, callbackContext, overlapOnly) || collided;
 		}
 	}
 	

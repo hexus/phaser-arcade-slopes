@@ -162,11 +162,12 @@ Phaser.Plugin.ArcadeSlopes.SatSolver.prototype.shouldPreferY = function (body, r
  * Determine whether two polygons intersect on a given axis.
  *
  * @static
- * @param  {SAT.Polygon}  a        The first polygon.
- * @param  {SAT.Polygon}  b        The second polygon.
- * @param  {SAT.Vector}   axis     The axis to test.
- * @param  {SAT.Response} response The response to populate.
- * @return {boolean}               Whether a separating axis was found.
+ * @method Phaser.Plugin.ArcadeSlopes.SatSolver#isSeparatingAxis
+ * @param  {SAT.Polygon}  a        - The first polygon.
+ * @param  {SAT.Polygon}  b        - The second polygon.
+ * @param  {SAT.Vector}   axis     - The axis to test.
+ * @param  {SAT.Response} response - The response to populate.
+ * @return {boolean}               - Whether a separating axis was found.
  */
 Phaser.Plugin.ArcadeSlopes.SatSolver.isSeparatingAxis = function (a, b, axis, response) {
 	var result = SAT.isSeparatingAxis(a.pos, b.pos, a.points, b.points, axis, response || null);
@@ -277,7 +278,7 @@ Phaser.Plugin.ArcadeSlopes.SatSolver.prototype.updateFlags = function (body, res
 /**
  * Attempt to snap the body to a given set of tiles based on its slopes options.
  *
- * @method Phaser.Plugin.ArcadeSlopes.SatSolver#attemptSnapping
+ * @method Phaser.Plugin.ArcadeSlopes.SatSolver#snap
  * @param  {Phaser.Physics.Arcade.Body} body  - The physics body.
  * @param  {Phaser.Tile[]}              tiles - The tiles.
  * @return {boolean}                          - Whether the body was snapped to any tiles.
