@@ -1,11 +1,12 @@
 # Arcade Slopes Change Log
 
-## Unreleased
+## v0.1.0-beta - 15th May 2016
+- Friction for physics bodies and tiles
 - Collision callback support, including `physics.arcade.collide()` calls,
   tile-specific callbacks and layer-level tile callbacks
-- Tile slope type name retrieval
-- Arcade body properties that configure the body's interaction with tiles
 - Initial sticky slopes functionality
+- Arcade body properties that configure interaction with tiles
+- Tile slope type name retrieval
 
 ## v0.1.0-alpha3 - 11th May 2016
 - Further improved heuristics

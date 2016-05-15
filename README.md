@@ -98,7 +98,11 @@ If you're making a platformer, your player has drag on the X axis, and you don't
 want it to slide down slopes, try this on for size in your `create()` method:
 
 ```js
-this.game.slopes.solvers.sat.options.preferY = true;
+// Prefer the minimum Y offset globally
+game.slopes.solvers.sat.options.preferY = true;
+
+// Or prefer the minimum Y offset only for a specific physics body
+player.body.slopes.preferY = true;
 ```
 
 ## Why not just use Ninja Physics?
@@ -113,7 +117,7 @@ learn than to build something yourself?
 
 ## Roadmap
 
-- [ ] v0.1.0
+- [x] v0.1.0
   - [x] Full support for collision callbacks
     - [x] `physics.arcade.collide` callbacks
     - [x] Tile callbacks
@@ -150,7 +154,8 @@ keep in line with Phaser's coding standards so that anyone familiar with its
 source could understand this plugin with relative ease.
 
 If you want to build the plugin yourself from source, install Bower, clone the
-repository and run NPM, Bower and Gulp like so.
+repository and run NPM, Bower and Gulp like so. I plan on making this simpler in
+future.
 
 ```bash
 npm i -g bower
