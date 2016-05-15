@@ -117,7 +117,7 @@ learn than to build something yourself?
   - [x] Full support for collision callbacks
     - [x] `physics.arcade.collide` callbacks
     - [x] Tile callbacks
-  - [ ] Sticky slopes
+  - [x] Sticky slopes
   - [x] Friction
   - [x] `body.slope` properties for friction, sticky slopes, preferred
     separation axis and last overlap response
