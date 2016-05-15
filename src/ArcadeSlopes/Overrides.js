@@ -17,17 +17,18 @@ Phaser.Plugin.ArcadeSlopes.Overrides = {};
  * Collide a sprite against a single tile.
  *
  * @method Phaser.Plugin.ArcadeSlopes.Overrides#collideSpriteVsTile
- * @param {integer}             i                - The tile index.
- * @param {Phaser.Sprite}       sprite           - The sprite to check.
- * @param {Phaser.Tile}         tile             - The tile to check.
- * @param {function}            collideCallback  - An optional collision callback.
- * @param {function}            processCallback  - An optional overlap processing callback.
- * @param {object}              callbackContext  - The context in which to run the callbacks.
- * @param {boolean}             overlapOnly      - Whether to only check for an overlap.
+ * @param  {integer}             i                - The tile index.
+ * @param  {Phaser.Sprite}       sprite           - The sprite to check.
+ * @param  {Phaser.Tile}         tile             - The tile to check.
+ * @param  {function}            collideCallback  - An optional collision callback.
+ * @param  {function}            processCallback  - An optional overlap processing callback.
+ * @param  {object}              callbackContext  - The context in which to run the callbacks.
+ * @param  {boolean}             overlapOnly      - Whether to only check for an overlap.
+ * @return {boolean}                              - Whether the sprite was separated.
  */
 Phaser.Plugin.ArcadeSlopes.Overrides.collideSpriteVsTile = function (i, sprite, tile, collideCallback, processCallback, callbackContext, overlapOnly) {
 	if (!sprite.body) {
-		return;
+		return false;
 	}
 	
 	if (tile.hasOwnProperty('slope')) {
@@ -37,6 +38,8 @@ Phaser.Plugin.ArcadeSlopes.Overrides.collideSpriteVsTile = function (i, sprite, 
 			if (collideCallback) {
 				collideCallback.call(callbackContext, sprite, tile);
 			}
+			
+			return true;
 		}
 	} else if (this.separateTile(i, sprite.body, tile, overlapOnly)) {
 		this._total++;
@@ -44,7 +47,11 @@ Phaser.Plugin.ArcadeSlopes.Overrides.collideSpriteVsTile = function (i, sprite, 
 		if (collideCallback) {
 			collideCallback.call(callbackContext, sprite, tile);
 		}
+		
+		return true;
 	}
+	
+	return false;
 };
 
 /**
@@ -59,14 +66,20 @@ Phaser.Plugin.ArcadeSlopes.Overrides.collideSpriteVsTile = function (i, sprite, 
  * @param {boolean}             overlapOnly      - Whether to only check for an overlap.
  */
 Phaser.Plugin.ArcadeSlopes.Overrides.collideSpriteVsTiles = function (sprite, tiles, collideCallback, processCallback, callbackContext, overlapOnly) {
+	var collided = false;
+	
 	for (var i = 0; i < tiles.length; i++) {
 		if (processCallback) {
 			if (processCallback.call(callbackContext, sprite, tiles[i])) {
-				this.collideSpriteVsTile(i, sprite, tiles[i], collideCallback, processCallback, callbackContext, overlapOnly);
+				collided = collided || this.collideSpriteVsTile(i, sprite, tiles[i], collideCallback, processCallback, callbackContext, overlapOnly);
 			}
 		} else {
-			this.collideSpriteVsTile(i, sprite, tiles[i], collideCallback, processCallback, callbackContext, overlapOnly);
+			collided = collided || this.collideSpriteVsTile(i, sprite, tiles[i], collideCallback, processCallback, callbackContext, overlapOnly);
 		}
+	}
+	
+	if (!collided && !overlapOnly) {
+		this.game.slopes.solvers.sat.snap(sprite.body, tiles);
 	}
 };
 
