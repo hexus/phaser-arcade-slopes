@@ -179,7 +179,11 @@ Phaser.Plugin.ArcadeSlopes.prototype.enableBody = function (body) {
 		preferY: false,
 		sat: {
 			response: null,
-		}
+		},
+		snapUp: 0,
+		snapDown: 0,
+		snapLeft: 0,
+		snapRight: 0
 	};
 };
 

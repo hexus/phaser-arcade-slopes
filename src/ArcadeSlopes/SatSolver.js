@@ -162,11 +162,12 @@ Phaser.Plugin.ArcadeSlopes.SatSolver.prototype.shouldPreferY = function (body, r
  * Determine whether two polygons intersect on a given axis.
  *
  * @static
- * @param  {SAT.Polygon}  a        The first polygon.
- * @param  {SAT.Polygon}  b        The second polygon.
- * @param  {SAT.Vector}   axis     The axis to test.
- * @param  {SAT.Response} response The response to populate.
- * @return {boolean}               Whether a separating axis was found.
+ * @method Phaser.Plugin.ArcadeSlopes.SatSolver#isSeparatingAxis
+ * @param  {SAT.Polygon}  a        - The first polygon.
+ * @param  {SAT.Polygon}  b        - The second polygon.
+ * @param  {SAT.Vector}   axis     - The axis to test.
+ * @param  {SAT.Response} response - The response to populate.
+ * @return {boolean}               - Whether a separating axis was found.
  */
 Phaser.Plugin.ArcadeSlopes.SatSolver.isSeparatingAxis = function (a, b, axis, response) {
 	var result = SAT.isSeparatingAxis(a.pos, b.pos, a.points, b.points, axis, response || null);
@@ -275,6 +276,97 @@ Phaser.Plugin.ArcadeSlopes.SatSolver.prototype.updateFlags = function (body, res
 };
 
 /**
+ * Attempt to snap the body to a given set of tiles based on its slopes options.
+ *
+ * @method Phaser.Plugin.ArcadeSlopes.SatSolver#snap
+ * @param  {Phaser.Physics.Arcade.Body} body  - The physics body.
+ * @param  {Phaser.Tile[]}              tiles - The tiles.
+ * @return {boolean}                          - Whether the body was snapped to any tiles.
+ */
+Phaser.Plugin.ArcadeSlopes.SatSolver.prototype.snap = function (body, tiles) {
+	if (!body.slopes.snapUp && !body.slopes.snapDown && !body.slopes.snapLeft && !body.slopes.snapRight) {
+		return false;
+	}
+	
+	// Keep the current body position to snap from
+	var current = new Phaser.Point(body.position.x, body.position.y);
+	
+	// Keep track of whether the body has snapped to a tile
+	var snapped = false;
+	
+	// For each tile, move the body in each direction by the configured amount,
+	// and try to collide, returning the body to its original position if no
+	// collision occurs
+	for (var t in tiles) {
+		var tile = tiles[t];
+		
+		if (!tile.slope) {
+			continue;
+		}
+		
+		if (body.slopes.snapUp) {
+			body.position.x = current.x;
+			body.position.y = current.y - body.slopes.snapUp;
+			
+			if (this.snapCollide(body, tile, current)) {
+				return true;
+			}
+		}
+		
+		if (body.slopes.snapDown) {
+			body.position.x = current.x;
+			body.position.y = current.y + body.slopes.snapDown;
+			
+			if (this.snapCollide(body, tile, current)) {
+				return true;
+			}
+		}
+		
+		if (body.slopes.snapLeft) {
+			body.position.x = current.x - body.slopes.snapLeft;
+			body.position.y = current.y;
+			
+			if (this.snapCollide(body, tile, current)) {
+				return true;
+			}
+		}
+		
+		if (body.slopes.snapRight) {
+			body.position.x = current.x + body.slopes.snapRight;
+			body.position.y = current.y;
+			
+			if (this.snapCollide(body, tile, current)) {
+				return true;
+			}
+		}
+	}
+	
+	return false;
+};
+
+/**
+ * Perform a snap collision between the given body and tile, setting the body
+ * back to the given current position if it fails.
+ *
+ * @method Phaser.Plugin.ArcadeSlopes.SatSolver#snapCollide
+ * @param  {Phaser.Physics.Arcade.Body} body    - The translated physics body.
+ * @param  {Phaser.Tile}                tile    - The tile.
+ * @param  {Phaser.Point}               current - The original position of the body.
+ * @return {boolean}                            - Whether the body snapped to the tile.
+ */
+Phaser.Plugin.ArcadeSlopes.SatSolver.prototype.snapCollide = function (body, tile, current) {
+	if (this.collide(0, body, tile)) {
+		return true;
+	}
+	
+	// There was no collision, so reset the body position
+	body.position.x = current.x;
+	body.position.y = current.y;
+	
+	return false;
+};
+
+/**
  * Separate the given body and tile from each other and apply any relevant
  * changes to the body's velocity.
  *
@@ -290,7 +382,7 @@ Phaser.Plugin.ArcadeSlopes.SatSolver.prototype.updateFlags = function (body, res
  */
 Phaser.Plugin.ArcadeSlopes.SatSolver.prototype.collide = function (i, body, tile, overlapOnly) {
 	// Bail out if we don't have everything we need
-	if (!(body.enable && body.polygon && body.slopes && tile.collides && tile.slope && tile.slope.polygon)) {
+	if (!(body.enable && body.polygon && body.slopes && tile.slope && tile.slope.polygon)) {
 		return false;
 	}
 	
@@ -304,12 +396,12 @@ Phaser.Plugin.ArcadeSlopes.SatSolver.prototype.collide = function (i, body, tile
 	
 	var response = new SAT.Response();
 	
-	// Nothing more to do if there isn't an overlap
+	// Nothing more to do here if there isn't an overlap
 	if (!SAT.testPolygonPolygon(body.polygon, tile.slope.polygon, response)) {
 		return false;
 	}
 	
-	// Nor if we're only testing for the overlap
+	// If we're only testing for the overlap, we can bail here
 	if (overlapOnly) {
 		return true;
 	}
@@ -340,7 +432,8 @@ Phaser.Plugin.ArcadeSlopes.SatSolver.prototype.collide = function (i, body, tile
 
 /**
  * Collide a body with a tile on a specific axis.
- * 
+ *
+ * @method Phaser.Plugin.ArcadeSlopes.SatSolver#collideOnAxis
  * @param  {Phaser.Physics.Arcade.Body} body     - The physics body.
  * @param  {Phaser.Tile}                tile     - The tile.
  * @param  {SAT.Vector}                 axis     - The axis unit vector.
@@ -349,7 +442,7 @@ Phaser.Plugin.ArcadeSlopes.SatSolver.prototype.collide = function (i, body, tile
  */
 Phaser.Plugin.ArcadeSlopes.SatSolver.prototype.collideOnAxis = function (body, tile, axis, response) {
 	// Bail out if we don't have everything we need
-	if (!(body.enable && body.polygon && body.slopes && tile.collides && tile.slope && tile.slope.polygon)) {
+	if (!(body.enable && body.polygon && body.slopes && tile.slope && tile.slope.polygon)) {
 		return false;
 	}
 	
@@ -357,17 +450,20 @@ Phaser.Plugin.ArcadeSlopes.SatSolver.prototype.collideOnAxis = function (body, t
 	
 	var separatingAxis = Phaser.Plugin.ArcadeSlopes.SatSolver.isSeparatingAxis(body.polygon, tile.slope.polygon, axis, response);
 	
-	if (!separatingAxis) {
-		Phaser.Plugin.ArcadeSlopes.SatSolver.prepareResponse(response);
-		
-		this.separate(body, tile, response, true);
-		this.applyVelocity(body, tile, response);
-		this.updateFlags(body, response);
-		
-		return true;
+	if (separatingAxis) {
+		return false;
 	}
 	
-	return false;
+	Phaser.Plugin.ArcadeSlopes.SatSolver.prepareResponse(response);
+	
+	if (!this.separate(body, tile, response, true)) {
+		return false;
+	}
+	
+	this.applyVelocity(body, tile, response);
+	this.updateFlags(body, response);
+	
+	return true;
 };
 
 /**
@@ -375,7 +471,7 @@ Phaser.Plugin.ArcadeSlopes.SatSolver.prototype.collideOnAxis = function (body, t
  *
  * Checks against the tile slope's edge flags.
  *
- * TODO: Support regular tile.faceTop, tile.faceBottom, tile.faceLeft, tile.faceRight
+ * TODO: Support regular tile face flags?
  * 
  * @method Phaser.Plugin.ArcadeSlopes.SatSolver#shouldSeparate
  * @param  {integer}                    i        - The tile index.
@@ -385,7 +481,7 @@ Phaser.Plugin.ArcadeSlopes.SatSolver.prototype.collideOnAxis = function (body, t
  * @return {boolean}                             - Whether to pursue the narrow phase.
  */
 Phaser.Plugin.ArcadeSlopes.SatSolver.prototype.shouldSeparate = function (i, body, tile, response) {
-	if (!(body.enable && tile.collides && response.overlap)) {
+	if (!(body.enable && response.overlap)) {
 		return false;
 	}
 	

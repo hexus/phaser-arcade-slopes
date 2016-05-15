@@ -5,6 +5,7 @@
   tile-specific callbacks and layer-level tile callbacks
 - Tile slope type name retrieval
 - Arcade body properties that configure the body's interaction with tiles
+- Initial sticky slopes functionality
 
 ## v0.1.0-alpha3 - 11th May 2016
 - Further improved heuristics
