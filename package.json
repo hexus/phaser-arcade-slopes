@@ -1,6 +1,6 @@
 {
   "name": "phaser-arcade-slopes",
-  "version": "0.1.0-alpha",
+  "version": "0.1.0-beta",
   "description": "A Phaser plugin that provides sloped tiles for the Arcade Physics engine.",
   "main": "dist/phaser-arcade-slopes.js",
   "scripts": {},

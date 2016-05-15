@@ -97,10 +97,9 @@ Phaser.Plugin.ArcadeSlopes.SatRestrainer.prototype.restrain = function (solver, 
 	}
 
 	for (var r in this.restraints[tile.slope.type]) {
-		// TODO: restraint is actually a rule here, rename the variable
-		var restraint = this.restraints[tile.slope.type][r];
+		var rule = this.restraints[tile.slope.type][r];
 		
-		var neighbour = tile.neighbours[restraint.neighbour];
+		var neighbour = tile.neighbours[rule.neighbour];
 		
 		if (!(neighbour && neighbour.slope)) {
 			continue;
@@ -109,33 +108,33 @@ Phaser.Plugin.ArcadeSlopes.SatRestrainer.prototype.restrain = function (solver, 
 		// Restrain based on the same tile type by default
 		var condition = false;
 		
-		if (restraint.types) {
-			condition = restraint.types.indexOf(neighbour.slope.type) > -1;
+		if (rule.types) {
+			condition = rule.types.indexOf(neighbour.slope.type) > -1;
 		} else {
 			condition = neighbour.slope.type === tile.slope.type;
 		}
 		
 		// Restrain based on the overlapN.x value
-		if (restraint.hasOwnProperty('overlapX')) {
-			if (typeof restraint.overlapX === 'number') {
-				condition = condition && response.overlapN.x === restraint.overlapX;
+		if (rule.hasOwnProperty('overlapX')) {
+			if (typeof rule.overlapX === 'number') {
+				condition = condition && response.overlapN.x === rule.overlapX;
 			} else {
-				condition = condition && response.overlapN.x >= restraint.overlapX[0] && response.overlapN.x <= restraint.overlapX[1];
+				condition = condition && response.overlapN.x >= rule.overlapX[0] && response.overlapN.x <= rule.overlapX[1];
 			}
 		}
 		
 		// Restrain based on the overlapN.y value
-		if (restraint.hasOwnProperty('overlapY')) {
-			if (typeof restraint.overlapY === 'number') {
-				condition = condition && response.overlapN.y === restraint.overlapY;
+		if (rule.hasOwnProperty('overlapY')) {
+			if (typeof rule.overlapY === 'number') {
+				condition = condition && response.overlapN.y === rule.overlapY;
 			} else {
-				condition = condition && response.overlapN.y >= restraint.overlapY[0] && response.overlapN.y <= restraint.overlapY[1];
+				condition = condition && response.overlapN.y >= rule.overlapY[0] && response.overlapN.y <= rule.overlapY[1];
 			}
 		}
 		
 		// Return false if the restraint condition has been matched
 		if (condition) {
-			var separate = restraint.separate;
+			var separate = rule.separate;
 			
 			// Resolve the restraint separation decision if it's a function
 			if (typeof separate === 'function') {

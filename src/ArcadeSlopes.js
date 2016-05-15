@@ -11,25 +11,24 @@
  * TODO: Extract all the handy methods to the Facade class, and a new
  *       CollisionResolver/CollisionHandler class that stores all the solvers
  *       and a default solver type?
- * TODO: Rename defaultType to defaultSolver maybe.
  * 
  * @class Phaser.Plugin.ArcadeSlopes
  * @constructor
  * @extends Phaser.Plugin
  * @param {Phaser.Game} game          - A reference to the game using this plugin.
  * @param {any}         parent        - The object that owns this plugin, usually a Phaser.PluginManager.
- * @param {integer}     defaultType   - The default collision solver type to use for sloped tiles.
+ * @param {integer}     defaultSolver - The default collision solver type to use for sloped tiles.
  */
-Phaser.Plugin.ArcadeSlopes = function (game, parent, defaultType) {
+Phaser.Plugin.ArcadeSlopes = function (game, parent, defaultSolver) {
 	Phaser.Plugin.call(this, game, parent);
 	
 	/**
 	 * The default collision solver type to use for sloped tiles.
 	 * 
-	 * @property {string} collisionType
+	 * @property {string} defaultSolver
 	 * @default
 	 */
-	this.defaultType = defaultType || Phaser.Plugin.ArcadeSlopes.SAT;
+	this.defaultSolver = defaultSolver || Phaser.Plugin.ArcadeSlopes.SAT;
 	
 	/**
 	 * A tile slope factory.
@@ -59,7 +58,7 @@ Phaser.Plugin.ArcadeSlopes.prototype.constructor = Phaser.Plugin.ArcadeSlopes;
  * @constant
  * @type {string}
  */
-Phaser.Plugin.ArcadeSlopes.VERSION = '0.1.0-alpha';
+Phaser.Plugin.ArcadeSlopes.VERSION = '0.1.0-beta';
 
 /**
  * The Separating Axis Theorem collision solver type.
@@ -207,9 +206,9 @@ Phaser.Plugin.ArcadeSlopes.prototype.convertTilemap = function (map, layer, slop
  * Converts a tilemap layer.
  *
  * @method Phaser.Plugin.ArcadeSlopes#convertTilemapLayer
- * @param {Phaser.TilemapLayer}  layer    - The tilemap layer to convert.
- * @param {object}               slopeMap - A map of tilemap indexes to ArcadeSlope.TileSlope constants.
- * @return {Phaser.TilemapLayer}          - The converted tilemap layer.
+ * @param  {Phaser.TilemapLayer}  layer    - The tilemap layer to convert.
+ * @param  {object}               slopeMap - A map of tilemap indexes to ArcadeSlope.TileSlope constants.
+ * @return {Phaser.TilemapLayer}           - The converted tilemap layer.
  */
 Phaser.Plugin.ArcadeSlopes.prototype.convertTilemapLayer = function (layer, slopeMap) {
 	return this.factory.convertTilemapLayer(layer, slopeMap);
@@ -230,5 +229,5 @@ Phaser.Plugin.ArcadeSlopes.prototype.collide = function (i, body, tile, overlapO
 		return this.solvers[tile.slope.solver].collide(i, body, tile, overlapOnly);
 	}
 	
-	return this.solvers[this.defaultType].collide(i, body, tile, overlapOnly);
+	return this.solvers[this.defaultSolver].collide(i, body, tile, overlapOnly);
 };
