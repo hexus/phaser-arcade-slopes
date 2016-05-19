@@ -13,12 +13,14 @@ body {
 }
 
 .controls label {
+	width: 200px;
 	display: inline-block;
+	margin-top: 8px;
 	vertical-align: top;
 }
 
 .controls label input {
-	width: 125.6px;
+	width: 128px;
 	display: block;
 	margin-top: 8px;
 }

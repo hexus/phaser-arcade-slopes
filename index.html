@@ -10,43 +10,101 @@
 		<script>
 			var state = new ArcadeSlopesDemo;
 			var game = new Phaser.Game(1280, 720, Phaser.AUTO, 'phaser', state);
+			
+			var $ = document.querySelectorAll.bind(document);
+			
+			var updateValue = function (control) {
+				var feature = control.getAttribute('data-feature');
+				var value = parseFloat(control.value);
+				var span = $('.' + feature)[0];
+				
+				state.features[feature] = value;
+				
+				if (span) {
+					span.innerText = value;
+				}
+			}
+
+			document.addEventListener('DOMContentLoaded', function () {
+				Array.prototype.forEach.call($('.control'), function (control) {
+					// Initial update
+					updateValue(control);
+					
+					// Update on change
+					control.addEventListener('input', function (event) {
+						updateValue(event.target);
+					});
+					
+					// Update span and control titles with min/max values
+					var feature = control.getAttribute('data-feature');
+					var span = $('.' + feature)[0];
+					
+					var title = control.getAttribute('min') + ' - ' + control.getAttribute('max');
+					
+					control.setAttribute('title', title);
+					
+					if (span) {
+						span.setAttribute('title', title);
+					}
+				});
+			});
 		</script>
 	</head>
 	<body>
 		<div class="container">
 			<div id="phaser"></div>
 			<div class="controls">
-				<!--<label>
-					Acceleration: <span class="speed"></span>
-					<input type="range" class="control" data-feature="speed" value="1000" min="100" max="5000"/>
+				<label>
+					Acceleration: <span class="acceleration"></span>
+					<input type="range" class="control" data-feature="acceleration" value="2500" min="100" max="5000"/>
 				</label>
 				<label>
 					Gravity: <span class="gravity"></span>
-					<input type="range" class="control" data-feature="gravity" value="500" min="0" max="2000" step="50"/>
+					<input type="range" class="control" data-feature="gravity" value="1000" min="-2000" max="2000" step="50"/>
 				</label>
 				<label>
-					Drag: <span class="drag"></span>
-					<input type="range" class="control" data-feature="dragX" value="0" min="0" max="2000" step="50"/>
+					Jump/Wall-jump: <span class="jump"></span>/<span class="wallJump"></span>
+					<input type="range" class="control" data-feature="jump" value="500" min="0" max="1000" step="50"/>
+					<input type="range" class="control" data-feature="wallJump" value="350" min="0" max="500" step="50"/>
+				</label>
+				<label>
+					Drag X/Y: <span class="dragX"></span>/<span class="dragY"></span>
+					<input type="range" class="control" data-feature="dragX" value="1200" min="0" max="2000" step="50"/>
 					<input type="range" class="control" data-feature="dragY" value="0" min="0" max="2000" step="50"/>
 				</label>
 				<label>
-					Bounce: <span class="bounce"></span>
+					Bounce X/Y: <span class="bounceX"></span>/<span class="bounceY"></span>
 					<input type="range" class="control" data-feature="bounceX" value="0" min="0" max="1" step="0.05"/>
 					<input type="range" class="control" data-feature="bounceY" value="0" min="0" max="1" step="0.05"/>
 				</label>
 				<label>
-					Friction: <span class="friction"></span>
+					Friction X/Y: <span class="frictionX"></span>/<span class="frictionY"></span>
 					<input type="range" class="control" data-feature="frictionX" value="0" min="0" max="0.5" step="0.01"/>
 					<input type="range" class="control" data-feature="frictionY" value="0" min="0" max="0.5" step="0.01"/>
 				</label>
 				<label>
+					Minimum Y Offset: <span class="minimumOffsetY"></span>
+					<input type="range" class="control" data-feature="minimumOffsetY" value="1" min="0" max="1" />
+				</label>
+				<label>
+					Snap &uarr;/&darr;/&larr;/&rarr;: <span class="snapUp"></span>/<span class="snapDown"></span>/<span class="snapLeft"></span>/<span class="snapRight"></span>
+					<input type="range" class="control" data-feature="snapUp" value="0" min="0" max="2" step="0.1"/>
+					<input type="range" class="control" data-feature="snapDown" value="0" min="0" max="2" step="0.1"/>
+					<input type="range" class="control" data-feature="snapLeft" value="0" min="0" max="2" step="0.1"/>
+					<input type="range" class="control" data-feature="snapRight" value="0" min="0" max="2" step="0.1"/>
+				</label>
+				<label>
+					Particle vs Particle: <span class="particleSelfCollide"></span>
+					<input type="range" class="control" data-feature="particleSelfCollide" value="0" min="0" max="1"/>
+				</label>
+				<label>
 					Slow motion: <span class="slowMotion"></span>
-					<input type="range" class="control" data-feature="slowMotion" value="0" min="1" max="16"/>
+					<input type="range" class="control" data-feature="slowMotion" value="0" min="1" max="16" step="0.5"/>
 				</label>
 				<label>
 					Debug: <span class="debug"></span>
-					<input type="range" class="control" data-feature="debug" value="0" min="0" max="2"/>
-				</label>-->
+					<input type="range" class="control" data-feature="debug" value="0" min="0" max="1"/>
+				</label>
 			</div>
 		</div>
 	</body>

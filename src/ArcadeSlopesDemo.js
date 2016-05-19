@@ -1,7 +1,29 @@
 var ArcadeSlopesDemo = (function(Phaser) {
 	
 	var ArcadeSlopesDemo = function () {
-		
+		// Feature configuration values that we'll use to control our game state
+		this.features = {
+			debug: 0,
+			acceleration: 2000,
+			gravity: 1000,
+			enableGravity: true,
+			dragX: 1200,
+			dragY: 0,
+			bounceX: 0,
+			bounceY: 0,
+			frictionX: 0,
+			frictionY: 0,
+			jump: 500,
+			wallJump: 350,
+			minimumOffsetY: 1,
+			snapUp: 0,
+			snapDown: 1,
+			snapLeft: 0,
+			snapRight: 0,
+			particleSelfCollide: 0,
+			slowMotion: 1,
+			debug: 0,
+		};
 	};
 	
 	ArcadeSlopesDemo.prototype = {
@@ -10,16 +32,12 @@ var ArcadeSlopesDemo = (function(Phaser) {
 			// Load our assets (a demo map and two tilesheet choices)
 			this.load.tilemap('demo-tilemap', 'assets/maps/demo.json', null, Phaser.Tilemap.TILED_JSON);
 			this.load.spritesheet('pink-collision-spritesheet', 'assets/tilesheets/ninja-tiles32-pink.png', 32, 32);
-			this.load.spritesheet('pink-collision-spritesheet', 'assets/tilesheets/ninja-tiles32-purple.png', 32, 32);
+			this.load.spritesheet('purple-collision-spritesheet', 'assets/tilesheets/ninja-tiles32-purple.png', 32, 32);
 		},
 		
 		create: function () {
 			// I always have this on :)
 			this.time.advancedTiming = true;
-			
-			// These two are great fun together ( ͡° ͜ʖ ͡°)
-			//this.time.slowMotion = 6;
-			//this.time.desiredFps = 200;
 			
 			// Start up Arcade Physics
 			this.physics.startSystem(Phaser.Physics.ARCADE);
@@ -34,8 +52,8 @@ var ArcadeSlopesDemo = (function(Phaser) {
 			this.map = this.add.tilemap('demo-tilemap');
 			this.map.addTilesetImage('collision', 'pink-collision-spritesheet');
 			
-			// Uncomment this for a lighter background and darker tiles
-			//this.stage.backgroundColor = '#ae7bb8'; // with 'purple-collision-spritesheet'
+			// Uncomment these lines for a lighter background and darker tiles
+			//this.stage.backgroundColor = '#ae7bb8';
 			//this.map.addTilesetImage('collision', 'purple-collision-spritesheet');
 			
 			// Create a TilemapLayer object from the collision layer of the map
@@ -93,16 +111,14 @@ var ArcadeSlopesDemo = (function(Phaser) {
 			
 			this.physics.arcade.enable(this.player);
 			this.game.slopes.enable(this.player);
-			this.player.body.slopes.preferY = true;
-			//this.player.body.slopes.snapDown = 1;
-			//this.player.body.slopes.snapLeft = 1;
-			//this.player.body.slopes.snapRight = 1;
-			//this.player.body.tilePadding.x = 1;
-			//this.player.body.tilePadding.y = 1;
 			
-			this.player.body.drag.x = 1200;
-			this.player.body.bounce.x = 0;
-			this.player.body.bounce.y = 0;
+			// Just a touch of tile padding
+			this.player.body.tilePadding.x = 1;
+			this.player.body.tilePadding.y = 1;
+			
+			this.player.body.drag.x = this.features.dragX;
+			this.player.body.bounce.x = this.features.bounceX;
+			this.player.body.bounce.y = this.features.bounceY;
 			this.player.body.slopes.friction.x = 0;
 			this.player.body.slopes.friction.y = 0;
 			this.player.body.maxVelocity.x = 500;
@@ -126,7 +142,7 @@ var ArcadeSlopesDemo = (function(Phaser) {
 			// Create 2000 particles using our newly cached image
 			this.emitter.makeParticles('particle', 0, 2000, true, true);
 			
-			 // Attaches Arcade Physics polygon data to the particle bodies
+			// Attach Arcade Physics polygon data to the particle bodies
 			this.game.slopes.enable(this.emitter);
 			
 			// Set some particle behaviours and properties
@@ -153,22 +169,21 @@ var ArcadeSlopesDemo = (function(Phaser) {
 			// Follow the player with the camera
 			this.camera.follow(this.player);
 			
-			// Words cannot describe how much I love this little feature
+			// Words cannot describe how much I love having this built in
 			this.camera.lerp.setTo(0.2, 0.2);
 			
 			var that = this;
 			
-			// Add an input event handler that teleport the player on pointer input
+			// Register a pointer input event handler that teleports the player
 			this.input.onDown.add(function (pointer, mouseEvent) {
 				that.player.position.x = pointer.worldX - that.player.width / 2;
 				that.player.position.y = pointer.worldY - that.player.height / 2;
 				
-				// Reset the velocity for repeatable results after clicking
-				that.player.body.velocity.x = 0;
-				that.player.body.velocity.y = 0;
+				// Reset the player's velocity
+				that.player.body.velocity.set(0);
 			});
 			
-			// Prevent debug text rendering with a shadow
+			// Prevent the debug text from rendering with a shadow
 			this.game.debug.renderShadow = false;
 		},
 		
@@ -180,24 +195,16 @@ var ArcadeSlopesDemo = (function(Phaser) {
 			var blocked = body.blocked;
 			var touching = body.touching;
 			var controls = this.controls;
+			var features = this.features;
 			
-			// Keep the particle emitter attached to the player (though there's
-			// probably a better way)
-			this.emitter.x = this.player.x + body.halfWidth;
-			this.emitter.y = this.player.y + body.halfHeight;
-			
-			if (controls.gravity.justDown) {
-				if (gravity.y) {
-					gravity.y = 0;
-					body.drag.y = 1200;
-				} else {
-					gravity.y = 1000;
-					body.drag.y = 0;
-				}
-				
-				// this.physics.arcade.gravity.y = -this.physics.arcade.gravity.y;
+			// Update slow motion values; these two are great fun together
+			// ( ͡° ͜ʖ ͡°)
+			if (this.time.slowMotion !== features.slowMotion) {
+				this.time.slowMotion = features.slowMotion;
+				this.time.desiredFps = 60 + (features.slowMotion > 1 ? features.slowMotion * 20 : 0);
 			}
 			
+			// Toggle camera follow
 			if (controls.follow.justDown) {
 				if (camera.target) {
 					camera.unfollow();
@@ -206,6 +213,45 @@ var ArcadeSlopesDemo = (function(Phaser) {
 				}
 			}
 			
+			// Toggle gravity
+			if (controls.gravity.justDown) {
+				features.enableGravity = !features.enableGravity;
+			}
+			
+			// Update gravity
+			if (features.enableGravity) {
+				gravity.y = features.gravity;
+			} else {
+				gravity.y = 0;
+			}
+			
+			// Update player body properties
+			body.drag.x = features.dragX;
+			body.drag.y = features.dragY;
+			body.bounce.x = features.bounceX;
+			body.bounce.y = features.bounceY;
+			
+			// Update player body Arcade Slopes properties
+			body.slopes.friction.x = features.frictionX;
+			body.slopes.friction.y = features.frictionY;
+			body.slopes.preferY    = this.features.minimumOffsetY;
+			body.slopes.snapUp     = this.features.snapUp;
+			body.slopes.snapDown   = this.features.snapDown;
+			body.slopes.snapLeft   = this.features.snapLeft;
+			body.slopes.snapRight  = this.features.snapRight;
+			
+			// Keep the particle emitter attached to the player (though there's
+			// probably a better way than this)
+			this.emitter.x = this.player.x + body.halfWidth;
+			this.emitter.y = this.player.y + body.halfHeight;
+			
+			// Update particle lifespan
+			this.emitter.lifespan = 3000 / this.time.slowMotion;
+			
+			// Ensure that all new particles defy gravity
+			this.emitter.gravity = -this.physics.arcade.gravity.y;
+			
+			// Toggle particle flow
 			if (controls.particles.justDown) {
 				if (this.emitter.on) {
 					this.emitter.kill();
@@ -214,24 +260,30 @@ var ArcadeSlopesDemo = (function(Phaser) {
 				}
 			}
 			
+			// Toggle the Arcade Slopes plugin itself
 			if (controls.toggle.justDown) {
 				if (this.game.slopes) {
 					this.game.plugins.remove(this.game.slopes);
 				} else {
 					this.game.plugins.add(Phaser.Plugin.ArcadeSlopes);
-					this.game.slopes.solvers.sat.options.preferY = true;
 				}
 			}
 			
 			// Camera shake for the fun of it
 			if (this.input.keyboard.isDown(Phaser.KeyCode.H)) {
-				camera.shake(0.005, 50); // Very cool
+				camera.shake(0.005, 50); // :sunglasses:
 			}
 			
 			// Collide the player against the collision layer
 			this.physics.arcade.collide(this.player, this.ground);
+			
+			// Collide the player against the particles
 			//this.physics.arcade.collide(this.emitter, this.player);
-			//this.physics.arcade.collide(this.emitter, this.emitter); // This kills performance, no surprise, haha
+			
+			// Collide the particles against each other
+			if (features.particleSelfCollide) {
+				this.physics.arcade.collide(this.emitter);
+			}
 			
 			// Collide the particles against the collision layer
 			this.physics.arcade.collide(this.emitter, this.ground);
@@ -240,44 +292,55 @@ var ArcadeSlopesDemo = (function(Phaser) {
 			body.acceleration.x = 0;
 			body.acceleration.y = 0;
 			
-			// Move left
+			// Accelerate left
 			if (controls.left.isDown) {
-				body.acceleration.x = -2500;
+				body.acceleration.x = -features.acceleration;
 			}
 			
-			// Move right
+			// Accelerate right
 			if (controls.right.isDown) {
-				body.acceleration.x = 2500;
+				body.acceleration.x = features.acceleration;
 			}
 			
-			// Move down
-			if (controls.down.isDown) {
-				body.acceleration.y = Math.abs(gravity.y) + 1000;
-			}
-			
-			// Jump, and wall jump
+			// Accelerate or jump up
 			if (controls.up.isDown) {
-				if (gravity.y) {
-					// Wall jumping
-					if (!(blocked.down || blocked.up || touching.up)) {
-						// Would be even better to use collision normals here
-						if (blocked.left || touching.left) {
-							body.velocity.x = 300;
-							body.velocity.y = -500;
-						}
-						
-						if (blocked.right || touching.right) {
-							body.velocity.x = -250;
-							body.velocity.y = -500;
-						}
+				if (features.jump) {
+					if (gravity.y > 0 && (blocked.down || touching.down)) {
+						body.velocity.y = -features.jump;
+					}
+				}
+				
+				if (!features.jump || gravity.y <= 0){
+					body.acceleration.y = -Math.abs(gravity.y) - features.acceleration;
+				}
+			}
+			
+			// Accelerate down or jump down
+			if (controls.down.isDown) {
+				if (features.jump) {
+					if (gravity.y < 0 && (blocked.up || touching.up)) {
+						body.velocity.y = features.jump;
+					}
+				}
+				
+				if (!features.jump || gravity.y >= 0){
+					body.acceleration.y = Math.abs(gravity.y) + features.acceleration;
+				}
+			}
+			
+			// Wall jump
+			if (features.wallJump && (controls.up.isDown && gravity.y > 0) || (controls.down.isDown && gravity.y < 0)) {
+				if (!(blocked.down || blocked.up || touching.up)) {
+					// Would be even better to use collision normals here
+					if (blocked.left || touching.left) {
+						body.velocity.x = features.wallJump;
+						body.velocity.y = -features.jump;
 					}
 					
-					// Jumping
-					if (blocked.down || touching.down || !this.physics.arcade.gravity.y) {
-						body.velocity.y = -500;
+					if (blocked.right || touching.right) {
+						body.velocity.x = -features.wallJump;
+						body.velocity.y = -features.jump;
 					}
-				} else {
-					body.acceleration.y = -Math.abs(gravity.y) - 1000;
 				}
 			}
 			
@@ -292,9 +355,15 @@ var ArcadeSlopesDemo = (function(Phaser) {
 			this.game.debug.text(this.time.fps || '--', 4, 16, "#ffffff");
 			
 			// Render some debug information about the input, player and camera
-			this.game.debug.inputInfo(320, 628);
-			this.game.debug.bodyInfo(this.player, 32, 32);
-			this.game.debug.cameraInfo(this.camera, 32, 628);
+			if (this.features.debug) {
+				this.game.debug.inputInfo(320, 628);
+				this.game.debug.bodyInfo(this.player, 32, 32);
+				this.game.debug.cameraInfo(this.camera, 32, 628);
+			}
+			
+			//if (this.features.debug > 1) {
+				// Soon... collision polygons and vectors drawn before your eyes
+			//}
 		}
 		
 	};
