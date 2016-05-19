@@ -3,7 +3,6 @@ var ArcadeSlopesDemo = (function(Phaser) {
 	var ArcadeSlopesDemo = function () {
 		// Feature configuration values that we'll use to control our game state
 		this.features = {
-			debug: 0,
 			acceleration: 2000,
 			gravity: 1000,
 			enableGravity: true,
