@@ -161,6 +161,7 @@ var ArcadeSlopesDemo = (function(Phaser) {
 				'right': Phaser.KeyCode.D,
 				'follow': Phaser.KeyCode.F,
 				'gravity': Phaser.KeyCode.G,
+				'controls': Phaser.KeyCode.C,
 				'particles': Phaser.KeyCode.J,
 				'toggle': Phaser.KeyCode.K
 			});
@@ -352,6 +353,17 @@ var ArcadeSlopesDemo = (function(Phaser) {
 		render: function () {
 			// FPS counter
 			this.game.debug.text(this.time.fps || '--', 4, 16, "#ffffff");
+			
+			// Render the keyboard controls
+			if(this.controls.controls.isDown) {
+				this.game.debug.start(32, 196, '#fff', 64);
+				this.game.debug.line('WASD:', 'Move/jump');
+				this.game.debug.line('F:', 'Toggle camera follow');
+				this.game.debug.line('G:', 'Toggle gravity');
+				this.game.debug.line('J:', 'Toggle particles');
+				this.game.debug.line('K:', 'Toggle Arcade Slopes plugin');
+				this.game.debug.line('C:', 'Show these controls');
+			}
 			
 			// Render some debug information about the input, player and camera
 			if (this.features.debug) {
