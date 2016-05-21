@@ -176,13 +176,19 @@ Phaser.Plugin.ArcadeSlopes.prototype.enableBody = function (body) {
 	body.slopes = {
 		friction: new Phaser.Point(),
 		preferY: false,
+		pullUp: 0,
+		pullDown: 0,
+		pullLeft: 0,
+		pullRight: 0,
 		sat: {
 			response: null,
 		},
+		skipFriction: false,
 		snapUp: 0,
 		snapDown: 0,
 		snapLeft: 0,
-		snapRight: 0
+		snapRight: 0,
+		velocity: new SAT.Vector()
 	};
 };
 
@@ -1557,26 +1563,24 @@ Phaser.Plugin.ArcadeSlopes.SatSolver.prototype.separate = function (body, tile, 
 /**
  * Apply velocity changes (friction and bounce) to a body given a tile and
  * SAT collision response.
- *
+ * 
+ * TODO: Optimize by pooling bounce and friction vectors.
+ * 
  * @method Phaser.Plugin.ArcadeSlopes.SatSolver#applyVelocity
  * @param  {Phaser.Physics.Arcade.Body} body     - The physics body.
  * @param  {Phaser.Tile}                tile     - The tile.
  * @param  {SAT.Response}               response - The SAT response.
  */
 Phaser.Plugin.ArcadeSlopes.SatSolver.prototype.applyVelocity = function (body, tile, response) {
-	// Give the body a velocityVector if it doesn't have one, or update it
-	if (!body.hasOwnProperty('velocityVector')) {
-		body.velocityVector = new SAT.Vector(body.velocity.x, body.velocity.y);
-	} else {
-		body.velocityVector.x = body.velocity.x;
-		body.velocityVector.y = body.velocity.y;
-	}
+	// Update the body's velocity vector
+	body.slopes.velocity.x = body.velocity.x;
+	body.slopes.velocity.y = body.velocity.y;
 	
 	// Project our velocity onto the overlap normal for the bounce vector (Vn)
-	var bounce = body.velocityVector.clone().projectN(response.overlapN);
+	var bounce = body.slopes.velocity.clone().projectN(response.overlapN);
 	
 	// Then work out the surface vector (Vt)
-	var friction = body.velocityVector.clone().sub(bounce);
+	var friction = body.slopes.velocity.clone().sub(bounce);
 	
 	// Apply bounce coefficients
 	bounce.x = bounce.x * (-body.bounce.x);
@@ -1589,6 +1593,9 @@ Phaser.Plugin.ArcadeSlopes.SatSolver.prototype.applyVelocity = function (body, t
 	// Now we can get our new velocity by adding the bounce and friction vectors
 	body.velocity.x = bounce.x + friction.x;
 	body.velocity.y = bounce.y + friction.y;
+	
+	// Process collision pulling
+	this.pull(body, response);
 };
 
 /**
@@ -1676,6 +1683,69 @@ Phaser.Plugin.ArcadeSlopes.SatSolver.prototype.snap = function (body, tiles) {
 				return true;
 			}
 		}
+	}
+	
+	return false;
+};
+
+/**
+ * Pull the body into a collision response based on its slopes options.
+ *
+ * @method Phaser.Plugin.ArcadeSlopes.SatSolver#pull
+ * @param  {Phaser.Physics.Arcade.Body} body     - The physics body.
+ * @param  {SAT.Response}               response - The SAT response.
+ * @return {boolean}                             - Whether the body was pulled.
+ */
+Phaser.Plugin.ArcadeSlopes.SatSolver.prototype.pull = function (body, response) {
+	if (!body.slopes.pullUp && !body.slopes.pullDown && !body.slopes.pullLeft && !body.slopes.pullRight) {
+		return false;
+	}
+	
+	// Clone and flip the overlap normal so that it faces into the collision
+	var overlapN = response.overlapN.clone().scale(-1);
+	
+	if (body.slopes.pullUp && overlapN.y < 0) {
+		// Scale it by the configured amount
+		pullUp = overlapN.clone().scale(body.slopes.pullUp);
+		
+		// Apply it to the body velocity
+		body.velocity.x += pullUp.x;
+		body.velocity.y += pullUp.y;
+		
+		return true;
+	}
+	
+	if (body.slopes.pullDown && overlapN.y > 0) {
+		// Scale it by the configured amount
+		pullDown = overlapN.clone().scale(body.slopes.pullDown);
+		
+		// Apply it to the body velocity
+		body.velocity.x += pullDown.x;
+		body.velocity.y += pullDown.y;
+		
+		return true;
+	}
+	
+	if (body.slopes.pullLeft && overlapN.x < 0) {
+		// Scale it by the configured amount
+		pullLeft = overlapN.clone().scale(body.slopes.pullLeft);
+		
+		// Apply it to the body velocity
+		body.velocity.x += pullLeft.x;
+		body.velocity.y += pullLeft.y;
+		
+		return true;
+	}
+	
+	if (body.slopes.pullRight && overlapN.x > 0) {
+		// Scale it by the configured amount
+		pullRight = overlapN.clone().scale(body.slopes.pullRight);
+		
+		// Apply it to the body velocity
+		body.velocity.x += pullRight.x;
+		body.velocity.y += pullRight.y;
+		
+		return true;
 	}
 	
 	return false;
