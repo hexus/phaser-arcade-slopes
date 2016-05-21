@@ -176,13 +176,18 @@ Phaser.Plugin.ArcadeSlopes.prototype.enableBody = function (body) {
 	body.slopes = {
 		friction: new Phaser.Point(),
 		preferY: false,
+		pullUp: 0,
+		pullDown: 0,
+		pullLeft: 0,
+		pullRight: 0,
 		sat: {
 			response: null,
 		},
 		snapUp: 0,
 		snapDown: 0,
 		snapLeft: 0,
-		snapRight: 0
+		snapRight: 0,
+		velocity: new SAT.Vector()
 	};
 };
 
