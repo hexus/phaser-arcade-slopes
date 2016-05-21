@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8"/>
+		<title>Phaser Arcade Slopes Tilesheet Generator</title>
+		<link rel="stylesheet" href="assets/css/style.css"/>
+		<script src="https://cdn.rawgit.com/photonstorm/phaser/v2.4.8/build/phaser.min.js"></script>
+		<script src="https://cdn.rawgit.com/hexus/phaser-arcade-slopes/v0.1.0-beta/dist/phaser-arcade-slopes.min.js"></script>
+		<script type="text/javascript">
+			var state = {
+				lastOptions: {},
+				
+				options: {
+					width: 32,
+					height: 32,
+					fillAlpha: 1,
+					fillColour: '#999',
+					borderWidth: 0,
+					borderAlpha: 1,
+					borderColour: '#666'
+				},
+				
+				types: [
+					[
+						'FULL',
+						
+						'HALF_TOP',
+						'HALF_BOTTOM',
+						'HALF_LEFT',
+						'HALF_RIGHT',
+						
+						'HALF_BOTTOM_LEFT',
+						'HALF_BOTTOM_RIGHT',
+						'HALF_TOP_LEFT',
+						'HALF_TOP_RIGHT',
+						
+						'QUARTER_TOP_LEFT_HIGH',
+						'QUARTER_TOP_LEFT_LOW',
+						
+						'QUARTER_TOP_RIGHT_LOW',
+						'QUARTER_TOP_RIGHT_HIGH',
+						
+						'QUARTER_BOTTOM_LEFT_HIGH',
+						'QUARTER_BOTTOM_LEFT_LOW',
+						
+						'QUARTER_BOTTOM_RIGHT_LOW',
+						'QUARTER_BOTTOM_RIGHT_HIGH',
+					],
+					[
+						'QUARTER_LEFT_BOTTOM_HIGH',
+						'QUARTER_RIGHT_BOTTOM_HIGH',
+						'QUARTER_LEFT_TOP_HIGH',
+						'QUARTER_RIGHT_TOP_HIGH',
+					],
+					[
+						'QUARTER_LEFT_BOTTOM_LOW',
+						'QUARTER_RIGHT_BOTTOM_LOW',
+						'QUARTER_LEFT_TOP_LOW',
+						'QUARTER_RIGHT_TOP_LOW',
+					]
+				],
+				
+				tiles: [],
+				
+				sheetWidth: 0,
+				sheetHeight: 0,
+				
+				createTiles: function () {
+					this.tiles = [];
+					
+					this.sheetHeight = this.types.length * this.options.height;
+					
+					// For every tile type in the map
+					for (var y in this.types) {
+						if (this.sheetWidth < this.types[y].length * this.options.width) {
+							this.sheetWidth = this.types[y].length * this.options.width;
+						}
+						
+						for (var x in this.types[y]) {
+							var type = this.types[y][x];
+							
+							if (!type) {
+								continue;
+							}
+							
+							// Create a tile
+							var tile = new Phaser.Tile({}, 0, x, y, this.options.width, this.options.height);
+							
+							// Create its slope
+							tile.slope = this.game.slopes.factory.create(type, tile);
+							
+							// Add the tile
+							this.tiles.push(tile);
+						}
+					}
+				},
+				
+				drawTiles: function () {
+					this.scale.setGameSize(this.sheetWidth, this.sheetHeight);
+					
+					for (var t in this.tiles) {
+						var tile = this.tiles[t];
+						var polygon = tile.slope.polygon;
+						
+						polygon.pos.x = tile.worldX;
+						polygon.pos.y = tile.worldY;
+						
+						var graphics = game.add.graphics(polygon.pos.x, polygon.pos.y);
+						graphics.beginFill(Phaser.Color.hexToRGB(this.options.fillColour), this.options.fillAlpha);
+						graphics.lineStyle(this.options.borderWidth, Phaser.Color.hexToRGB(this.options.borderColour), this.options.borderAlpha);
+						graphics.drawPolygon(polygon.points);
+						graphics.endFill();
+					}
+					
+					
+				},
+				
+				create: function () {
+					this.game.plugins.add(Phaser.Plugin.ArcadeSlopes);
+				},
+				
+				update: function () {
+					// Rebuild the tiles if the options have changed
+					if (JSON.stringify(this.lastOptions) !== JSON.stringify(this.options)) {
+						this.createTiles();
+						this.drawTiles();
+					}
+					
+					// Update the last options
+					this.lastOptions = JSON.parse(JSON.stringify(this.options));
+				}
+			};
+		
+			var game = new Phaser.Game(544, 96, Phaser.CANVAS, 'phaser', state, true, true);
+		</script>
+	</head>
+	<body>
+		<div class="container">
+			<h1>Phaser Arcade Slopes Plugin</h1>
+			<h2><a href="index.html">Demo</a> | Tilesheet Generator</h2>
+			<div class="controls">
+			</div>
+			<div id="phaser"></div>
+		</div>
+	</body>
+</html>

@@ -4,8 +4,8 @@
 		<meta charset="utf-8"/>
 		<title>Phaser Arcade Slopes Demo</title>
 		<link rel="stylesheet" href="assets/css/style.css"/>
-		<script src="https://cdn.rawgit.com/photonstorm/phaser/v2.4.7/build/phaser.min.js"></script>
-		<script src="https://cdn.rawgit.com/hexus/phaser-arcade-slopes/v0.1.0-beta/dist/phaser-arcade-slopes.min.js"></script>
+		<script src="https://cdn.rawgit.com/photonstorm/phaser/v2.4.8/build/phaser.min.js"></script>
+		<script src="https://cdn.rawgit.com/hexus/phaser-arcade-slopes/957812a4996ee6f255fff8790fa6798e05f7a068/dist/phaser-arcade-slopes.min.js"></script>
 		<script src="src/ArcadeSlopesDemo.js"></script>
 		<script>
 			var state = new ArcadeSlopesDemo;
@@ -52,7 +52,8 @@
 	</head>
 	<body>
 		<div class="container">
-			<h1>Phaser Arcade Slopes Plugin Demo</h1>
+			<h1>Phaser Arcade Slopes Plugin</h1>
+			<h2>Demo</h2>
 			<p>A demonstration of the <a target="_blank" href="https://github.com/hexus/phaser-arcade-slopes">Arcade Slopes</a> plugin for <a target="_blank" href="http://phaser.io">Phaser</a>.</p>
 			<p>Hold <strong>C</strong> for a list of keyboard controls. Use the sliders below to alter the values used in the game state.</p>
 			<div id="phaser"></div>
@@ -88,6 +89,13 @@
 				<label>
 					Minimum Y Offset: <span class="minimumOffsetY"></span>
 					<input type="range" class="control" data-feature="minimumOffsetY" value="1" min="0" max="1" />
+				</label>
+				<label>
+					Pull &uarr;/&darr;/&larr;/&rarr;: <span class="pullUp"></span>/<span class="pullDown"></span>/<span class="pullLeft"></span>/<span class="pullRight"></span>
+					<input type="range" class="control" data-feature="pullUp" value="0" min="0" max="200" step="5"/>
+					<input type="range" class="control" data-feature="pullDown" value="0" min="0" max="200" step="5"/>
+					<input type="range" class="control" data-feature="pullLeft" value="0" min="0" max="200" step="5"/>
+					<input type="range" class="control" data-feature="pullRight" value="0" min="0" max="200" step="5"/>
 				</label>
 				<label>
 					Snap &uarr;/&darr;/&larr;/&rarr;: <span class="snapUp"></span>/<span class="snapDown"></span>/<span class="snapLeft"></span>/<span class="snapRight"></span>

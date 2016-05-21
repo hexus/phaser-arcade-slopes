@@ -15,8 +15,12 @@ var ArcadeSlopesDemo = (function(Phaser) {
 			jump: 500,
 			wallJump: 350,
 			minimumOffsetY: 1,
+			pullUp: 0,
+			pullDown: 0,
+			pullLeft: 0,
+			pullRight: 0,
 			snapUp: 0,
-			snapDown: 1,
+			snapDown: 0,
 			snapLeft: 0,
 			snapRight: 0,
 			particleSelfCollide: 0,
@@ -235,6 +239,10 @@ var ArcadeSlopesDemo = (function(Phaser) {
 			body.slopes.friction.x = features.frictionX;
 			body.slopes.friction.y = features.frictionY;
 			body.slopes.preferY    = this.features.minimumOffsetY;
+			body.slopes.pullUp     = this.features.pullUp;
+			body.slopes.pullDown   = this.features.pullDown;
+			body.slopes.pullLeft   = this.features.pullLeft;
+			body.slopes.pullRight  = this.features.pullRight;
 			body.slopes.snapUp     = this.features.snapUp;
 			body.slopes.snapDown   = this.features.snapDown;
 			body.slopes.snapLeft   = this.features.snapLeft;
@@ -363,6 +371,7 @@ var ArcadeSlopesDemo = (function(Phaser) {
 				this.game.debug.line('J:', 'Toggle particles');
 				this.game.debug.line('K:', 'Toggle Arcade Slopes plugin');
 				this.game.debug.line('C:', 'Show these controls');
+				this.game.debug.stop();
 			}
 			
 			// Render some debug information about the input, player and camera
