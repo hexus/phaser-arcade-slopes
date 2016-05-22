@@ -4,6 +4,12 @@
 		<meta charset="utf-8"/>
 		<title>Phaser Arcade Slopes Tilesheet Generator</title>
 		<link rel="stylesheet" href="assets/css/style.css"/>
+		<style>
+			.phaser-container {
+				margin-top: 1em;
+				overflow-x: auto;
+			}
+		</style>
 		<script src="https://cdn.rawgit.com/photonstorm/phaser/v2.4.8/build/phaser.min.js"></script>
 		<script src="https://cdn.rawgit.com/hexus/phaser-arcade-slopes/v0.1.0-beta/dist/phaser-arcade-slopes.min.js"></script>
 		<script type="text/javascript">
@@ -23,26 +29,20 @@
 				types: [
 					[
 						'FULL',
-						
 						'HALF_TOP',
 						'HALF_BOTTOM',
 						'HALF_LEFT',
 						'HALF_RIGHT',
-						
 						'HALF_BOTTOM_LEFT',
 						'HALF_BOTTOM_RIGHT',
 						'HALF_TOP_LEFT',
 						'HALF_TOP_RIGHT',
-						
 						'QUARTER_TOP_LEFT_HIGH',
 						'QUARTER_TOP_LEFT_LOW',
-						
 						'QUARTER_TOP_RIGHT_LOW',
 						'QUARTER_TOP_RIGHT_HIGH',
-						
 						'QUARTER_BOTTOM_LEFT_HIGH',
 						'QUARTER_BOTTOM_LEFT_LOW',
-						
 						'QUARTER_BOTTOM_RIGHT_LOW',
 						'QUARTER_BOTTOM_RIGHT_HIGH',
 					],
@@ -61,6 +61,7 @@
 				],
 				
 				tiles: [],
+				graphics: [],
 				
 				sheetWidth: 0,
 				sheetHeight: 0,
@@ -68,6 +69,7 @@
 				createTiles: function () {
 					this.tiles = [];
 					
+					this.sheetWidth = 0;
 					this.sheetHeight = this.types.length * this.options.height;
 					
 					// For every tile type in the map
@@ -96,23 +98,29 @@
 				},
 				
 				drawTiles: function () {
-					this.scale.setGameSize(this.sheetWidth, this.sheetHeight);
+					for (var g in this.graphics) {
+						this.graphics[g].destroy();
+					}
+					
+					this.graphics = [];
 					
 					for (var t in this.tiles) {
 						var tile = this.tiles[t];
-						var polygon = tile.slope.polygon;
+						var polygon = new Phaser.Polygon(tile.slope.polygon.points);
 						
-						polygon.pos.x = tile.worldX;
-						polygon.pos.y = tile.worldY;
+						polygon.x = tile.worldX;
+						polygon.y = tile.worldY;
 						
-						var graphics = game.add.graphics(polygon.pos.x, polygon.pos.y);
+						var graphics = game.add.graphics(polygon.x, polygon.y);
 						graphics.beginFill(Phaser.Color.hexToRGB(this.options.fillColour), this.options.fillAlpha);
 						graphics.lineStyle(this.options.borderWidth, Phaser.Color.hexToRGB(this.options.borderColour), this.options.borderAlpha);
-						graphics.drawPolygon(polygon.points);
+						graphics.drawPolygon(polygon);
 						graphics.endFill();
+						
+						this.graphics.push(graphics);
 					}
 					
-					
+					this.scale.setGameSize(this.sheetWidth, this.sheetHeight);
 				},
 				
 				create: function () {
@@ -124,6 +132,7 @@
 					if (JSON.stringify(this.lastOptions) !== JSON.stringify(this.options)) {
 						this.createTiles();
 						this.drawTiles();
+						this.stage.dirty = true;
 					}
 					
 					// Update the last options
@@ -132,15 +141,101 @@
 			};
 		
 			var game = new Phaser.Game(544, 96, Phaser.CANVAS, 'phaser', state, true, true);
+			
+			var $ = document.querySelectorAll.bind(document);
+			
+			var updateValue = function (control, skipLink) {
+				var feature = control.getAttribute('data-feature');
+				var value = parseFloat(control.value);
+				var span = $('.' + feature)[0];
+				var link = $('.controlLink:checked[data-features~="' + feature + '"]')[0];
+				
+				if (isNaN(value)) {
+					value = control.value;
+				}
+				
+				state.options[feature] = value;
+				
+				if (span) {
+					span.innerText = value;
+				}
+				
+				if (!skipLink && link) {
+					var linkFeatures = link.getAttribute('data-features').split(' ');
+					
+					for (var f in linkFeatures) {
+						var linkFeature = linkFeatures[f];
+						
+						if (linkFeature !== feature) {
+							var linkControl = $('.control[data-feature~="' + linkFeature + '"]')[0];
+							linkControl.value = value;
+							updateValue(linkControl, true);
+						}
+					}
+				}
+			}
+
+			document.addEventListener('DOMContentLoaded', function () {
+				Array.prototype.forEach.call($('.control'), function (control) {
+					updateValue(control);
+					
+					control.addEventListener('input', function (event) {
+						updateValue(event.target);
+					});
+					
+					var feature = control.getAttribute('data-feature');
+					var span = $('.' + feature)[0];
+					
+					if (control.getAttribute('min') && control.getAttribute('max')) {
+						var title = control.getAttribute('min') + ' - ' + control.getAttribute('max');
+					}
+					
+					control.setAttribute('title', title);
+					
+					if (span) {
+						span.setAttribute('title', title);
+					}
+				});
+			});
 		</script>
 	</head>
 	<body>
 		<div class="container">
 			<h1>Phaser Arcade Slopes Plugin</h1>
 			<h2><a href="index.html">Demo</a> | Tilesheet Generator</h2>
+			<p>This little tool makes it easy to generate a simple tilesheet for Arcade Slopes tiles.</p>
+			<p><strong>Right click &rarr; Save image as</strong> to save your tilesheet.</p>
 			<div class="controls">
+				<label>
+					Tile width/height: <span class="width"></span>/<span class="height"></span>
+					<input type="checkbox" class="controlLink" data-features="width height" checked/>
+					<input type="range" class="control" data-feature="width" value="32" min="16" max="128" step="8"/>
+					<input type="range" class="control" data-feature="height" value="32" min="16" max="128" step="8"/>
+				</label>
+				<label>
+					Fill: <span class="fillColour"></span>
+					<input type="color" class="control" data-feature="fillColour" value="#999999"/>
+				</label>
+				<label>
+					Fill alpha: <span class="fillAlpha"></span>
+					<input type="range" class="control" data-feature="fillAlpha" value="1" min="0" max="1" step="0.01"/>
+				</label>
+				<label>
+					Border: <span class="borderColour"></span>
+					<input type="color" class="control" data-feature="borderColour" value="#666666"/>
+				</label>
+				<label>
+					Border alpha: <span class="borderAlpha"></span>
+					<input type="range" class="control" data-feature="borderAlpha" value="1" min="0" max="1" step="0.01"/>
+				</label>
+				<label>
+					Border width: <span class="borderWidth"></span>
+					<input type="range" class="control" data-feature="borderWidth" value="0" min="0" max="2" step="0.05"/>
+				</label>
 			</div>
-			<div id="phaser"></div>
+			<div class="phaser-container">
+				<div id="phaser"></div>
+			</div>
 		</div>
 	</body>
 </html>
