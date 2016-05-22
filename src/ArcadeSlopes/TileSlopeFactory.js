@@ -117,9 +117,9 @@ Phaser.Plugin.ArcadeSlopes.TileSlopeFactory.prototype.convertTilemap = function 
  * Convert a tilemap layer.
  *
  * @method Phaser.Plugin.ArcadeSlopes.TileSlopeFactory#convertTilemapLayer
- * @param {Phaser.TilemapLayer} layer    - The tilemap layer to convert.
- * @param {object}              slopeMap - A map of tilemap indexes to ArcadeSlope.TileSlope constants.
- * @return {Phaser.TilemapLayer}         - The converted tilemap layer.
+ * @param  {Phaser.TilemapLayer} layer    - The tilemap layer to convert.
+ * @param  {object}              slopeMap - A map of tilemap indexes to ArcadeSlope.TileSlope constants.
+ * @return {Phaser.TilemapLayer}          - The converted tilemap layer.
  */
 Phaser.Plugin.ArcadeSlopes.TileSlopeFactory.prototype.convertTilemapLayer = function (layer, slopeMap) {
 	var that = this;
@@ -207,9 +207,9 @@ Phaser.Plugin.ArcadeSlopes.TileSlopeFactory.prototype.calculateEdges = function 
  * second edge.
  * 
  * @method Phaser.Plugin.ArcadeSlopes.TileSlopeFactory#compareEdges
- * @param {integer} firstEdge  - The edge to resolve.
- * @param {integer} secondEdge - The edge to compare against.
- * @return {integer}
+ * @param  {integer} firstEdge  - The edge to resolve.
+ * @param  {integer} secondEdge - The edge to compare against.
+ * @return {integer}            - The resolved edge.
  */
 Phaser.Plugin.ArcadeSlopes.TileSlopeFactory.prototype.compareEdges = function (firstEdge, secondEdge) {
 	if (firstEdge === Phaser.Plugin.ArcadeSlopes.TileSlope.SOLID && secondEdge === Phaser.Plugin.ArcadeSlopes.TileSlope.SOLID) {
@@ -520,7 +520,7 @@ Phaser.Plugin.ArcadeSlopes.TileSlopeFactory.createQuarterBottomLeftHigh = functi
 		new SAT.Vector(0, tile.height)               // Bottom left
 	]);
 	
-	var line = new Phaser.Line(tile.left, tile.top + tile.height / 2, tile.right, tile.bottom);
+	var line = new Phaser.Line(tile.left, tile.top, tile.right, tile.top + tile.height / 2);
 	
 	var edges = {
 		top:   Phaser.Plugin.ArcadeSlopes.TileSlope.INTERESTING,
@@ -608,7 +608,7 @@ Phaser.Plugin.ArcadeSlopes.TileSlopeFactory.createQuarterLeftBottomLow = functio
 		new SAT.Vector(0, tile.height)
 	]);
 	
-	var line = new Phaser.Line(tile.left + tile.width / 2, tile.top, tile.width, tile.height);
+	var line = new Phaser.Line(tile.left + tile.width / 2, tile.top, tile.right, tile.bottom);
 	
 	var edges = {
 		top:   Phaser.Plugin.ArcadeSlopes.TileSlope.INTERESTING,

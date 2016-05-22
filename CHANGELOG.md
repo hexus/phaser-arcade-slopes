@@ -1,5 +1,8 @@
 # Arcade Slopes Change Log
 
+## v0.1.0 - 22nd May 2016
+- Collision pulling; an alternative approach to sticky slopes.
+
 ## v0.1.0-beta - 15th May 2016
 - Friction for physics bodies and tiles
 - Collision callback support, including `physics.arcade.collide()` calls,

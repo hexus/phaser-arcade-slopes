@@ -183,6 +183,7 @@ Phaser.Plugin.ArcadeSlopes.prototype.enableBody = function (body) {
 		sat: {
 			response: null,
 		},
+		skipFriction: false,
 		snapUp: 0,
 		snapDown: 0,
 		snapLeft: 0,
