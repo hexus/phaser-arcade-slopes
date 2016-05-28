@@ -431,6 +431,22 @@ Phaser.Plugin.ArcadeSlopes.SatSolver.prototype.snapCollide = function (body, til
 };
 
 /**
+ * Determine whether everything required to process a collision is available.
+ *
+ * @method Phaser.Plugin.ArcadeSlopes.SatSolver#shouldCollide
+ * @param  {Phaser.Physics.Arcade.Body} body - The physics body.
+ * @param  {Phaser.Tile}                tile - The tile.
+ * @return {boolean}
+ */
+Phaser.Plugin.ArcadeSlopes.SatSolver.prototype.shouldCollide = function (body, tile) {
+	if (body.enable && body.polygon && body.slopes && tile.collides && tile.slope && tile.slope.polygon) {
+		return true;
+	}
+	
+	return false;
+};
+
+/**
  * Separate the given body and tile from each other and apply any relevant
  * changes to the body's velocity.
  *
@@ -446,7 +462,7 @@ Phaser.Plugin.ArcadeSlopes.SatSolver.prototype.snapCollide = function (body, til
  */
 Phaser.Plugin.ArcadeSlopes.SatSolver.prototype.collide = function (i, body, tile, overlapOnly) {
 	// Bail out if we don't have everything we need
-	if (!(body.enable && body.polygon && body.slopes && tile.slope && tile.slope.polygon)) {
+	if (!this.shouldCollide(body, tile)) {
 		return false;
 	}
 	
@@ -506,7 +522,7 @@ Phaser.Plugin.ArcadeSlopes.SatSolver.prototype.collide = function (i, body, tile
  */
 Phaser.Plugin.ArcadeSlopes.SatSolver.prototype.collideOnAxis = function (body, tile, axis, response) {
 	// Bail out if we don't have everything we need
-	if (!(body.enable && body.polygon && body.slopes && tile.slope && tile.slope.polygon)) {
+	if (!this.shouldCollide(body, tile)) {
 		return false;
 	}
 	
