@@ -89,7 +89,7 @@ game.slopes.convertTilemapLayer(ground, {
 
 Now you need to enable slopes for any game entities you want to collide against
 the tilemap. *For sprites, make sure you call `game.slopes.enable(sprite)` after
-any changes to the **size** of the physics body.*
+any changes to the __size__ of the physics body.*
 
 ```js
 game.physics.arcade.enable(player);
