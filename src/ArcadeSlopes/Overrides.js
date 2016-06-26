@@ -20,13 +20,14 @@ Phaser.Plugin.ArcadeSlopes.Overrides = {};
  * @param  {integer}             i                - The tile index.
  * @param  {Phaser.Sprite}       sprite           - The sprite to check.
  * @param  {Phaser.Tile}         tile             - The tile to check.
+ * @param  {Phaser.TilemapLayer} tilemapLayer     - The tilemap layer the tile belongs to.
  * @param  {function}            collideCallback  - An optional collision callback.
  * @param  {function}            processCallback  - An optional overlap processing callback.
  * @param  {object}              callbackContext  - The context in which to run the callbacks.
  * @param  {boolean}             overlapOnly      - Whether to only check for an overlap.
  * @return {boolean}                              - Whether a collision occurred.
  */
-Phaser.Plugin.ArcadeSlopes.Overrides.collideSpriteVsTile = function (i, sprite, tile, collideCallback, processCallback, callbackContext, overlapOnly) {
+Phaser.Plugin.ArcadeSlopes.Overrides.collideSpriteVsTile = function (i, sprite, tile, tilemapLayer, collideCallback, processCallback, callbackContext, overlapOnly) {
 	if (!sprite.body) {
 		return false;
 	}
@@ -41,7 +42,7 @@ Phaser.Plugin.ArcadeSlopes.Overrides.collideSpriteVsTile = function (i, sprite, 
 			
 			return true;
 		}
-	} else if (this.separateTile(i, sprite.body, tile, overlapOnly)) {
+	} else if (this.separateTile(i, sprite.body, tile, tilemapLayer, overlapOnly)) {
 		this._total++;
 		
 		if (collideCallback) {
@@ -60,13 +61,14 @@ Phaser.Plugin.ArcadeSlopes.Overrides.collideSpriteVsTile = function (i, sprite, 
  * @method Phaser.Plugin.ArcadeSlopes.Overrides#collideSpriteVsTiles
  * @param  {Phaser.Sprite}       sprite           - The sprite to check.
  * @param  {Phaser.Tile[]}       tiles            - The tiles to check.
+ * @param  {Phaser.TilemapLayer} tilemapLayer     - The tilemap layer the tiles belong to.
  * @param  {function}            collideCallback  - An optional collision callback.
  * @param  {function}            processCallback  - An optional overlap processing callback.
  * @param  {object}              callbackContext  - The context in which to run the callbacks.
  * @param  {boolean}             overlapOnly      - Whether to only check for an overlap.
  * @return {boolean}                              - Whether a collision occurred.
  */
-Phaser.Plugin.ArcadeSlopes.Overrides.collideSpriteVsTiles = function (sprite, tiles, collideCallback, processCallback, callbackContext, overlapOnly) {
+Phaser.Plugin.ArcadeSlopes.Overrides.collideSpriteVsTiles = function (sprite, tiles, tilemapLayer, collideCallback, processCallback, callbackContext, overlapOnly) {
 	var collided = false;
 	
 	if (!sprite.body) {
@@ -76,10 +78,10 @@ Phaser.Plugin.ArcadeSlopes.Overrides.collideSpriteVsTiles = function (sprite, ti
 	for (var i = 0; i < tiles.length; i++) {
 		if (processCallback) {
 			if (processCallback.call(callbackContext, sprite, tiles[i])) {
-				collided = this.collideSpriteVsTile(i, sprite, tiles[i], collideCallback, processCallback, callbackContext, overlapOnly) || collided;
+				collided = this.collideSpriteVsTile(i, sprite, tiles[i], tilemapLayer, collideCallback, processCallback, callbackContext, overlapOnly) || collided;
 			}
 		} else {
-			collided = this.collideSpriteVsTile(i, sprite, tiles[i], collideCallback, processCallback, callbackContext, overlapOnly) || collided;
+			collided = this.collideSpriteVsTile(i, sprite, tiles[i], tilemapLayer, collideCallback, processCallback, callbackContext, overlapOnly) || collided;
 		}
 	}
 	
@@ -119,7 +121,7 @@ Phaser.Plugin.ArcadeSlopes.Overrides.collideSpriteVsTilemapLayer = function (spr
 		return false;
 	}
 	
-	var collided = this.collideSpriteVsTiles(sprite, tiles, collideCallback, processCallback, callbackContext, overlapOnly);
+	var collided = this.collideSpriteVsTiles(sprite, tiles, tilemapLayer, collideCallback, processCallback, callbackContext, overlapOnly);
 	
 	if (!collided && !overlapOnly) {
 		// TODO: This call is too hacky and solver-specific
