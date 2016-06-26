@@ -348,6 +348,9 @@ Phaser.Plugin.ArcadeSlopes.SatSolver.prototype.snap = function (body, tiles) {
 /**
  * Pull the body into a collision response based on its slopes options.
  *
+ * TODO: Refactor; don't return after any condition is met, accumulate values
+ *       into a single SAT.Vector and apply at the end.
+ * 
  * @method Phaser.Plugin.ArcadeSlopes.SatSolver#pull
  * @param  {Phaser.Physics.Arcade.Body} body     - The physics body.
  * @param  {SAT.Response}               response - The SAT response.

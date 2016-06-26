@@ -58,7 +58,7 @@ Phaser.Plugin.ArcadeSlopes.prototype.constructor = Phaser.Plugin.ArcadeSlopes;
  * @constant
  * @type {string}
  */
-Phaser.Plugin.ArcadeSlopes.VERSION = '0.1.1-dev';
+Phaser.Plugin.ArcadeSlopes.VERSION = '0.1.1';
 
 /**
  * The Separating Axis Theorem collision solver type.

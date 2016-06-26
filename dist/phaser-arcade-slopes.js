@@ -58,7 +58,7 @@ Phaser.Plugin.ArcadeSlopes.prototype.constructor = Phaser.Plugin.ArcadeSlopes;
  * @constant
  * @type {string}
  */
-Phaser.Plugin.ArcadeSlopes.VERSION = '0.1.0-beta';
+Phaser.Plugin.ArcadeSlopes.VERSION = '0.1.1';
 
 /**
  * The Separating Axis Theorem collision solver type.
@@ -286,13 +286,14 @@ Phaser.Plugin.ArcadeSlopes.Overrides = {};
  * @param  {integer}             i                - The tile index.
  * @param  {Phaser.Sprite}       sprite           - The sprite to check.
  * @param  {Phaser.Tile}         tile             - The tile to check.
+ * @param  {Phaser.TilemapLayer} tilemapLayer     - The tilemap layer the tile belongs to.
  * @param  {function}            collideCallback  - An optional collision callback.
  * @param  {function}            processCallback  - An optional overlap processing callback.
  * @param  {object}              callbackContext  - The context in which to run the callbacks.
  * @param  {boolean}             overlapOnly      - Whether to only check for an overlap.
  * @return {boolean}                              - Whether a collision occurred.
  */
-Phaser.Plugin.ArcadeSlopes.Overrides.collideSpriteVsTile = function (i, sprite, tile, collideCallback, processCallback, callbackContext, overlapOnly) {
+Phaser.Plugin.ArcadeSlopes.Overrides.collideSpriteVsTile = function (i, sprite, tile, tilemapLayer, collideCallback, processCallback, callbackContext, overlapOnly) {
 	if (!sprite.body) {
 		return false;
 	}
@@ -307,7 +308,7 @@ Phaser.Plugin.ArcadeSlopes.Overrides.collideSpriteVsTile = function (i, sprite, 
 			
 			return true;
 		}
-	} else if (this.separateTile(i, sprite.body, tile, overlapOnly)) {
+	} else if (this.separateTile(i, sprite.body, tile, tilemapLayer, overlapOnly)) {
 		this._total++;
 		
 		if (collideCallback) {
@@ -326,13 +327,14 @@ Phaser.Plugin.ArcadeSlopes.Overrides.collideSpriteVsTile = function (i, sprite, 
  * @method Phaser.Plugin.ArcadeSlopes.Overrides#collideSpriteVsTiles
  * @param  {Phaser.Sprite}       sprite           - The sprite to check.
  * @param  {Phaser.Tile[]}       tiles            - The tiles to check.
+ * @param  {Phaser.TilemapLayer} tilemapLayer     - The tilemap layer the tiles belong to.
  * @param  {function}            collideCallback  - An optional collision callback.
  * @param  {function}            processCallback  - An optional overlap processing callback.
  * @param  {object}              callbackContext  - The context in which to run the callbacks.
  * @param  {boolean}             overlapOnly      - Whether to only check for an overlap.
  * @return {boolean}                              - Whether a collision occurred.
  */
-Phaser.Plugin.ArcadeSlopes.Overrides.collideSpriteVsTiles = function (sprite, tiles, collideCallback, processCallback, callbackContext, overlapOnly) {
+Phaser.Plugin.ArcadeSlopes.Overrides.collideSpriteVsTiles = function (sprite, tiles, tilemapLayer, collideCallback, processCallback, callbackContext, overlapOnly) {
 	var collided = false;
 	
 	if (!sprite.body) {
@@ -342,10 +344,10 @@ Phaser.Plugin.ArcadeSlopes.Overrides.collideSpriteVsTiles = function (sprite, ti
 	for (var i = 0; i < tiles.length; i++) {
 		if (processCallback) {
 			if (processCallback.call(callbackContext, sprite, tiles[i])) {
-				collided = this.collideSpriteVsTile(i, sprite, tiles[i], collideCallback, processCallback, callbackContext, overlapOnly) || collided;
+				collided = this.collideSpriteVsTile(i, sprite, tiles[i], tilemapLayer, collideCallback, processCallback, callbackContext, overlapOnly) || collided;
 			}
 		} else {
-			collided = this.collideSpriteVsTile(i, sprite, tiles[i], collideCallback, processCallback, callbackContext, overlapOnly) || collided;
+			collided = this.collideSpriteVsTile(i, sprite, tiles[i], tilemapLayer, collideCallback, processCallback, callbackContext, overlapOnly) || collided;
 		}
 	}
 	
@@ -385,7 +387,7 @@ Phaser.Plugin.ArcadeSlopes.Overrides.collideSpriteVsTilemapLayer = function (spr
 		return false;
 	}
 	
-	var collided = this.collideSpriteVsTiles(sprite, tiles, collideCallback, processCallback, callbackContext, overlapOnly);
+	var collided = this.collideSpriteVsTiles(sprite, tiles, tilemapLayer, collideCallback, processCallback, callbackContext, overlapOnly);
 	
 	if (!collided && !overlapOnly) {
 		// TODO: This call is too hacky and solver-specific
@@ -1691,13 +1693,17 @@ Phaser.Plugin.ArcadeSlopes.SatSolver.prototype.snap = function (body, tiles) {
 /**
  * Pull the body into a collision response based on its slopes options.
  *
+ * TODO: Refactor; don't return after any condition is met, accumulate values
+ *       into a single SAT.Vector and apply at the end.
+ * 
  * @method Phaser.Plugin.ArcadeSlopes.SatSolver#pull
  * @param  {Phaser.Physics.Arcade.Body} body     - The physics body.
  * @param  {SAT.Response}               response - The SAT response.
  * @return {boolean}                             - Whether the body was pulled.
  */
 Phaser.Plugin.ArcadeSlopes.SatSolver.prototype.pull = function (body, response) {
-	if (!body.slopes.pullUp && !body.slopes.pullDown && !body.slopes.pullLeft && !body.slopes.pullRight) {
+	if (!body.slopes.pullUp && !body.slopes.pullDown && !body.slopes.pullLeft && !body.slopes.pullRight &&
+		!body.slopes.pullTopLeft && !body.slopes.pullTopRight && !body.slopes.pullBottomLeft && !body.slopes.pullBottomRight) {
 		return false;
 	}
 	
@@ -1716,10 +1722,8 @@ Phaser.Plugin.ArcadeSlopes.SatSolver.prototype.pull = function (body, response) 
 	}
 	
 	if (body.slopes.pullDown && overlapN.y > 0) {
-		// Scale it by the configured amount
 		pullDown = overlapN.clone().scale(body.slopes.pullDown);
 		
-		// Apply it to the body velocity
 		body.velocity.x += pullDown.x;
 		body.velocity.y += pullDown.y;
 		
@@ -1727,10 +1731,8 @@ Phaser.Plugin.ArcadeSlopes.SatSolver.prototype.pull = function (body, response) 
 	}
 	
 	if (body.slopes.pullLeft && overlapN.x < 0) {
-		// Scale it by the configured amount
 		pullLeft = overlapN.clone().scale(body.slopes.pullLeft);
 		
-		// Apply it to the body velocity
 		body.velocity.x += pullLeft.x;
 		body.velocity.y += pullLeft.y;
 		
@@ -1738,10 +1740,44 @@ Phaser.Plugin.ArcadeSlopes.SatSolver.prototype.pull = function (body, response) 
 	}
 	
 	if (body.slopes.pullRight && overlapN.x > 0) {
-		// Scale it by the configured amount
 		pullRight = overlapN.clone().scale(body.slopes.pullRight);
 		
-		// Apply it to the body velocity
+		body.velocity.x += pullRight.x;
+		body.velocity.y += pullRight.y;
+		
+		return true;
+	}
+	
+	if (body.slopes.pullTopLeft && overlapN.x < 0 && overlapN.y < 0) {
+		pullUp = overlapN.clone().scale(body.slopes.pullTopLeft);
+		
+		body.velocity.x += pullUp.x;
+		body.velocity.y += pullUp.y;
+		
+		return true;
+	}
+	
+	if (body.slopes.pullTopRight && overlapN.x > 0 && overlapN.y < 0) {
+		pullDown = overlapN.clone().scale(body.slopes.pullTopRight);
+		
+		body.velocity.x += pullDown.x;
+		body.velocity.y += pullDown.y;
+		
+		return true;
+	}
+	
+	if (body.slopes.pullBottomLeft && overlapN.x < 0 && overlapN.y > 0) {
+		pullLeft = overlapN.clone().scale(body.slopes.pullBottomLeft);
+		
+		body.velocity.x += pullLeft.x;
+		body.velocity.y += pullLeft.y;
+		
+		return true;
+	}
+	
+	if (body.slopes.pullBottomRight && overlapN.x > 0 && overlapN.y > 0) {
+		pullRight = overlapN.clone().scale(body.slopes.pullBottomRight);
+		
 		body.velocity.x += pullRight.x;
 		body.velocity.y += pullRight.y;
 		
@@ -1774,6 +1810,22 @@ Phaser.Plugin.ArcadeSlopes.SatSolver.prototype.snapCollide = function (body, til
 };
 
 /**
+ * Determine whether everything required to process a collision is available.
+ *
+ * @method Phaser.Plugin.ArcadeSlopes.SatSolver#shouldCollide
+ * @param  {Phaser.Physics.Arcade.Body} body - The physics body.
+ * @param  {Phaser.Tile}                tile - The tile.
+ * @return {boolean}
+ */
+Phaser.Plugin.ArcadeSlopes.SatSolver.prototype.shouldCollide = function (body, tile) {
+	if (body.enable && body.polygon && body.slopes && tile.collides && tile.slope && tile.slope.polygon) {
+		return true;
+	}
+	
+	return false;
+};
+
+/**
  * Separate the given body and tile from each other and apply any relevant
  * changes to the body's velocity.
  *
@@ -1789,7 +1841,7 @@ Phaser.Plugin.ArcadeSlopes.SatSolver.prototype.snapCollide = function (body, til
  */
 Phaser.Plugin.ArcadeSlopes.SatSolver.prototype.collide = function (i, body, tile, overlapOnly) {
 	// Bail out if we don't have everything we need
-	if (!(body.enable && body.polygon && body.slopes && tile.slope && tile.slope.polygon)) {
+	if (!this.shouldCollide(body, tile)) {
 		return false;
 	}
 	
@@ -1849,7 +1901,7 @@ Phaser.Plugin.ArcadeSlopes.SatSolver.prototype.collide = function (i, body, tile
  */
 Phaser.Plugin.ArcadeSlopes.SatSolver.prototype.collideOnAxis = function (body, tile, axis, response) {
 	// Bail out if we don't have everything we need
-	if (!(body.enable && body.polygon && body.slopes && tile.slope && tile.slope.polygon)) {
+	if (!this.shouldCollide(body, tile)) {
 		return false;
 	}
 	

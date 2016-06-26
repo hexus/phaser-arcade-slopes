@@ -1,5 +1,11 @@
 # Arcade Slopes Change Log
 
+## v0.1.1 - 26th June 2016
+- Implemented corner collision pulling (#3).
+- Fixed incompatibility with Phaser 2.4.9 and 2.5.0 (#5).
+- Updated the readme regarding changes to physics body sizes before enabling
+  slopes (#6).
+
 ## v0.1.0 - 22nd May 2016
 - Collision pulling; an alternative approach to sticky slopes.
 
