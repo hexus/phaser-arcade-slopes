@@ -112,23 +112,25 @@ var ArcadeSlopesDemo = (function(Phaser) {
 			
 			this.physics.arcade.gravity.y = 1000;
 			
+			// Enable physics for the player
 			this.physics.arcade.enable(this.player);
 			this.game.slopes.enable(this.player);
 			
-			// Just a touch of tile padding
+			// Add a touch of tile padding for the collision detection
 			this.player.body.tilePadding.x = 1;
 			this.player.body.tilePadding.y = 1;
 			
+			// Set the initial properties of the player's physics body
 			this.player.body.drag.x = this.features.dragX;
 			this.player.body.bounce.x = this.features.bounceX;
 			this.player.body.bounce.y = this.features.bounceY;
-			this.player.body.slopes.friction.x = 0;
-			this.player.body.slopes.friction.y = 0;
+			this.player.body.slopes.friction.x = this.features.frictionX;
+			this.player.body.slopes.friction.y = this.features.frictionY;
 			this.player.body.maxVelocity.x = 500;
 			this.player.body.maxVelocity.y = 1000;
 			this.player.body.collideWorldBounds = true;
 			
-			// Position our player
+			// Position the player
 			this.player.position.set(240, 2464);
 			
 			// Create a particle emitter and position it on the player
@@ -214,6 +216,7 @@ var ArcadeSlopesDemo = (function(Phaser) {
 					camera.unfollow();
 				} else {
 					camera.follow(this.player);
+					camera.lerp.setTo(0.2);
 				}
 			}
 			
