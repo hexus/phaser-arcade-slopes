@@ -4,7 +4,7 @@
 [Phaser](http://phaser.io)'s [Arcade
 Physics](http://phaser.io/examples/v2/category/arcade-physics) engine.
 
-## Demo
+## [Demo](http://hexus.github.io/phaser-arcade-slopes)
 
 Check out the **[demo](http://hexus.github.io/phaser-arcade-slopes)**!
 
@@ -16,6 +16,16 @@ Check out the **[demo](http://hexus.github.io/phaser-arcade-slopes)**!
 - Heuristic SAT restraints that prevent AABBs catching on hidden edges :clap:
 - Works with sprites :rocket:, groups :busts_in_silhouette: and particle
   emitters :sparkles:
+
+## Compatibility
+
+This is a simple compatibility chart for different versions of the plugin. It
+also conveniently provides links to each version.
+
+| Phaser Version  | Arcade Slopes Version                                               |
+|-----------------|---------------------------------------------------------------------|
+| v2.4.1 - v2.4.8 | [v0.1.0](https://github.com/hexus/phaser-arcade-slopes/tree/v0.1.0) |
+| v2.5.0          | [v0.1.1](https://github.com/hexus/phaser-arcade-slopes/tree/v0.1.1) |
 
 ## Usage
 
@@ -78,11 +88,14 @@ game.slopes.convertTilemapLayer(ground, {
 ```
 
 Now you need to enable slopes for any game entities you want to collide against
-the tilemap.
+the tilemap. *For sprites, make sure you call `game.slopes.enable(sprite)` after
+any changes to the **size** of the physics body.*
 
 ```js
-game.slopes.enable(player);
-game.slopes.enable(emitter); // Call this after emitter.makeParticles()!
+game.physics.arcade.enable(player);
+
+game.slopes.enable(player);  // Call this after any changes to the body's size
+game.slopes.enable(emitter); // Call this after emitter.makeParticles()
 ```
 
 Now you can collide your player against the tilemap in the
@@ -125,6 +138,9 @@ learn than to build something yourself?
   - [x] Friction
   - [x] `body.slope` properties for friction, sticky slopes, preferred
     separation axis and last overlap response
+- [x] v0.1.1
+  - [x] Phaser 2.4.9/2.5.0 compatibility
+  - [x] Corner collision pulling
 - [ ] v0.2.0
   - [ ] Arcade Slopes tilesheet
     - [ ] Premade tilesheets
@@ -138,6 +154,7 @@ learn than to build something yourself?
     - [ ] Tile face properties
     - [ ] Tile polygons
   - [ ] [Metroid collision solver](https://github.com/geselle-jan/Metroid/commit/9c213e9f5779df1dcd6f7d2bed2a9b676a9e3c6b#diff-467b4e6069f6692511fc5e60f3c426cc)
+  - [ ] Clearer yet more in-depth readme
 - [ ] v0.3.0
   - [ ] Custom SAT.js implementation that can prevent internal edge collisions
     ([like this](http://www.wildbunny.co.uk/blog/2012/10/31/2d-polygonal-collision-detection-and-internal-edges/comment-page-1/#comment-1978))

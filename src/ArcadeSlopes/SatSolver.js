@@ -354,7 +354,8 @@ Phaser.Plugin.ArcadeSlopes.SatSolver.prototype.snap = function (body, tiles) {
  * @return {boolean}                             - Whether the body was pulled.
  */
 Phaser.Plugin.ArcadeSlopes.SatSolver.prototype.pull = function (body, response) {
-	if (!body.slopes.pullUp && !body.slopes.pullDown && !body.slopes.pullLeft && !body.slopes.pullRight) {
+	if (!body.slopes.pullUp && !body.slopes.pullDown && !body.slopes.pullLeft && !body.slopes.pullRight &&
+		!body.slopes.pullTopLeft && !body.slopes.pullTopRight && !body.slopes.pullBottomLeft && !body.slopes.pullBottomRight) {
 		return false;
 	}
 	
@@ -373,10 +374,8 @@ Phaser.Plugin.ArcadeSlopes.SatSolver.prototype.pull = function (body, response) 
 	}
 	
 	if (body.slopes.pullDown && overlapN.y > 0) {
-		// Scale it by the configured amount
 		pullDown = overlapN.clone().scale(body.slopes.pullDown);
 		
-		// Apply it to the body velocity
 		body.velocity.x += pullDown.x;
 		body.velocity.y += pullDown.y;
 		
@@ -384,10 +383,8 @@ Phaser.Plugin.ArcadeSlopes.SatSolver.prototype.pull = function (body, response) 
 	}
 	
 	if (body.slopes.pullLeft && overlapN.x < 0) {
-		// Scale it by the configured amount
 		pullLeft = overlapN.clone().scale(body.slopes.pullLeft);
 		
-		// Apply it to the body velocity
 		body.velocity.x += pullLeft.x;
 		body.velocity.y += pullLeft.y;
 		
@@ -395,10 +392,44 @@ Phaser.Plugin.ArcadeSlopes.SatSolver.prototype.pull = function (body, response) 
 	}
 	
 	if (body.slopes.pullRight && overlapN.x > 0) {
-		// Scale it by the configured amount
 		pullRight = overlapN.clone().scale(body.slopes.pullRight);
 		
-		// Apply it to the body velocity
+		body.velocity.x += pullRight.x;
+		body.velocity.y += pullRight.y;
+		
+		return true;
+	}
+	
+	if (body.slopes.pullTopLeft && overlapN.x < 0 && overlapN.y < 0) {
+		pullUp = overlapN.clone().scale(body.slopes.pullTopLeft);
+		
+		body.velocity.x += pullUp.x;
+		body.velocity.y += pullUp.y;
+		
+		return true;
+	}
+	
+	if (body.slopes.pullTopRight && overlapN.x > 0 && overlapN.y < 0) {
+		pullDown = overlapN.clone().scale(body.slopes.pullTopRight);
+		
+		body.velocity.x += pullDown.x;
+		body.velocity.y += pullDown.y;
+		
+		return true;
+	}
+	
+	if (body.slopes.pullBottomLeft && overlapN.x < 0 && overlapN.y > 0) {
+		pullLeft = overlapN.clone().scale(body.slopes.pullBottomLeft);
+		
+		body.velocity.x += pullLeft.x;
+		body.velocity.y += pullLeft.y;
+		
+		return true;
+	}
+	
+	if (body.slopes.pullBottomRight && overlapN.x > 0 && overlapN.y > 0) {
+		pullRight = overlapN.clone().scale(body.slopes.pullBottomRight);
+		
 		body.velocity.x += pullRight.x;
 		body.velocity.y += pullRight.y;
 		
