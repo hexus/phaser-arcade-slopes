@@ -1,4 +1,4 @@
-# Phaser Arcade Slopes Plugin :triangular_ruler:
+# Phaser Arcade Slopes Plugin
 
 **Arcade Slopes** brings sloped tile collision handling to
 [Phaser](http://phaser.io)'s [Arcade
