@@ -285,7 +285,7 @@ Phaser.Plugin.ArcadeSlopes.SatSolver.prototype.updateFlags = function (body, res
  * @return {boolean}                          - Whether the body was snapped to any tiles.
  */
 Phaser.Plugin.ArcadeSlopes.SatSolver.prototype.snap = function (body, tiles) {
-	if (!body.slopes.snapUp && !body.slopes.snapDown && !body.slopes.snapLeft && !body.slopes.snapRight) {
+	if (!body.slopes && !body.slopes.snapUp && !body.slopes.snapDown && !body.slopes.snapLeft && !body.slopes.snapRight) {
 		return false;
 	}
 	
@@ -473,11 +473,7 @@ Phaser.Plugin.ArcadeSlopes.SatSolver.prototype.snapCollide = function (body, til
  * @return {boolean}
  */
 Phaser.Plugin.ArcadeSlopes.SatSolver.prototype.shouldCollide = function (body, tile) {
-	if (body.enable && body.polygon && body.slopes && tile.collides && tile.slope && tile.slope.polygon) {
-		return true;
-	}
-	
-	return false;
+	return body.enable && body.polygon && body.slopes && tile.collides && tile.slope && tile.slope.polygon;
 };
 
 /**
