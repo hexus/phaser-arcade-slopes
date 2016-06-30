@@ -8,6 +8,8 @@ Physics](http://phaser.io/examples/v2/category/arcade-physics) engine.
 
 Check out the **[demo](http://hexus.github.io/phaser-arcade-slopes)**!
 
+![Phaser Arcade Slopes](screenshot.gif)
+
 ## Features
 
 - 24 new tile types :tada:
@@ -153,6 +155,7 @@ learn than to build something yourself?
     - [ ] Collision vectors
     - [ ] Tile face properties
     - [ ] Tile polygons
+  - [ ] Offset tilemap layer support
   - [ ] [Metroid collision solver](https://github.com/geselle-jan/Metroid/commit/9c213e9f5779df1dcd6f7d2bed2a9b676a9e3c6b#diff-467b4e6069f6692511fc5e60f3c426cc)
   - [ ] Clearer yet more in-depth readme
 - [ ] v0.3.0
