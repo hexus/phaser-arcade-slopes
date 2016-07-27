@@ -500,13 +500,18 @@ Phaser.Plugin.ArcadeSlopes.SatSolver.prototype.collide = function (i, body, tile
 	body.polygon.pos.x = body.x;
 	body.polygon.pos.y = body.y;
 	
+	if (body.isCircle) {
+		body.polygon.pos.x += body.halfWidth;
+		body.polygon.pos.y += body.halfHeight;
+	}
+	
 	// Update the tile polygon position
 	tile.slope.polygon.pos.x = tile.worldX;
 	tile.slope.polygon.pos.y = tile.worldY;
 	
 	var response = new SAT.Response();
 	
-	// Nothing more to do here if there isn't an overlap
+	// Test for an overlap and bail if there isn't one
 	if ((body.isCircle && !SAT.testCirclePolygon(body.polygon, tile.slope.polygon, response)) || (!body.isCircle && !SAT.testPolygonPolygon(body.polygon, tile.slope.polygon, response))) {
 		return false;
 	}
