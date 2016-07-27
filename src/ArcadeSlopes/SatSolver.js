@@ -507,7 +507,7 @@ Phaser.Plugin.ArcadeSlopes.SatSolver.prototype.collide = function (i, body, tile
 	var response = new SAT.Response();
 	
 	// Nothing more to do here if there isn't an overlap
-	if (!SAT.testPolygonPolygon(body.polygon, tile.slope.polygon, response)) {
+	if ((body.isCircle && !SAT.testCirclePolygon(body.polygon, tile.slope.polygon, response)) || (!body.isCircle && !SAT.testPolygonPolygon(body.polygon, tile.slope.polygon, response))) {
 		return false;
 	}
 	
@@ -611,7 +611,7 @@ Phaser.Plugin.ArcadeSlopes.SatSolver.prototype.shouldSeparate = function (i, bod
 		return false;
 	}
 	
-	if  (!this.options.restrain) {
+	if  (!this.options.restrain || body.isCircle) {
 		return true;
 	}
 	
