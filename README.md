@@ -156,7 +156,7 @@ learn than to build something yourself?
     - [ ] Tile face properties
     - [ ] Tile polygons
   - [ ] Offset tilemap layer support
-  - [ ] [Metroid collision solver](https://github.com/geselle-jan/Metroid/commit/9c213e9f5779df1dcd6f7d2bed2a9b676a9e3c6b#diff-467b4e6069f6692511fc5e60f3c426cc)
+  - [ ] Circular physics body support
   - [ ] Clearer yet more in-depth readme
 - [ ] v0.3.0
   - [ ] Custom SAT.js implementation that can prevent internal edge collisions

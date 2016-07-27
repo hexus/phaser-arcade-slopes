@@ -31,13 +31,6 @@ Phaser.Plugin.ArcadeSlopes = function (game, parent, defaultSolver) {
 	this.defaultSolver = defaultSolver || Phaser.Plugin.ArcadeSlopes.SAT;
 	
 	/**
-	 * A tile slope factory.
-	 * 
-	 * @property {Phaser.Plugin.ArcadeSlopes.TileSlopeFactory} factory
-	 */
-	this.factory = new Phaser.Plugin.ArcadeSlopes.TileSlopeFactory();
-	
-	/**
 	 * The collision solvers provided by the plugin.
 	 * 
 	 * Maps solver constants to their respective instances.
@@ -47,6 +40,17 @@ Phaser.Plugin.ArcadeSlopes = function (game, parent, defaultSolver) {
 	this.solvers = {};
 	
 	this.solvers[Phaser.Plugin.ArcadeSlopes.SAT] = new Phaser.Plugin.ArcadeSlopes.SatSolver();
+	
+	/**
+	 * The Arcade Slopes facade.
+	 *
+	 * @property {Phaser.Plugin.ArcadeSlopes.Facade} facade
+	 */
+	this.facade = new Phaser.Plugin.ArcadeSlopes.Facade(
+		new Phaser.Plugin.ArcadeSlopes.TileSlopeFactory(),
+		this.solvers,
+		this.defaultSolver
+	);
 };
 
 Phaser.Plugin.ArcadeSlopes.prototype = Object.create(Phaser.Plugin.prototype);
@@ -136,23 +140,7 @@ Phaser.Plugin.ArcadeSlopes.prototype.destroy = function () {
  * @param {Phaser.Sprite|Phaser.Group} object - The object to enable sloped tile physics for.
  */
 Phaser.Plugin.ArcadeSlopes.prototype.enable = function (object) {
-	if (Array.isArray(object)) {
-		for (var i = 0; i < object.length; i++) {
-			this.enable(object[i]);
-		}
-	} else {
-		if (object instanceof Phaser.Group) {
-			this.enable(object.children);
-		} else {
-			if (object.hasOwnProperty('body')) {
-				this.enableBody(object.body);
-			}
-			
-			if (object.hasOwnProperty('children') && object.children.length > 0) {
-				this.enable(object.children);
-			}
-		}
-	}
+	this.facade.enable(object);
 };
 
 /**
@@ -164,32 +152,7 @@ Phaser.Plugin.ArcadeSlopes.prototype.enable = function (object) {
  * @param {Phaser.Physics.Arcade.Body} body - The physics body to enable.
  */
 Phaser.Plugin.ArcadeSlopes.prototype.enableBody = function (body) {
-	// Create an SAT polygon from the body's bounding box
-	body.polygon = new SAT.Box(
-		new SAT.Vector(body.x, body.y),
-		body.width,
-		body.height
-	).toPolygon();
-	
-	// Attach a new set of properties that configure the body's interaction
-	// with sloped tiles (TODO: Formalize as a class?)
-	body.slopes = {
-		friction: new Phaser.Point(),
-		preferY: false,
-		pullUp: 0,
-		pullDown: 0,
-		pullLeft: 0,
-		pullRight: 0,
-		sat: {
-			response: null,
-		},
-		skipFriction: false,
-		snapUp: 0,
-		snapDown: 0,
-		snapLeft: 0,
-		snapRight: 0,
-		velocity: new SAT.Vector()
-	};
+	this.facade.enableBody(body);
 };
 
 /**
@@ -205,7 +168,7 @@ Phaser.Plugin.ArcadeSlopes.prototype.enableBody = function (body) {
  * @return {Phaser.Tilemap}                             - The converted tilemap.
  */
 Phaser.Plugin.ArcadeSlopes.prototype.convertTilemap = function (map, layer, slopeMap) {
-	return this.factory.convertTilemap(map, layer, slopeMap);
+	return this.facade.convertTilemap(map, layer, slopeMap);
 };
 
 /**
@@ -217,7 +180,7 @@ Phaser.Plugin.ArcadeSlopes.prototype.convertTilemap = function (map, layer, slop
  * @return {Phaser.TilemapLayer}           - The converted tilemap layer.
  */
 Phaser.Plugin.ArcadeSlopes.prototype.convertTilemapLayer = function (layer, slopeMap) {
-	return this.factory.convertTilemapLayer(layer, slopeMap);
+	return this.facade.convertTilemapLayer(layer, slopeMap);
 };
 
 /**
@@ -231,9 +194,5 @@ Phaser.Plugin.ArcadeSlopes.prototype.convertTilemapLayer = function (layer, slop
  * @return {boolean}                                - Whether the body was separated.
  */
 Phaser.Plugin.ArcadeSlopes.prototype.collide = function (i, body, tile, overlapOnly) {
-	if (tile.slope.solver && this.solvers.hasOwnProperty(tile.slope.solver)) {
-		return this.solvers[tile.slope.solver].collide(i, body, tile, overlapOnly);
-	}
-	
-	return this.solvers[this.defaultSolver].collide(i, body, tile, overlapOnly);
+	return this.facade.collide(i, body, tile, overlapOnly);
 };
