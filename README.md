@@ -21,13 +21,12 @@ Check out the **[demo](http://hexus.github.io/phaser-arcade-slopes)**!
 
 ## Compatibility
 
-This is a simple compatibility chart for different versions of the plugin. It
-also conveniently provides links to each version.
+This is a simple compatibility chart for different versions of the plugin.
 
 | Phaser Version  | Arcade Slopes Version                                               |
 |-----------------|---------------------------------------------------------------------|
 | v2.4.1 - v2.4.8 | [v0.1.0](https://github.com/hexus/phaser-arcade-slopes/tree/v0.1.0) |
-| v2.5.0          | [v0.1.1](https://github.com/hexus/phaser-arcade-slopes/tree/v0.1.1) |
+| v2.5.0 - v2.6.1 | [v0.1.1](https://github.com/hexus/phaser-arcade-slopes/tree/v0.1.1) |
 
 ## Usage
 
@@ -47,9 +46,8 @@ game.plugins.add(Phaser.Plugin.ArcadeSlopes);
 
 After you've created your tilemap, and have a collision layer that you want
 to enable slopes for, you'll need run it through the Arcade Slopes converter.
-
-This works similarly to Ninja Physics, but you provide an explicit mapping of
-tile indexes to Arcade Slopes tile names instead of an array of integers.
+You'll need an explicit mapping of tile indexes to Arcade Slopes tile names to
+do so.
 
 Here's an example that maps the
 [Ninja Physics debug tilesheets](https://github.com/photonstorm/phaser/tree/v2.4.7/resources/Ninja%20Physics%20Debug%20Tiles) ([32px](https://raw.githubusercontent.com/photonstorm/phaser/v2.4.7/resources/Ninja%20Physics%20Debug%20Tiles/32px/ninja-tiles32.png), [64px](https://raw.githubusercontent.com/photonstorm/phaser/v2.4.7/resources/Ninja%20Physics%20Debug%20Tiles/64px/ninja-tiles64.png)).
@@ -174,8 +172,7 @@ keep in line with Phaser's coding standards so that anyone familiar with its
 source could understand this plugin with relative ease.
 
 If you want to build the plugin yourself from source, install Bower, clone the
-repository and run NPM, Bower and Gulp like so. I plan on making this simpler in
-future.
+repository and run NPM, Bower and Gulp like so.
 
 ```bash
 npm i -g bower
@@ -184,7 +181,7 @@ bower install
 gulp build
 ```
 
-There's also a watch task that runs the build task whenever you make changes
+There's also a watch task that builds the plugin whenever you make changes
 to the source.
 
 ```bash
