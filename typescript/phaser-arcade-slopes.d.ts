@@ -3,9 +3,11 @@ declare module Phaser {
 		slopes:Phaser.Plugin.ArcadeSlopes;
 	}
 
-	module Physics.Arcade {
-		interface Body {
-			slopes:Phaser.Plugin.ArcadeSlopes;
+	module Physics {
+		module Arcade {
+			interface Body {
+				slopes:Phaser.Plugin.ArcadeSlopes.BodySlopes;
+			}
 		}
 	}
 
@@ -13,6 +15,11 @@ declare module Phaser {
 		class ArcadeSlopes extends Phaser.Plugin {
 			static SAT:string;
 			static METROID:string;
+
+			defaultSolver:string;
+			factory:Phaser.Plugin.ArcadeSlopes.TileSlopeFactory;
+			solvers:Object;
+
 			enable(obj:Phaser.Sprite | Phaser.Group):void;
 			enableBody(body:Phaser.Physics.Arcade.Body):void;
 			convertTilemap(map:Phaser.Tilemap, layer:number | string | Phaser.TilemapLayer, slopeMap:Object):Phaser.Tilemap;
@@ -21,7 +28,6 @@ declare module Phaser {
 		}
 
 		module ArcadeSlopes {
-
 
 			class Facade {
 				factory:Phaser.Plugin.ArcadeSlopes.TileSlopeFactory;
@@ -170,6 +176,26 @@ declare module Phaser {
 				createQuarterTopLeftHigh(type:number, tile:Phaser.Tile):Phaser.Plugin.ArcadeSlopes.TileSlope;
 				createQuarterTopRightLow(type:number, tile:Phaser.Tile):Phaser.Plugin.ArcadeSlopes.TileSlope;
 				createQuarterTopRightHigh(type:number, tile:Phaser.Tile):Phaser.Plugin.ArcadeSlopes.TileSlope;
+			}
+
+			class BodySlopes {
+				friction:Phaser.Point;
+				preferY:boolean;
+				pullUp:number;
+				pullDown:number;
+				pullLeft:number;
+				pullRight:number;
+				sat:Phaser.Plugin.ArcadeSlopes.BodySlopesSat;
+				skipFriction:boolean;
+				snapUp:number;
+				snapDown:number;
+				snapLeft:number;
+				snapRight:number;
+				velocity:SAT.Vector;
+			}
+
+			class BodySlopesSat {
+				respone:SAT.Response;
 			}
 		}
 	}
