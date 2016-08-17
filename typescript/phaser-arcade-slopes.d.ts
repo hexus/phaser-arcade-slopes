@@ -11,9 +11,6 @@ declare module Phaser {
 
 	module Plugin {
 		class ArcadeSlopes extends Phaser.Plugin {
-			static SAT:string;
-			static METROID:string;
-
 			constructor(game:Phaser.Game, parent:any, defaultSolver:number);
 
 			defaultSolver:string;
@@ -25,6 +22,9 @@ declare module Phaser {
 			convertTilemap(map:Phaser.Tilemap, layer:number | string | Phaser.TilemapLayer, slopeMap:Object):Phaser.Tilemap;
 			convertTilemapLayer(layer:Phaser.TilemapLayer, slopeMap:Object):Phaser.TilemapLayer;
 			collide(i:number, body:Phaser.Physics.Arcade.Body, tile:Phaser.Tile, overlapOnly:boolean):boolean;
+
+			static SAT:string;
+			static METROID:string;
 		}
 
 		module ArcadeSlopes {
@@ -219,6 +219,7 @@ declare module SAT {
 		overlap:number;
 		overlapV:SAT.Vector;
 		overlapN:SAT.Vector;
+
 		clear();
 
 	}
@@ -248,6 +249,7 @@ declare module SAT {
 	interface Circle {
 		pos:SAT.Vector;
 		r:number;
+
 		getAABB():SAT.Box;
 	}
 
@@ -275,9 +277,7 @@ declare class SAT {
 	static T_ARRAYS:number[];
 	static T_RESPONSE:SAT.Response[];
 	static T_POLYGONS:SAT.Polygon[];
-
 	static UNIT_SQUARE:SAT.Polygon;
-
 	static LEFT_VORONOI_REGION:number;
 	static MIDDLE_VORONOI_REGION:number;
 	static RIGHT_VORONOI_REGION:number;
