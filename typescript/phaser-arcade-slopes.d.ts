@@ -99,7 +99,7 @@ declare module Phaser {
 				debug(position:Phaser.Point, response:SAT.Response):void;
 			}
 
-			class SatSolverOptions {
+			interface SatSolverOptions {
 				preferY:boolean;
 				stick:Phaser.Point;
 				restrain:boolean;
@@ -187,7 +187,7 @@ declare module Phaser {
 				createQuarterTopRightHigh(type:number, tile:Phaser.Tile):Phaser.Plugin.ArcadeSlopes.TileSlope;
 			}
 
-			class BodySlopes {
+			interface BodySlopes {
 				friction:Phaser.Point;
 				preferY:boolean;
 				pullUp:number;
@@ -203,7 +203,7 @@ declare module Phaser {
 				velocity:SAT.Vector;
 			}
 
-			class BodySlopesSat {
+			interface BodySlopesSat {
 				response:SAT.Response;
 			}
 		}
