@@ -170,6 +170,26 @@ declare module Phaser {
 				createQuarterTopRightLow(type:number, tile:Phaser.Tile):Phaser.Plugin.ArcadeSlopes.TileSlope;
 				createQuarterTopRightHigh(type:number, tile:Phaser.Tile):Phaser.Plugin.ArcadeSlopes.TileSlope;
 			}
+
+			class BodySlopes {
+				friction:Phaser.Point;
+				preferY:boolean;
+				pullUp:number;
+				pullDown:number;
+				pullLeft:number;
+				pullRight:number;
+				sat:Phaser.Plugin.ArcadeSlopes.BodySlopesSat;
+				skipFriction:boolean;
+				snapUp:number;
+				snapDown:number;
+				snapLeft:number;
+				snapRight:number;
+				velocity:SAT.Vector;
+			}
+
+			class BodySlopesSat {
+				response:SAT.Response;
+			}
 		}
 	}
 }
