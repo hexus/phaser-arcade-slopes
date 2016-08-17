@@ -14,6 +14,8 @@ declare module Phaser {
 			static SAT:string;
 			static METROID:string;
 
+			constructor(game:Phaser.Game, parent:any, defaultSolver:number);
+
 			defaultSolver:string;
 			solvers:Object;
 			facade:Phaser.Plugin.ArcadeSlopes.Facade;
@@ -28,9 +30,12 @@ declare module Phaser {
 		module ArcadeSlopes {
 
 			class Facade {
+				constructor(factory:Phaser.Plugin.ArcadeSlopes.TileSlopeFactory, solvers:Object, defaultSolver:number);
+
 				factory:Phaser.Plugin.ArcadeSlopes.TileSlopeFactory;
 				solvers:Object;
 				defaultSover:number;
+
 				enable(obj:Phaser.Sprite | Phaser.Group):void;
 				enableBody(body:Phaser.Physics.Arcade.Body):void;
 				convertTilemap(map:Phaser.Tilemap, layer:number | string | Phaser.TilemapLayer, slopeMap:Object):Phaser.Tilemap;
@@ -58,6 +63,7 @@ declare module Phaser {
 				topRightVerticies:string[];
 				bottomLeftVerticies:string[];
 				bottomRightVerticies:string[];
+
 				restrain(solver:Phaser.Plugin.ArcadeSlopes.SatSolver, body:Phaser.Physics.Arcade.Body, tile:Phaser.Tile, response:SAT.Response):boolean;
 				resolveOverlaps(direction:string):Object;
 				prepareRestraints(restraints:Object):Object;
@@ -67,8 +73,11 @@ declare module Phaser {
 			}
 
 			class SatSolver {
+				constructor(options:Phaser.Plugin.ArcadeSlopes.SatSolverOptions);
+
 				options:Phaser.Plugin.ArcadeSlopes.SatSolverOptions;
 				restrainers:Phaser.Plugin.ArcadeSlopes.SatRestainer;
+
 				prepareResponse(response:SAT.Response):SAT.Response;
 				putOnSlopeX(body:Phaser.Physics.Arcade.Body, tile:Phaser.Tile):void;
 				putOnSlopeY(body:Phaser.Physics.Arcade.Body, tile:Phaser.Tile):void;
@@ -97,6 +106,7 @@ declare module Phaser {
 			}
 
 			class TileSlope {
+				constructor(type:number, tile:Phaser.Tile, polygon:SAT.Polygon, line:Phaser.Line, edges:Object, axis:SAT.Vector);
 				type:number;
 				tile:Phaser.Tile;
 				polygon:SAT.Polygon;
@@ -108,6 +118,7 @@ declare module Phaser {
 				slope:number;
 				typeName:string;
 				typeNames:Object;
+
 				resolveType(type:string | number):number;
 				resolveTypeName(type:number):number;
 
