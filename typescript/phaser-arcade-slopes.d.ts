@@ -5,28 +5,37 @@ declare module Phaser {
 
 	module Physics.Arcade {
 		interface Body {
-			slopes:Phaser.Plugin.ArcadeSlopes;
+			slopes:Phaser.Plugin.ArcadeSlopes.BodySlopes;
 		}
 	}
 
 	module Plugin {
 		class ArcadeSlopes extends Phaser.Plugin {
-			static SAT:string;
-			static METROID:string;
+			constructor(game:Phaser.Game, parent:any, defaultSolver:number);
+
+			defaultSolver:string;
+			solvers:Object;
+			facade:Phaser.Plugin.ArcadeSlopes.Facade;
+
 			enable(obj:Phaser.Sprite | Phaser.Group):void;
 			enableBody(body:Phaser.Physics.Arcade.Body):void;
 			convertTilemap(map:Phaser.Tilemap, layer:number | string | Phaser.TilemapLayer, slopeMap:Object):Phaser.Tilemap;
 			convertTilemapLayer(layer:Phaser.TilemapLayer, slopeMap:Object):Phaser.TilemapLayer;
 			collide(i:number, body:Phaser.Physics.Arcade.Body, tile:Phaser.Tile, overlapOnly:boolean):boolean;
+
+			static SAT:string;
+			static METROID:string;
 		}
 
 		module ArcadeSlopes {
 
-
 			class Facade {
+				constructor(factory:Phaser.Plugin.ArcadeSlopes.TileSlopeFactory, solvers:Object, defaultSolver:number);
+
 				factory:Phaser.Plugin.ArcadeSlopes.TileSlopeFactory;
 				solvers:Object;
 				defaultSover:number;
+
 				enable(obj:Phaser.Sprite | Phaser.Group):void;
 				enableBody(body:Phaser.Physics.Arcade.Body):void;
 				convertTilemap(map:Phaser.Tilemap, layer:number | string | Phaser.TilemapLayer, slopeMap:Object):Phaser.Tilemap;
@@ -54,6 +63,7 @@ declare module Phaser {
 				topRightVerticies:string[];
 				bottomLeftVerticies:string[];
 				bottomRightVerticies:string[];
+
 				restrain(solver:Phaser.Plugin.ArcadeSlopes.SatSolver, body:Phaser.Physics.Arcade.Body, tile:Phaser.Tile, response:SAT.Response):boolean;
 				resolveOverlaps(direction:string):Object;
 				prepareRestraints(restraints:Object):Object;
@@ -63,8 +73,11 @@ declare module Phaser {
 			}
 
 			class SatSolver {
+				constructor(options:Phaser.Plugin.ArcadeSlopes.SatSolverOptions);
+
 				options:Phaser.Plugin.ArcadeSlopes.SatSolverOptions;
 				restrainers:Phaser.Plugin.ArcadeSlopes.SatRestainer;
+
 				prepareResponse(response:SAT.Response):SAT.Response;
 				putOnSlopeX(body:Phaser.Physics.Arcade.Body, tile:Phaser.Tile):void;
 				putOnSlopeY(body:Phaser.Physics.Arcade.Body, tile:Phaser.Tile):void;
@@ -86,13 +99,14 @@ declare module Phaser {
 				debug(position:Phaser.Point, response:SAT.Response):void;
 			}
 
-			class SatSolverOptions {
+			interface SatSolverOptions {
 				preferY:boolean;
 				stick:Phaser.Point;
 				restrain:boolean;
 			}
 
 			class TileSlope {
+				constructor(type:number, tile:Phaser.Tile, polygon:SAT.Polygon, line:Phaser.Line, edges:Object, axis:SAT.Vector);
 				type:number;
 				tile:Phaser.Tile;
 				polygon:SAT.Polygon;
@@ -104,6 +118,7 @@ declare module Phaser {
 				slope:number;
 				typeName:string;
 				typeNames:Object;
+
 				resolveType(type:string | number):number;
 				resolveTypeName(type:number):number;
 
@@ -171,6 +186,26 @@ declare module Phaser {
 				createQuarterTopRightLow(type:number, tile:Phaser.Tile):Phaser.Plugin.ArcadeSlopes.TileSlope;
 				createQuarterTopRightHigh(type:number, tile:Phaser.Tile):Phaser.Plugin.ArcadeSlopes.TileSlope;
 			}
+
+			interface BodySlopes {
+				friction:Phaser.Point;
+				preferY:boolean;
+				pullUp:number;
+				pullDown:number;
+				pullLeft:number;
+				pullRight:number;
+				sat:Phaser.Plugin.ArcadeSlopes.BodySlopesSat;
+				skipFriction:boolean;
+				snapUp:number;
+				snapDown:number;
+				snapLeft:number;
+				snapRight:number;
+				velocity:SAT.Vector;
+			}
+
+			interface BodySlopesSat {
+				response:SAT.Response;
+			}
 		}
 	}
 }
@@ -184,6 +219,7 @@ declare module SAT {
 		overlap:number;
 		overlapV:SAT.Vector;
 		overlapN:SAT.Vector;
+
 		clear();
 
 	}
@@ -213,6 +249,7 @@ declare module SAT {
 	interface Circle {
 		pos:SAT.Vector;
 		r:number;
+
 		getAABB():SAT.Box;
 	}
 
@@ -240,9 +277,7 @@ declare class SAT {
 	static T_ARRAYS:number[];
 	static T_RESPONSE:SAT.Response[];
 	static T_POLYGONS:SAT.Polygon[];
-
 	static UNIT_SQUARE:SAT.Polygon;
-
 	static LEFT_VORONOI_REGION:number;
 	static MIDDLE_VORONOI_REGION:number;
 	static RIGHT_VORONOI_REGION:number;
