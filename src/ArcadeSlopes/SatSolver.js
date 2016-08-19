@@ -348,8 +348,8 @@ Phaser.Plugin.ArcadeSlopes.SatSolver.prototype.snap = function (body, tiles) {
 /**
  * Pull the body into a collision response based on its slopes options.
  *
- * TODO: Refactor; don't return after any condition is met, accumulate values
- *       into a single SAT.Vector and apply at the end.
+ * TODO: Don't return after any condition is met, accumulate values into a
+ *       single SAT.Vector and apply at the end.
  * 
  * @method Phaser.Plugin.ArcadeSlopes.SatSolver#pull
  * @param  {Phaser.Physics.Arcade.Body} body     - The physics body.
@@ -616,7 +616,7 @@ Phaser.Plugin.ArcadeSlopes.SatSolver.prototype.shouldSeparate = function (i, bod
 		return false;
 	}
 	
-	if  (!this.options.restrain || body.isCircle) {
+	if (!this.options.restrain || body.isCircle) {
 		return true;
 	}
 	
