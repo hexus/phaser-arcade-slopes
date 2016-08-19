@@ -1,5 +1,9 @@
 # Arcade Slopes Change Log
 
+## v0.2.0-alpha - 19th August 2016
+- Initial circular physics body support.
+- Typescript definitions (thanks @IkonOne).
+
 ## v0.1.1 - 26th June 2016
 - Implemented corner collision pulling (#3).
 - Fixed incompatibility with Phaser 2.4.9 and 2.5.0 (#5).

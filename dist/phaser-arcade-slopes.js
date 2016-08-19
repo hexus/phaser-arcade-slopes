@@ -31,13 +31,6 @@ Phaser.Plugin.ArcadeSlopes = function (game, parent, defaultSolver) {
 	this.defaultSolver = defaultSolver || Phaser.Plugin.ArcadeSlopes.SAT;
 	
 	/**
-	 * A tile slope factory.
-	 * 
-	 * @property {Phaser.Plugin.ArcadeSlopes.TileSlopeFactory} factory
-	 */
-	this.factory = new Phaser.Plugin.ArcadeSlopes.TileSlopeFactory();
-	
-	/**
 	 * The collision solvers provided by the plugin.
 	 * 
 	 * Maps solver constants to their respective instances.
@@ -47,6 +40,17 @@ Phaser.Plugin.ArcadeSlopes = function (game, parent, defaultSolver) {
 	this.solvers = {};
 	
 	this.solvers[Phaser.Plugin.ArcadeSlopes.SAT] = new Phaser.Plugin.ArcadeSlopes.SatSolver();
+	
+	/**
+	 * The Arcade Slopes facade.
+	 *
+	 * @property {Phaser.Plugin.ArcadeSlopes.Facade} facade
+	 */
+	this.facade = new Phaser.Plugin.ArcadeSlopes.Facade(
+		new Phaser.Plugin.ArcadeSlopes.TileSlopeFactory(),
+		this.solvers,
+		this.defaultSolver
+	);
 };
 
 Phaser.Plugin.ArcadeSlopes.prototype = Object.create(Phaser.Plugin.prototype);
@@ -58,7 +62,7 @@ Phaser.Plugin.ArcadeSlopes.prototype.constructor = Phaser.Plugin.ArcadeSlopes;
  * @constant
  * @type {string}
  */
-Phaser.Plugin.ArcadeSlopes.VERSION = '0.1.1';
+Phaser.Plugin.ArcadeSlopes.VERSION = '0.2.0-alpha';
 
 /**
  * The Separating Axis Theorem collision solver type.
@@ -136,6 +140,113 @@ Phaser.Plugin.ArcadeSlopes.prototype.destroy = function () {
  * @param {Phaser.Sprite|Phaser.Group} object - The object to enable sloped tile physics for.
  */
 Phaser.Plugin.ArcadeSlopes.prototype.enable = function (object) {
+	this.facade.enable(object);
+};
+
+/**
+ * Enable the given physics body for sloped tile interaction.
+ * 
+ * TODO: Circle body support, when it's released.
+ *
+ * @method Phaser.Plugin.ArcadeSlopes#enableBody
+ * @param {Phaser.Physics.Arcade.Body} body - The physics body to enable.
+ */
+Phaser.Plugin.ArcadeSlopes.prototype.enableBody = function (body) {
+	this.facade.enableBody(body);
+};
+
+/**
+ * Converts a layer of the given tilemap.
+ * 
+ * Attaches Phaser.Plugin.ArcadeSlopes.TileSlope objects that are used to define
+ * how the tile should collide with a physics body.
+ *
+ * @method Phaser.Plugin.ArcadeSlopes#convertTilemap
+ * @param  {Phaser.Tilemap}                    map      - The map containing the layer to convert.
+ * @param  {number|string|Phaser.TileMapLayer} layer    - The layer of the map to convert.
+ * @param  {object}                            slopeMap - A map of tilemap indexes to ArcadeSlope.TileSlope constants.
+ * @return {Phaser.Tilemap}                             - The converted tilemap.
+ */
+Phaser.Plugin.ArcadeSlopes.prototype.convertTilemap = function (map, layer, slopeMap) {
+	return this.facade.convertTilemap(map, layer, slopeMap);
+};
+
+/**
+ * Converts a tilemap layer.
+ *
+ * @method Phaser.Plugin.ArcadeSlopes#convertTilemapLayer
+ * @param  {Phaser.TilemapLayer}  layer    - The tilemap layer to convert.
+ * @param  {object}               slopeMap - A map of tilemap indexes to ArcadeSlope.TileSlope constants.
+ * @return {Phaser.TilemapLayer}           - The converted tilemap layer.
+ */
+Phaser.Plugin.ArcadeSlopes.prototype.convertTilemapLayer = function (layer, slopeMap) {
+	return this.facade.convertTilemapLayer(layer, slopeMap);
+};
+
+/**
+ * Collides a physics body against a tile.
+ *
+ * @method Phaser.Plugin.ArcadeSlopes#collide
+ * @param  {integer}                    i           - The tile index.
+ * @param  {Phaser.Physics.Arcade.Body} body        - The physics body.
+ * @param  {Phaser.Tile}                tile        - The tile.
+ * @param  {boolean}                    overlapOnly - Whether to only check for an overlap.
+ * @return {boolean}                                - Whether the body was separated.
+ */
+Phaser.Plugin.ArcadeSlopes.prototype.collide = function (i, body, tile, overlapOnly) {
+	return this.facade.collide(i, body, tile, overlapOnly);
+};
+
+/**
+ * @author Chris Andrew <chris@hexus.io>
+ * @copyright 2016 Chris Andrew
+ * @license MIT
+ */
+
+/**
+ * A facade class to attach to a Phaser game.
+ *
+ * Not yet in use, but will be when the plugin methods are moved here.
+ * 
+ * @class Phaser.Plugin.ArcadeSlopes.Facade
+ * @constructor
+ * @param {Phaser.Plugin.ArcadeSlopes.TileSlopeFactory} factory       - A tile slope factory.
+ * @param {object}                                      solvers       - A set of collision solvers.
+ * @param {integer}                                     defaultSolver - The default collision solver type to use for sloped tiles.
+ */
+Phaser.Plugin.ArcadeSlopes.Facade = function (factory, solvers, defaultSolver) {
+	/**
+	 * A tile slope factory.
+	 * 
+	 * @property {Phaser.Plugin.ArcadeSlopes.TileSlopeFactory} factory
+	 */
+	this.factory = factory;
+	
+	/**
+	 * A set of collision solvers.
+	 * 
+	 * Maps solver constants to their respective instances.
+	 * 
+	 * @property {object} solvers
+	 */
+	this.solvers = solvers;
+	
+	/**
+	 * The default collision solver type to use for sloped tiles.
+	 * 
+	 * @property {string} defaultSolver
+	 * @default
+	 */
+	this.defaultSolver = defaultSolver || Phaser.Plugin.ArcadeSlopes.SAT;
+};
+
+/**
+ * Enable the physics body of the given object for sloped tile interaction.
+ *
+ * @method Phaser.Plugin.ArcadeSlopes.Facade#enable
+ * @param {Phaser.Sprite|Phaser.Group} object - The object to enable sloped tile physics for.
+ */
+Phaser.Plugin.ArcadeSlopes.Facade.prototype.enable = function (object) {
 	if (Array.isArray(object)) {
 		for (var i = 0; i < object.length; i++) {
 			this.enable(object[i]);
@@ -160,26 +271,41 @@ Phaser.Plugin.ArcadeSlopes.prototype.enable = function (object) {
  * 
  * TODO: Circle body support, when it's released.
  *
- * @method Phaser.Plugin.ArcadeSlopes#enableBody
+ * @method Phaser.Plugin.ArcadeSlopes.Facade#enableBody
  * @param {Phaser.Physics.Arcade.Body} body - The physics body to enable.
  */
-Phaser.Plugin.ArcadeSlopes.prototype.enableBody = function (body) {
+Phaser.Plugin.ArcadeSlopes.Facade.prototype.enableBody = function (body) {
 	// Create an SAT polygon from the body's bounding box
-	body.polygon = new SAT.Box(
-		new SAT.Vector(body.x, body.y),
-		body.width,
-		body.height
-	).toPolygon();
+	// TODO: Rename body.polygon to body.shape or body.slopes.shape
+	if  (body.isCircle) {
+		body.polygon = new SAT.Circle(
+			new SAT.Vector(
+				body.x + body.halfWidth,
+				body.y + body.halfHeight
+			),
+			body.radius
+		);
+	} else {
+		body.polygon = new SAT.Box(
+			new SAT.Vector(body.x, body.y),
+			body.width,
+			body.height
+		).toPolygon();
+	}
 	
 	// Attach a new set of properties that configure the body's interaction
 	// with sloped tiles (TODO: Formalize as a class?)
-	body.slopes = {
+	body.slopes = Phaser.Utils.mixin(body.slopes || {}, {
 		friction: new Phaser.Point(),
 		preferY: false,
 		pullUp: 0,
 		pullDown: 0,
 		pullLeft: 0,
 		pullRight: 0,
+		pullTopLeft: 0,
+		pullTopRight: 0,
+		pullBottomLeft: 0,
+		pullBottomRight: 0,
 		sat: {
 			response: null,
 		},
@@ -189,7 +315,7 @@ Phaser.Plugin.ArcadeSlopes.prototype.enableBody = function (body) {
 		snapLeft: 0,
 		snapRight: 0,
 		velocity: new SAT.Vector()
-	};
+	});
 };
 
 /**
@@ -198,71 +324,45 @@ Phaser.Plugin.ArcadeSlopes.prototype.enableBody = function (body) {
  * Attaches Phaser.Plugin.ArcadeSlopes.TileSlope objects that are used to define
  * how the tile should collide with a physics body.
  *
- * @method Phaser.Plugin.ArcadeSlopes#convertTilemap
+ * @method Phaser.Plugin.ArcadeSlopes.Facade#convertTilemap
  * @param  {Phaser.Tilemap}                    map      - The map containing the layer to convert.
  * @param  {number|string|Phaser.TileMapLayer} layer    - The layer of the map to convert.
  * @param  {object}                            slopeMap - A map of tilemap indexes to ArcadeSlope.TileSlope constants.
  * @return {Phaser.Tilemap}                             - The converted tilemap.
  */
-Phaser.Plugin.ArcadeSlopes.prototype.convertTilemap = function (map, layer, slopeMap) {
+Phaser.Plugin.ArcadeSlopes.Facade.prototype.convertTilemap = function (map, layer, slopeMap) {
 	return this.factory.convertTilemap(map, layer, slopeMap);
 };
 
 /**
  * Converts a tilemap layer.
  *
- * @method Phaser.Plugin.ArcadeSlopes#convertTilemapLayer
+ * @method Phaser.Plugin.ArcadeSlopes.Facade#convertTilemapLayer
  * @param  {Phaser.TilemapLayer}  layer    - The tilemap layer to convert.
  * @param  {object}               slopeMap - A map of tilemap indexes to ArcadeSlope.TileSlope constants.
  * @return {Phaser.TilemapLayer}           - The converted tilemap layer.
  */
-Phaser.Plugin.ArcadeSlopes.prototype.convertTilemapLayer = function (layer, slopeMap) {
+Phaser.Plugin.ArcadeSlopes.Facade.prototype.convertTilemapLayer = function (layer, slopeMap) {
 	return this.factory.convertTilemapLayer(layer, slopeMap);
 };
 
 /**
  * Collides a physics body against a tile.
  *
- * @method Phaser.Plugin.ArcadeSlopes#collide
+ * @method Phaser.Plugin.ArcadeSlopes.Facade#collide
  * @param  {integer}                    i           - The tile index.
  * @param  {Phaser.Physics.Arcade.Body} body        - The physics body.
  * @param  {Phaser.Tile}                tile        - The tile.
  * @param  {boolean}                    overlapOnly - Whether to only check for an overlap.
  * @return {boolean}                                - Whether the body was separated.
  */
-Phaser.Plugin.ArcadeSlopes.prototype.collide = function (i, body, tile, overlapOnly) {
+Phaser.Plugin.ArcadeSlopes.Facade.prototype.collide = function (i, body, tile, overlapOnly) {
 	if (tile.slope.solver && this.solvers.hasOwnProperty(tile.slope.solver)) {
 		return this.solvers[tile.slope.solver].collide(i, body, tile, overlapOnly);
 	}
 	
 	return this.solvers[this.defaultSolver].collide(i, body, tile, overlapOnly);
 };
-
-/**
- * @author Chris Andrew <chris@hexus.io>
- * @copyright 2016 Chris Andrew
- * @license MIT
- */
-
-/**
- * A facade class to attach to a Phaser game.
- *
- * Not yet in use, but will be when the plugin methods are moved here.
- * 
- * @class Phaser.Plugin.ArcadeSlopes.Facade
- * @constructor
- * @param {Phaser.Plugin.ArcadeSlopes.TileSlopeFactory} factory - A tile slope factory.
- */
-Phaser.Plugin.ArcadeSlopes.Facade = function (factory) {
-	/**
-	 * A tile slope factory.
-	 * 
-	 * @property {Phaser.Plugin.ArcadeSlopes.TileSlopeFactory} factory
-	 */
-	this.factory = factory;
-};
-
-// TODO: Tile conversion methods, collision methods, body enable etc.
 
 /**
  * @author Chris Andrew <chris@hexus.io>
@@ -1630,7 +1730,7 @@ Phaser.Plugin.ArcadeSlopes.SatSolver.prototype.updateFlags = function (body, res
  * @return {boolean}                          - Whether the body was snapped to any tiles.
  */
 Phaser.Plugin.ArcadeSlopes.SatSolver.prototype.snap = function (body, tiles) {
-	if (!body.slopes.snapUp && !body.slopes.snapDown && !body.slopes.snapLeft && !body.slopes.snapRight) {
+	if (!body.slopes && !body.slopes.snapUp && !body.slopes.snapDown && !body.slopes.snapLeft && !body.slopes.snapRight) {
 		return false;
 	}
 	
@@ -1693,8 +1793,8 @@ Phaser.Plugin.ArcadeSlopes.SatSolver.prototype.snap = function (body, tiles) {
 /**
  * Pull the body into a collision response based on its slopes options.
  *
- * TODO: Refactor; don't return after any condition is met, accumulate values
- *       into a single SAT.Vector and apply at the end.
+ * TODO: Don't return after any condition is met, accumulate values into a
+ *       single SAT.Vector and apply at the end.
  * 
  * @method Phaser.Plugin.ArcadeSlopes.SatSolver#pull
  * @param  {Phaser.Physics.Arcade.Body} body     - The physics body.
@@ -1818,11 +1918,7 @@ Phaser.Plugin.ArcadeSlopes.SatSolver.prototype.snapCollide = function (body, til
  * @return {boolean}
  */
 Phaser.Plugin.ArcadeSlopes.SatSolver.prototype.shouldCollide = function (body, tile) {
-	if (body.enable && body.polygon && body.slopes && tile.collides && tile.slope && tile.slope.polygon) {
-		return true;
-	}
-	
-	return false;
+	return body.enable && body.polygon && body.slopes && tile.collides && tile.slope && tile.slope.polygon;
 };
 
 /**
@@ -1849,14 +1945,19 @@ Phaser.Plugin.ArcadeSlopes.SatSolver.prototype.collide = function (i, body, tile
 	body.polygon.pos.x = body.x;
 	body.polygon.pos.y = body.y;
 	
+	if (body.isCircle) {
+		body.polygon.pos.x += body.halfWidth;
+		body.polygon.pos.y += body.halfHeight;
+	}
+	
 	// Update the tile polygon position
 	tile.slope.polygon.pos.x = tile.worldX;
 	tile.slope.polygon.pos.y = tile.worldY;
 	
 	var response = new SAT.Response();
 	
-	// Nothing more to do here if there isn't an overlap
-	if (!SAT.testPolygonPolygon(body.polygon, tile.slope.polygon, response)) {
+	// Test for an overlap and bail if there isn't one
+	if ((body.isCircle && !SAT.testCirclePolygon(body.polygon, tile.slope.polygon, response)) || (!body.isCircle && !SAT.testPolygonPolygon(body.polygon, tile.slope.polygon, response))) {
 		return false;
 	}
 	
@@ -1960,7 +2061,7 @@ Phaser.Plugin.ArcadeSlopes.SatSolver.prototype.shouldSeparate = function (i, bod
 		return false;
 	}
 	
-	if  (!this.options.restrain) {
+	if (!this.options.restrain || body.isCircle) {
 		return true;
 	}
 	
@@ -2689,18 +2790,22 @@ Phaser.Plugin.ArcadeSlopes.TileSlopeFactory.prototype.calculateEdges = function 
 				
 				if (above && above.hasOwnProperty('slope')) {
 					tile.slope.edges.top = this.compareEdges(tile.slope.edges.top, above.slope.edges.bottom);
+					tile.collideUp = tile.slope.edges.top !== Phaser.Plugin.ArcadeSlopes.TileSlope.EMPTY;
 				}
 				
 				if (below && below.hasOwnProperty('slope')) {
 					tile.slope.edges.bottom = this.compareEdges(tile.slope.edges.bottom, below.slope.edges.top);
+					tile.collideDown = tile.slope.edges.bottom !== Phaser.Plugin.ArcadeSlopes.TileSlope.EMPTY;
 				}
 				
 				if (left && left.hasOwnProperty('slope')) {
 					tile.slope.edges.left = this.compareEdges(tile.slope.edges.left, left.slope.edges.right);
+					tile.collideLeft = tile.slope.edges.left !== Phaser.Plugin.ArcadeSlopes.TileSlope.EMPTY;
 				}
 				
 				if (right && right.hasOwnProperty('slope')) {
 					tile.slope.edges.right = this.compareEdges(tile.slope.edges.right, right.slope.edges.left);
+					tile.collideRight = tile.slope.edges.right !== Phaser.Plugin.ArcadeSlopes.TileSlope.EMPTY;
 				}
 			}
 		}
@@ -2708,7 +2813,7 @@ Phaser.Plugin.ArcadeSlopes.TileSlopeFactory.prototype.calculateEdges = function 
 };
 
 /**
- * Resolve the given flags of two shared edges.
+ * Resolve the given flags of two shared tile edges.
  *
  * Returns the new flag to use for the first edge after comparing it with the
  * second edge.
@@ -3079,10 +3184,10 @@ Phaser.Plugin.ArcadeSlopes.TileSlopeFactory.createQuarterBottomRightLow = functi
  */
 Phaser.Plugin.ArcadeSlopes.TileSlopeFactory.createQuarterBottomRightHigh = function (type, tile) {
 	var polygon = new SAT.Polygon(new SAT.Vector(tile.worldX, tile.worldY), [
-		new SAT.Vector(tile.width, 0),          // Top right
-		new SAT.Vector(0, tile.height / 2),     // Center left
-		new SAT.Vector(0, tile.height),         // Bottom left
-		new SAT.Vector(tile.width, tile.height) // Bottom right
+		new SAT.Vector(0, tile.height / 2),      // Center left
+		new SAT.Vector(tile.width, 0),           // Top right
+		new SAT.Vector(tile.width, tile.height), // Bottom right
+		new SAT.Vector(0, tile.height)           // Bottom left
 	]);
 	
 	var line = new Phaser.Line(tile.left, tile.bottom, tile.right, tile.top + tile.height / 2);
@@ -3109,10 +3214,10 @@ Phaser.Plugin.ArcadeSlopes.TileSlopeFactory.createQuarterBottomRightHigh = funct
  */
 Phaser.Plugin.ArcadeSlopes.TileSlopeFactory.createQuarterLeftBottomLow = function (type, tile) {
 	var polygon = new SAT.Polygon(new SAT.Vector(tile.worldX, tile.worldY), [
-		new SAT.Vector(0, 0),
-		new SAT.Vector(tile.width / 2, 0),
-		new SAT.Vector(tile.width, tile.height),
-		new SAT.Vector(0, tile.height)
+		new SAT.Vector(0, 0),                    // Top left
+		new SAT.Vector(tile.width / 2, 0),       // Top center
+		new SAT.Vector(tile.width, tile.height), // Bottom right
+		new SAT.Vector(0, tile.height)           // Bottom left
 	]);
 	
 	var line = new Phaser.Line(tile.left + tile.width / 2, tile.top, tile.right, tile.bottom);
@@ -3138,9 +3243,9 @@ Phaser.Plugin.ArcadeSlopes.TileSlopeFactory.createQuarterLeftBottomLow = functio
  */
 Phaser.Plugin.ArcadeSlopes.TileSlopeFactory.createQuarterLeftBottomHigh = function (type, tile) {
 	var polygon = new SAT.Polygon(new SAT.Vector(tile.worldX, tile.worldY), [
-		new SAT.Vector(0, 0),
-		new SAT.Vector(tile.width / 2, tile.height),
-		new SAT.Vector(0, tile.height)
+		new SAT.Vector(0, 0),                        // Top left
+		new SAT.Vector(tile.width / 2, tile.height), // Bottom center
+		new SAT.Vector(0, tile.height)               // Bottom left
 	]);
 	
 	var line = new Phaser.Line(tile.left, tile.top, tile.left + tile.width / 2, tile.bottom);
@@ -3168,10 +3273,10 @@ Phaser.Plugin.ArcadeSlopes.TileSlopeFactory.createQuarterLeftBottomHigh = functi
  */
 Phaser.Plugin.ArcadeSlopes.TileSlopeFactory.createQuarterRightBottomLow = function (type, tile) {
 	var polygon = new SAT.Polygon(new SAT.Vector(tile.worldX, tile.worldY), [
-		new SAT.Vector(tile.width / 2, 0),
-		new SAT.Vector(tile.width, 0),
-		new SAT.Vector(tile.width, tile.height),
-		new SAT.Vector(0, tile.height)
+		new SAT.Vector(tile.width / 2, 0),       // Top center
+		new SAT.Vector(tile.width, 0),           // Top right
+		new SAT.Vector(tile.width, tile.height), // Bottom right
+		new SAT.Vector(0, tile.height)           // Bottom left
 	]);
 	
 	var line = new Phaser.Line(tile.left, tile.bottom, tile.left + tile.width / 2, tile.top);
@@ -3198,9 +3303,9 @@ Phaser.Plugin.ArcadeSlopes.TileSlopeFactory.createQuarterRightBottomLow = functi
  */
 Phaser.Plugin.ArcadeSlopes.TileSlopeFactory.createQuarterRightBottomHigh = function (type, tile) {
 	var polygon = new SAT.Polygon(new SAT.Vector(tile.worldX, tile.worldY), [
-		new SAT.Vector(tile.width, 0),
-		new SAT.Vector(tile.width, tile.height),
-		new SAT.Vector(tile.width / 2, tile.height)
+		new SAT.Vector(tile.width, 0),              // Top right
+		new SAT.Vector(tile.width, tile.height),    // Bottom right
+		new SAT.Vector(tile.width / 2, tile.height) // Bottom center
 	]);
 	
 	var line = new Phaser.Line(tile.left + tile.width / 2, tile.bottom, tile.right, tile.top);
@@ -3227,9 +3332,9 @@ Phaser.Plugin.ArcadeSlopes.TileSlopeFactory.createQuarterRightBottomHigh = funct
  */
 Phaser.Plugin.ArcadeSlopes.TileSlopeFactory.createQuarterLeftTopLow = function (type, tile) {
 	var polygon = new SAT.Polygon(new SAT.Vector(tile.worldX, tile.worldY), [
-		new SAT.Vector(0, 0),
-		new SAT.Vector(tile.width / 2, 0),
-		new SAT.Vector(0, tile.height)
+		new SAT.Vector(0, 0),              // Top left
+		new SAT.Vector(tile.width / 2, 0), // Top center
+		new SAT.Vector(0, tile.height)     // Bottom left
 	]);
 	
 	var line = new Phaser.Line(0, tile.height, tile.width / 2, 0);
@@ -3256,10 +3361,10 @@ Phaser.Plugin.ArcadeSlopes.TileSlopeFactory.createQuarterLeftTopLow = function (
  */
 Phaser.Plugin.ArcadeSlopes.TileSlopeFactory.createQuarterLeftTopHigh = function (type, tile) {
 	var polygon = new SAT.Polygon(new SAT.Vector(tile.worldX, tile.worldY), [
-		new SAT.Vector(0, 0),
-		new SAT.Vector(tile.width, 0),
-		new SAT.Vector(tile.width / 2, tile.height),
-		new SAT.Vector(0, tile.height)
+		new SAT.Vector(0, 0),                        // Top left
+		new SAT.Vector(tile.width, 0),               // Top right
+		new SAT.Vector(tile.width / 2, tile.height), // Bottom center
+		new SAT.Vector(0, tile.height)               // Bottom left
 	]);
 	
 	var line = new Phaser.Line(tile.left + tile.width / 2, tile.bottom, tile.right, tile.bottom);
@@ -3285,9 +3390,9 @@ Phaser.Plugin.ArcadeSlopes.TileSlopeFactory.createQuarterLeftTopHigh = function 
  */
 Phaser.Plugin.ArcadeSlopes.TileSlopeFactory.createQuarterRightTopLow = function (type, tile) {
 	var polygon = new SAT.Polygon(new SAT.Vector(tile.worldX, tile.worldY), [
-		new SAT.Vector(tile.width / 2, 0),
-		new SAT.Vector(tile.width, 0),
-		new SAT.Vector(tile.width, tile.height)
+		new SAT.Vector(tile.width / 2, 0),      // Top center
+		new SAT.Vector(tile.width, 0),          // Top right
+		new SAT.Vector(tile.width, tile.height) // Bottom right
 	]);
 	
 	var line = new Phaser.Line(tile.left + tile.width / 2, tile.top, tile.right, tile.bottom);
@@ -3314,10 +3419,10 @@ Phaser.Plugin.ArcadeSlopes.TileSlopeFactory.createQuarterRightTopLow = function 
  */
 Phaser.Plugin.ArcadeSlopes.TileSlopeFactory.createQuarterRightTopHigh = function (type, tile) {
 	var polygon = new SAT.Polygon(new SAT.Vector(tile.worldX, tile.worldY), [
-		new SAT.Vector(0, 0),
-		new SAT.Vector(tile.width, 0),
-		new SAT.Vector(tile.width, tile.height),
-		new SAT.Vector(tile.width / 2, tile.height)
+		new SAT.Vector(0, 0),                       // Top left
+		new SAT.Vector(tile.width, 0),              // Top right
+		new SAT.Vector(tile.width, tile.height),    // Bottom right
+		new SAT.Vector(tile.width / 2, tile.height) // Bottom center
 	]);
 	
 	var line = new Phaser.Line(tile.left, tile.top, tile.left + tile.width / 2, tile.bottom);
@@ -3343,9 +3448,9 @@ Phaser.Plugin.ArcadeSlopes.TileSlopeFactory.createQuarterRightTopHigh = function
  */
 Phaser.Plugin.ArcadeSlopes.TileSlopeFactory.createQuarterTopLeftLow = function (type, tile) {
 	var polygon = new SAT.Polygon(new SAT.Vector(tile.worldX, tile.worldY), [
-		new SAT.Vector(0, 0),
-		new SAT.Vector(tile.width, 0),
-		new SAT.Vector(0, tile.height / 2)
+		new SAT.Vector(0, 0),              // Top left
+		new SAT.Vector(tile.width, 0),     // Top right
+		new SAT.Vector(0, tile.height / 2) // Center left
 	]);
 	
 	var line = new Phaser.Line(tile.left, tile.top + tile.height / 2, tile.right, tile.top);
@@ -3372,10 +3477,10 @@ Phaser.Plugin.ArcadeSlopes.TileSlopeFactory.createQuarterTopLeftLow = function (
  */
 Phaser.Plugin.ArcadeSlopes.TileSlopeFactory.createQuarterTopLeftHigh = function (type, tile) {
 	var polygon = new SAT.Polygon(new SAT.Vector(tile.worldX, tile.worldY), [
-		new SAT.Vector(0, 0),
-		new SAT.Vector(tile.width, 0),
-		new SAT.Vector(tile.width, tile.height / 2),
-		new SAT.Vector(0, tile.height)
+		new SAT.Vector(0, 0),                        // Top left
+		new SAT.Vector(tile.width, 0),               // Top right
+		new SAT.Vector(tile.width, tile.height / 2), // Right center
+		new SAT.Vector(0, tile.height)               // Bottom left
 	]);
 	
 	var line = new Phaser.Line(tile.left, tile.bottom, tile.right, tile.top + tile.height / 2);
@@ -3401,9 +3506,9 @@ Phaser.Plugin.ArcadeSlopes.TileSlopeFactory.createQuarterTopLeftHigh = function 
  */
 Phaser.Plugin.ArcadeSlopes.TileSlopeFactory.createQuarterTopRightLow = function (type, tile) {
 	var polygon = new SAT.Polygon(new SAT.Vector(tile.worldX, tile.worldY), [
-		new SAT.Vector(0, 0),
-		new SAT.Vector(tile.width, 0),
-		new SAT.Vector(tile.width, tile.height / 2)
+		new SAT.Vector(0, 0),                       // Top left
+		new SAT.Vector(tile.width, 0),              // Top right
+		new SAT.Vector(tile.width, tile.height / 2) // Right center
 	]);
 	
 	var line = new Phaser.Line(tile.left, tile.top, tile.right, tile.top + tile.height / 2);
@@ -3430,10 +3535,10 @@ Phaser.Plugin.ArcadeSlopes.TileSlopeFactory.createQuarterTopRightLow = function 
  */
 Phaser.Plugin.ArcadeSlopes.TileSlopeFactory.createQuarterTopRightHigh = function (type, tile) {
 	var polygon = new SAT.Polygon(new SAT.Vector(tile.worldX, tile.worldY), [
-		new SAT.Vector(0, 0),
-		new SAT.Vector(tile.width, 0),
-		new SAT.Vector(tile.width, tile.height),
-		new SAT.Vector(0, tile.height / 2)
+		new SAT.Vector(0, 0),                    // Top left
+		new SAT.Vector(tile.width, 0),           // Top right
+		new SAT.Vector(tile.width, tile.height), // Bottom right
+		new SAT.Vector(0, tile.height / 2)       // Left center
 	]);
 	
 	var line = new Phaser.Line(tile.left, tile.top + tile.height / 2, tile.right, tile.top + tile.height);

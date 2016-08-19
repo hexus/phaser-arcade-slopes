@@ -814,7 +814,7 @@ Phaser.Plugin.ArcadeSlopes.TileSlopeFactory.createQuarterRightTopHigh = function
 		new SAT.Vector(0, 0),                       // Top left
 		new SAT.Vector(tile.width, 0),              // Top right
 		new SAT.Vector(tile.width, tile.height),    // Bottom right
-		new SAT.Vector(tile.width / 2, tile.height) // Center right
+		new SAT.Vector(tile.width / 2, tile.height) // Bottom center
 	]);
 	
 	var line = new Phaser.Line(tile.left, tile.top, tile.left + tile.width / 2, tile.bottom);
