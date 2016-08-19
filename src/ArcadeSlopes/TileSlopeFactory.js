@@ -607,7 +607,7 @@ Phaser.Plugin.ArcadeSlopes.TileSlopeFactory.createQuarterBottomRightHigh = funct
 Phaser.Plugin.ArcadeSlopes.TileSlopeFactory.createQuarterLeftBottomLow = function (type, tile) {
 	var polygon = new SAT.Polygon(new SAT.Vector(tile.worldX, tile.worldY), [
 		new SAT.Vector(0, 0),                    // Top left
-		new SAT.Vector(tile.width / 2, 0),       // Center top
+		new SAT.Vector(tile.width / 2, 0),       // Top center
 		new SAT.Vector(tile.width, tile.height), // Bottom right
 		new SAT.Vector(0, tile.height)           // Bottom left
 	]);
@@ -665,10 +665,10 @@ Phaser.Plugin.ArcadeSlopes.TileSlopeFactory.createQuarterLeftBottomHigh = functi
  */
 Phaser.Plugin.ArcadeSlopes.TileSlopeFactory.createQuarterRightBottomLow = function (type, tile) {
 	var polygon = new SAT.Polygon(new SAT.Vector(tile.worldX, tile.worldY), [
-		new SAT.Vector(tile.width / 2, 0),
-		new SAT.Vector(tile.width, 0),
-		new SAT.Vector(tile.width, tile.height),
-		new SAT.Vector(0, tile.height)
+		new SAT.Vector(tile.width / 2, 0),       // Top center
+		new SAT.Vector(tile.width, 0),           // Top right
+		new SAT.Vector(tile.width, tile.height), // Bottom right
+		new SAT.Vector(0, tile.height)           // Bottom left
 	]);
 	
 	var line = new Phaser.Line(tile.left, tile.bottom, tile.left + tile.width / 2, tile.top);
@@ -695,9 +695,9 @@ Phaser.Plugin.ArcadeSlopes.TileSlopeFactory.createQuarterRightBottomLow = functi
  */
 Phaser.Plugin.ArcadeSlopes.TileSlopeFactory.createQuarterRightBottomHigh = function (type, tile) {
 	var polygon = new SAT.Polygon(new SAT.Vector(tile.worldX, tile.worldY), [
-		new SAT.Vector(tile.width, 0),
-		new SAT.Vector(tile.width, tile.height),
-		new SAT.Vector(tile.width / 2, tile.height)
+		new SAT.Vector(tile.width, 0),              // Top right
+		new SAT.Vector(tile.width, tile.height),    // Bottom right
+		new SAT.Vector(tile.width / 2, tile.height) // Bottom center
 	]);
 	
 	var line = new Phaser.Line(tile.left + tile.width / 2, tile.bottom, tile.right, tile.top);
@@ -724,9 +724,9 @@ Phaser.Plugin.ArcadeSlopes.TileSlopeFactory.createQuarterRightBottomHigh = funct
  */
 Phaser.Plugin.ArcadeSlopes.TileSlopeFactory.createQuarterLeftTopLow = function (type, tile) {
 	var polygon = new SAT.Polygon(new SAT.Vector(tile.worldX, tile.worldY), [
-		new SAT.Vector(0, 0),
-		new SAT.Vector(tile.width / 2, 0),
-		new SAT.Vector(0, tile.height)
+		new SAT.Vector(0, 0),              // Top left
+		new SAT.Vector(tile.width / 2, 0), // Top center
+		new SAT.Vector(0, tile.height)     // Bottom left
 	]);
 	
 	var line = new Phaser.Line(0, tile.height, tile.width / 2, 0);
@@ -753,10 +753,10 @@ Phaser.Plugin.ArcadeSlopes.TileSlopeFactory.createQuarterLeftTopLow = function (
  */
 Phaser.Plugin.ArcadeSlopes.TileSlopeFactory.createQuarterLeftTopHigh = function (type, tile) {
 	var polygon = new SAT.Polygon(new SAT.Vector(tile.worldX, tile.worldY), [
-		new SAT.Vector(0, 0),
-		new SAT.Vector(tile.width, 0),
-		new SAT.Vector(tile.width / 2, tile.height),
-		new SAT.Vector(0, tile.height)
+		new SAT.Vector(0, 0),                        // Top left
+		new SAT.Vector(tile.width, 0),               // Top right
+		new SAT.Vector(tile.width / 2, tile.height), // Bottom center
+		new SAT.Vector(0, tile.height)               // Bottom left
 	]);
 	
 	var line = new Phaser.Line(tile.left + tile.width / 2, tile.bottom, tile.right, tile.bottom);
@@ -782,9 +782,9 @@ Phaser.Plugin.ArcadeSlopes.TileSlopeFactory.createQuarterLeftTopHigh = function 
  */
 Phaser.Plugin.ArcadeSlopes.TileSlopeFactory.createQuarterRightTopLow = function (type, tile) {
 	var polygon = new SAT.Polygon(new SAT.Vector(tile.worldX, tile.worldY), [
-		new SAT.Vector(tile.width / 2, 0),
-		new SAT.Vector(tile.width, 0),
-		new SAT.Vector(tile.width, tile.height)
+		new SAT.Vector(tile.width / 2, 0),      // Top center
+		new SAT.Vector(tile.width, 0),          // Top right
+		new SAT.Vector(tile.width, tile.height) // Bottom right
 	]);
 	
 	var line = new Phaser.Line(tile.left + tile.width / 2, tile.top, tile.right, tile.bottom);
@@ -811,10 +811,10 @@ Phaser.Plugin.ArcadeSlopes.TileSlopeFactory.createQuarterRightTopLow = function 
  */
 Phaser.Plugin.ArcadeSlopes.TileSlopeFactory.createQuarterRightTopHigh = function (type, tile) {
 	var polygon = new SAT.Polygon(new SAT.Vector(tile.worldX, tile.worldY), [
-		new SAT.Vector(0, 0),
-		new SAT.Vector(tile.width, 0),
-		new SAT.Vector(tile.width, tile.height),
-		new SAT.Vector(tile.width / 2, tile.height)
+		new SAT.Vector(0, 0),                       // Top left
+		new SAT.Vector(tile.width, 0),              // Top right
+		new SAT.Vector(tile.width, tile.height),    // Bottom right
+		new SAT.Vector(tile.width / 2, tile.height) // Center right
 	]);
 	
 	var line = new Phaser.Line(tile.left, tile.top, tile.left + tile.width / 2, tile.bottom);
@@ -840,9 +840,9 @@ Phaser.Plugin.ArcadeSlopes.TileSlopeFactory.createQuarterRightTopHigh = function
  */
 Phaser.Plugin.ArcadeSlopes.TileSlopeFactory.createQuarterTopLeftLow = function (type, tile) {
 	var polygon = new SAT.Polygon(new SAT.Vector(tile.worldX, tile.worldY), [
-		new SAT.Vector(0, 0),
-		new SAT.Vector(tile.width, 0),
-		new SAT.Vector(0, tile.height / 2)
+		new SAT.Vector(0, 0),              // Top left
+		new SAT.Vector(tile.width, 0),     // Top right
+		new SAT.Vector(0, tile.height / 2) // Center left
 	]);
 	
 	var line = new Phaser.Line(tile.left, tile.top + tile.height / 2, tile.right, tile.top);
@@ -869,10 +869,10 @@ Phaser.Plugin.ArcadeSlopes.TileSlopeFactory.createQuarterTopLeftLow = function (
  */
 Phaser.Plugin.ArcadeSlopes.TileSlopeFactory.createQuarterTopLeftHigh = function (type, tile) {
 	var polygon = new SAT.Polygon(new SAT.Vector(tile.worldX, tile.worldY), [
-		new SAT.Vector(0, 0),
-		new SAT.Vector(tile.width, 0),
-		new SAT.Vector(tile.width, tile.height / 2),
-		new SAT.Vector(0, tile.height)
+		new SAT.Vector(0, 0),                        // Top left
+		new SAT.Vector(tile.width, 0),               // Top right
+		new SAT.Vector(tile.width, tile.height / 2), // Right center
+		new SAT.Vector(0, tile.height)               // Bottom left
 	]);
 	
 	var line = new Phaser.Line(tile.left, tile.bottom, tile.right, tile.top + tile.height / 2);
@@ -898,9 +898,9 @@ Phaser.Plugin.ArcadeSlopes.TileSlopeFactory.createQuarterTopLeftHigh = function 
  */
 Phaser.Plugin.ArcadeSlopes.TileSlopeFactory.createQuarterTopRightLow = function (type, tile) {
 	var polygon = new SAT.Polygon(new SAT.Vector(tile.worldX, tile.worldY), [
-		new SAT.Vector(0, 0),
-		new SAT.Vector(tile.width, 0),
-		new SAT.Vector(tile.width, tile.height / 2)
+		new SAT.Vector(0, 0),                       // Top left
+		new SAT.Vector(tile.width, 0),              // Top right
+		new SAT.Vector(tile.width, tile.height / 2) // Right center
 	]);
 	
 	var line = new Phaser.Line(tile.left, tile.top, tile.right, tile.top + tile.height / 2);
@@ -927,10 +927,10 @@ Phaser.Plugin.ArcadeSlopes.TileSlopeFactory.createQuarterTopRightLow = function 
  */
 Phaser.Plugin.ArcadeSlopes.TileSlopeFactory.createQuarterTopRightHigh = function (type, tile) {
 	var polygon = new SAT.Polygon(new SAT.Vector(tile.worldX, tile.worldY), [
-		new SAT.Vector(0, 0),
-		new SAT.Vector(tile.width, 0),
-		new SAT.Vector(tile.width, tile.height),
-		new SAT.Vector(0, tile.height / 2)
+		new SAT.Vector(0, 0),                    // Top left
+		new SAT.Vector(tile.width, 0),           // Top right
+		new SAT.Vector(tile.width, tile.height), // Bottom right
+		new SAT.Vector(0, tile.height / 2)       // Left center
 	]);
 	
 	var line = new Phaser.Line(tile.left, tile.top + tile.height / 2, tile.right, tile.top + tile.height);
