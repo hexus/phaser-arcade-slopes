@@ -567,6 +567,9 @@ Phaser.Plugin.ArcadeSlopes.SatSolver.prototype.collide = function (i, body, tile
  * @return {boolean}                             - Whether the body was separated.
  */
 Phaser.Plugin.ArcadeSlopes.SatSolver.prototype.collideOnAxis = function (body, tile, axis, response) {
+	// Update the body's polygon position and velocity vector
+	this.updateValues(body);
+	
 	// Bail out if we don't have everything we need
 	if (!this.shouldCollide(body, tile)) {
 		return false;
