@@ -229,10 +229,6 @@ Phaser.Plugin.ArcadeSlopes.SatSolver.prototype.separate = function (body, tile, 
  * @param  {SAT.Response}               response - The SAT response.
  */
 Phaser.Plugin.ArcadeSlopes.SatSolver.prototype.applyVelocity = function (body, tile, response) {
-	// Update the body's velocity vector
-	body.slopes.velocity.x = body.velocity.x;
-	body.slopes.velocity.y = body.velocity.y;
-	
 	// Project our velocity onto the overlap normal for the bounce vector (Vn)
 	var bounce = body.slopes.velocity.clone().projectN(response.overlapN);
 	
@@ -256,6 +252,22 @@ Phaser.Plugin.ArcadeSlopes.SatSolver.prototype.applyVelocity = function (body, t
 };
 
 /**
+ * Update the position and velocity values of the slopes body.
+ *
+ * @method Phaser.Plugin.ArcadeSlopes.SatSolver#updateValues
+ * @param  {Phaser.Physics.Arcade.Body} body - The physics body.
+ */
+Phaser.Plugin.ArcadeSlopes.SatSolver.prototype.updateValues = function (body) {
+	// Update the body polygon position
+	body.polygon.pos.x = body.x;
+	body.polygon.pos.y = body.y;
+	
+	// Update the body's velocity vector
+	body.slopes.velocity.x = body.velocity.x;
+	body.slopes.velocity.y = body.velocity.y;
+};
+
+/**
  * Update the flags of a physics body using a given SAT response.
  *
  * @method Phaser.Plugin.ArcadeSlopes.SatSolver#updateFlags
@@ -264,15 +276,15 @@ Phaser.Plugin.ArcadeSlopes.SatSolver.prototype.applyVelocity = function (body, t
  */
 Phaser.Plugin.ArcadeSlopes.SatSolver.prototype.updateFlags = function (body, response) {
 	// Set the touching values
-	body.touching.up    = body.touching.up || response.overlapV.y > 0;
-	body.touching.down  = body.touching.down || response.overlapV.y < 0;
-	body.touching.left  = body.touching.left || response.overlapV.x > 0;
+	body.touching.up    = body.touching.up    || response.overlapV.y > 0;
+	body.touching.down  = body.touching.down  || response.overlapV.y < 0;
+	body.touching.left  = body.touching.left  || response.overlapV.x > 0;
 	body.touching.right = body.touching.right || response.overlapV.x < 0;
 	
 	// Set the blocked values
-	body.blocked.up    = body.blocked.up || response.overlapV.x === 0 && response.overlapV.y > 0;
-	body.blocked.down  = body.blocked.down || response.overlapV.x === 0 && response.overlapV.y < 0;
-	body.blocked.left  = body.blocked.left || response.overlapV.y === 0 && response.overlapV.x > 0;
+	body.blocked.up    = body.blocked.up    || response.overlapV.x === 0 && response.overlapV.y > 0;
+	body.blocked.down  = body.blocked.down  || response.overlapV.x === 0 && response.overlapV.y < 0;
+	body.blocked.left  = body.blocked.left  || response.overlapV.y === 0 && response.overlapV.x > 0;
 	body.blocked.right = body.blocked.right || response.overlapV.y === 0 && response.overlapV.x < 0;
 };
 
@@ -491,14 +503,13 @@ Phaser.Plugin.ArcadeSlopes.SatSolver.prototype.shouldCollide = function (body, t
  * @return {boolean}                                - Whether the body was separated.
  */
 Phaser.Plugin.ArcadeSlopes.SatSolver.prototype.collide = function (i, body, tile, overlapOnly) {
+	// Update the body's polygon position and velocity vector
+	this.updateValues(body);
+	
 	// Bail out if we don't have everything we need
 	if (!this.shouldCollide(body, tile)) {
 		return false;
 	}
-	
-	// Update the body polygon position
-	body.polygon.pos.x = body.x;
-	body.polygon.pos.y = body.y;
 	
 	if (body.isCircle) {
 		body.polygon.pos.x += body.halfWidth;
@@ -596,10 +607,12 @@ Phaser.Plugin.ArcadeSlopes.SatSolver.prototype.collideOnAxis = function (body, t
  * @return {boolean}                             - Whether to pursue the narrow phase.
  */
 Phaser.Plugin.ArcadeSlopes.SatSolver.prototype.shouldSeparate = function (i, body, tile, response) {
+	// Bail if the body is disabled or there is no overlap
 	if (!(body.enable && response.overlap)) {
 		return false;
 	}
 	
+	// Ignore any internal edges identified by the slope factory
 	if (tile.slope.edges.top === Phaser.Plugin.ArcadeSlopes.TileSlope.EMPTY && response.overlapN.y < 0 && response.overlapN.x === 0) {
 		return false;
 	}
@@ -616,10 +629,17 @@ Phaser.Plugin.ArcadeSlopes.SatSolver.prototype.shouldSeparate = function (i, bod
 		return false;
 	}
 	
+	// Only separate when the body is moving into the tile
+	if (response.overlapV.clone().scale(-1).dot(body.slopes.velocity) < 0) {
+		return false;
+	}
+	
+	// Always separate if restraints are disabled or the body is circular
 	if (!this.options.restrain || body.isCircle) {
 		return true;
 	}
 	
+	// Run any separation restrainers
 	for (var r in this.restrainers) {
 		var restrainer = this.restrainers[r];
 		

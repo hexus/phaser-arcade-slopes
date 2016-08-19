@@ -88,6 +88,7 @@ declare module Phaser {
 				isSeparatingAxis(a:SAT.Polygon, b:SAT.Polygon, axis:SAT.Vector, response:SAT.Response):boolean;
 				separate(body:Phaser.Physics.Arcade.Body, tile:Phaser.Tile, response:SAT.Response, force:boolean):boolean;
 				applyVelocity(body:Phaser.Physics.Arcade.Body, tile:Phaser.Tile, response:SAT.Response):void;
+				updateValues(body:Phaser.Physics.Arcade.Body):void;
 				updateFlags(body:Phaser.Physics.Arcade.Body, response:SAT.Response):void;
 				snap(body:Phaser.Physics.Arcade.Body, tiles:Phaser.Tile[]):boolean;
 				pull(body:Phaser.Physics.Arcade.Body, response:SAT.Response):boolean;

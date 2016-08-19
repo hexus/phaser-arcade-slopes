@@ -154,7 +154,7 @@ learn than to build something yourself?
     - [ ] Tile face properties
     - [ ] Tile polygons
   - [ ] Offset tilemap layer support
-  - [ ] Circular physics body support
+  - [x] Circular physics body support
   - [ ] Clearer yet more in-depth readme
 - [ ] v0.3.0
   - [ ] Custom SAT.js implementation that can prevent internal edge collisions
