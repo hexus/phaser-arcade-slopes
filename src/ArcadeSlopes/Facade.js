@@ -77,11 +77,22 @@ Phaser.Plugin.ArcadeSlopes.Facade.prototype.enable = function (object) {
  */
 Phaser.Plugin.ArcadeSlopes.Facade.prototype.enableBody = function (body) {
 	// Create an SAT polygon from the body's bounding box
-	body.polygon = new SAT.Box(
-		new SAT.Vector(body.x, body.y),
-		body.width,
-		body.height
-	).toPolygon();
+	// TODO: Rename body.polygon to body.shape or body.slopes.shape
+	if  (body.isCircle) {
+		body.polygon = new SAT.Circle(
+			new SAT.Vector(
+				body.x + body.halfWidth,
+				body.y + body.halfHeight
+			),
+			body.radius
+		);
+	} else {
+		body.polygon = new SAT.Box(
+			new SAT.Vector(body.x, body.y),
+			body.width,
+			body.height
+		).toPolygon();
+	}
 	
 	// Attach a new set of properties that configure the body's interaction
 	// with sloped tiles (TODO: Formalize as a class?)
@@ -92,6 +103,10 @@ Phaser.Plugin.ArcadeSlopes.Facade.prototype.enableBody = function (body) {
 		pullDown: 0,
 		pullLeft: 0,
 		pullRight: 0,
+		pullTopLeft: 0,
+		pullTopRight: 0,
+		pullBottomLeft: 0,
+		pullBottomRight: 0,
 		sat: {
 			response: null,
 		},
