@@ -75,9 +75,6 @@ Phaser.Plugin.ArcadeSlopes.METROID = 'metroid';
 /**
  * Initializes the plugin.
  * 
- * TODO: Set this.facade to this.game.slopes instead of just this. Then you can
- *       remove all of the duplicate methods on the plugin class.
- * 
  * @method Phaser.Plugin.ArcadeSlopes#init
  */
 Phaser.Plugin.ArcadeSlopes.prototype.init = function () {
