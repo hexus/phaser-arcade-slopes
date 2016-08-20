@@ -16,8 +16,8 @@ Check out the **[demo](http://hexus.github.io/phaser-arcade-slopes)**!
 - SAT-driven collision handling :ok_hand:
 - Unobtrusive and cooperative integration with Arcade Physics :v:
 - Heuristic SAT restraints that prevent AABBs catching on hidden edges :clap:
-- Works with sprites :rocket:, groups :busts_in_silhouette: and particle
-  emitters :sparkles:
+- Supports sprites :rocket:, groups :busts_in_silhouette:, particle
+  emitters :sparkles: and circular physics bodies :white_circle:
 
 ## Compatibility
 
@@ -127,43 +127,6 @@ game.slopes.solvers.sat.options.preferY = true;
 // Or prefer the minimum Y offset only for a specific physics body
 player.body.slopes.preferY = true;
 ```
-
-## Roadmap
-
-- [x] v0.1.0
-  - [x] Full support for collision callbacks
-    - [x] `physics.arcade.collide` callbacks
-    - [x] Tile callbacks
-  - [x] Sticky slopes
-  - [x] Friction
-  - [x] `body.slope` properties for friction, sticky slopes, preferred
-    separation axis and last overlap response
-- [x] v0.1.1
-  - [x] Phaser 2.4.9/2.5.0 compatibility
-  - [x] Corner collision pulling
-- [ ] v0.2.0
-  - [ ] Arcade Slopes tilesheet
-    - [ ] Premade tilesheets
-    - [ ] Tilesheet generator
-  - [ ] Mapping shortcuts
-    - [ ] Ninja Physics debug tilesheet
-    - [ ] Arcade Slopes tilesheet
-    - [ ] Tile properties (`tile.properties.type`)
-  - [ ] Graphical debug output
-    - [ ] Collision vectors
-    - [ ] Tile face properties
-    - [ ] Tile polygons
-  - [ ] Offset tilemap layer support
-  - [x] Circular physics body support
-  - [ ] Clearer yet more in-depth readme
-- [ ] v0.3.0
-  - [ ] Custom SAT.js implementation that can prevent internal edge collisions
-    ([like this](http://www.wildbunny.co.uk/blog/2012/10/31/2d-polygonal-collision-detection-and-internal-edges/comment-page-1/#comment-1978))
-  - [ ] More consistent naming
-    - [ ] Tile slope type constants
-    - [ ] Direction/neighbour names
-  - [ ] Swept intersection tests
-  - [ ] Memory consumption improvements
 
 ## Building
 
