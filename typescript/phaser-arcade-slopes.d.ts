@@ -30,8 +30,8 @@ declare module Phaser {
 
 				enable(obj:Phaser.Sprite | Phaser.Group):void;
 				enableBody(body:Phaser.Physics.Arcade.Body):void;
-				convertTilemap(map:Phaser.Tilemap, layer:number | string | Phaser.TilemapLayer, slopeMap:Object):Phaser.Tilemap;
-				convertTilemapLayer(layer:Phaser.TilemapLayer, slopeMap:Object):Phaser.TilemapLayer;
+				convertTilemap(map:Phaser.Tilemap, layer:number | string | Phaser.TilemapLayer, slopeMap:string | Object, index:number):Phaser.Tilemap;
+				convertTilemapLayer(layer:Phaser.TilemapLayer, slopeMap:string | Object, index:number):Phaser.TilemapLayer;
 				collide(i:number, body:Phaser.Physics.Arcade.Body, tile:Phaser.Tile, overlapOnly:boolean):boolean;
 			}
 
@@ -148,8 +148,8 @@ declare module Phaser {
 			class TileSlopeFactory {
 				define(type:number, definition:any):void;
 				create(type:number, tile:Phaser.Tile):Phaser.Plugin.ArcadeSlopes.TileSlope;
-				convertTilemap(tilemap:Phaser.Tilemap, layer:number | string | Phaser.TilemapLayer, slopeMap:string | Object, offset:number):Phaser.Tilemap;
-				convertTilemapLayer(layer:Phaser.TilemapLayer, slopeMap:string | Object, offset:number):Phaser.TilemapLayer;
+				convertTilemap(tilemap:Phaser.Tilemap, layer:number | string | Phaser.TilemapLayer, slopeMap:string | Object, index:number):Phaser.Tilemap;
+				convertTilemapLayer(layer:Phaser.TilemapLayer, slopeMap:string | Object, index:number):Phaser.TilemapLayer;
 				calculateEdges(layer:Phaser.TilemapLayer):void;
 				compareEdges(firstEdge:number, secondEdge:number):number;
 				resolveMappingType(type:string):number;
@@ -180,6 +180,7 @@ declare module Phaser {
 				static createQuarterTopRightLow(type:number, tile:Phaser.Tile):Phaser.Plugin.ArcadeSlopes.TileSlope;
 				static createQuarterTopRightHigh(type:number, tile:Phaser.Tile):Phaser.Plugin.ArcadeSlopes.TileSlope;
 				
+				static prepareOffset(index:number):number;
 				static mapNinjaPhysics(offset:number):Object;
 				
 				static NINJA:number;

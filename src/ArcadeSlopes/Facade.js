@@ -130,11 +130,12 @@ Phaser.Plugin.ArcadeSlopes.Facade.prototype.enableBody = function (body) {
  * @method Phaser.Plugin.ArcadeSlopes.Facade#convertTilemap
  * @param  {Phaser.Tilemap}                    map      - The map containing the layer to convert.
  * @param  {number|string|Phaser.TileMapLayer} layer    - The layer of the map to convert.
- * @param  {object}                            slopeMap - A map of tilemap indexes to ArcadeSlope.TileSlope constants.
+ * @param  {string|object}                     slopeMap - A mapping type string, or a map of tilemap indexes to ArcadeSlope.TileSlope constants.
+ * @param  {integer}                           index    - An optional first tile index (firstgid).
  * @return {Phaser.Tilemap}                             - The converted tilemap.
  */
-Phaser.Plugin.ArcadeSlopes.Facade.prototype.convertTilemap = function (map, layer, slopeMap) {
-	return this.factory.convertTilemap(map, layer, slopeMap);
+Phaser.Plugin.ArcadeSlopes.Facade.prototype.convertTilemap = function (map, layer, slopeMap, index) {
+	return this.factory.convertTilemap(map, layer, slopeMap, index);
 };
 
 /**
@@ -142,11 +143,12 @@ Phaser.Plugin.ArcadeSlopes.Facade.prototype.convertTilemap = function (map, laye
  *
  * @method Phaser.Plugin.ArcadeSlopes.Facade#convertTilemapLayer
  * @param  {Phaser.TilemapLayer}  layer    - The tilemap layer to convert.
- * @param  {object}               slopeMap - A map of tilemap indexes to ArcadeSlope.TileSlope constants.
+ * @param  {string|object}        slopeMap - A mapping type string, or a map of tilemap indexes to ArcadeSlope.TileSlope constants.
+ * @param  {integer}              index    - An optional first tile index (firstgid).
  * @return {Phaser.TilemapLayer}           - The converted tilemap layer.
  */
-Phaser.Plugin.ArcadeSlopes.Facade.prototype.convertTilemapLayer = function (layer, slopeMap) {
-	return this.factory.convertTilemapLayer(layer, slopeMap);
+Phaser.Plugin.ArcadeSlopes.Facade.prototype.convertTilemapLayer = function (layer, slopeMap, index) {
+	return this.factory.convertTilemapLayer(layer, slopeMap, index);
 };
 
 /**

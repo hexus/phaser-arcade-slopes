@@ -115,7 +115,7 @@ Phaser.Plugin.ArcadeSlopes.TileSlopeFactory.prototype.create = function (type, t
  * @param  {Phaser.Tilemap}                    map      - The map containing the layer to convert.
  * @param  {number|string|Phaser.TileMapLayer} layer    - The layer of the map to convert.
  * @param  {string|object}                     slopeMap - A mapping type string, or a map of tilemap indexes to ArcadeSlope.TileSlope constants.
- * @param  {integer}                           offset   - An optional offset for the mapping (firstgid).
+ * @param  {integer}                           index    - An optional first tile index (firstgid).
  * @return {Phaser.Tilemap}                             - The converted tilemap.
  */
 Phaser.Plugin.ArcadeSlopes.TileSlopeFactory.prototype.convertTilemap = function (map, layer, slopeMap, offset) {
@@ -132,10 +132,10 @@ Phaser.Plugin.ArcadeSlopes.TileSlopeFactory.prototype.convertTilemap = function 
  * @method Phaser.Plugin.ArcadeSlopes.TileSlopeFactory#convertTilemapLayer
  * @param  {Phaser.TilemapLayer} layer    - The tilemap layer to convert.
  * @param  {string|object}       slopeMap - A mapping type string, or a map of tilemap indexes to ArcadeSlope.TileSlope constants.
- * @param  {integer}             offset   - An optional offset for the mapping (firstgid).
+ * @param  {integer}             index    - An optional first tile index (firstgid).
  * @return {Phaser.TilemapLayer}          - The converted tilemap layer.
  */
-Phaser.Plugin.ArcadeSlopes.TileSlopeFactory.prototype.convertTilemapLayer = function (layer, slopeMap, offset) {
+Phaser.Plugin.ArcadeSlopes.TileSlopeFactory.prototype.convertTilemapLayer = function (layer, slopeMap, index) {
 	var that = this;
 	
 	// Resolve a predefined slope map if a string is given
@@ -148,8 +148,7 @@ Phaser.Plugin.ArcadeSlopes.TileSlopeFactory.prototype.convertTilemapLayer = func
 			return layer;
 		}
 		
-		slopeMap = this.mappings[mappingType](offset);
-		console.log(slopeMap);
+		slopeMap = this.mappings[mappingType](index);
 	}
 	
 	// Create the TileSlope objects for each relevant tile in the layer
@@ -999,15 +998,31 @@ Phaser.Plugin.ArcadeSlopes.TileSlopeFactory.createQuarterTopRightHigh = function
 };
 
 /**
+ * Prepare a slope mapping offset from the given tile index.
+ * 
+ * An offset is just the first tile index - 1. Returns 0 if an integer can't be
+ * parsed.
+ * 
+ * @static
+ * @param  {integer} index - A tile index.
+ * @return {integer}
+ */
+Phaser.Plugin.ArcadeSlopes.TileSlopeFactory.prepareIndex = function (index) {
+	var offset = parseInt(index);
+	offset = !isNaN(offset) && typeof offset === 'number' ? offset - 1 : 0;
+	
+	return offset;
+};
+
+/**
  * Create a tile slope mapping for the Ninja Physics tileset.
  *
  * @static
- * @param  {integer} offset - An optional offset for the mapping (firstgid). Defaults to 1.
+ * @param  {integer} index - An optional first tile index (firstgid).
  * @return {object}
  */
-Phaser.Plugin.ArcadeSlopes.TileSlopeFactory.mapNinjaPhysics = function (offset) {
-	offset = parseInt(offset);
-	offset = !isNaN(offset) && typeof offset === 'number' ? offset : 0;
+Phaser.Plugin.ArcadeSlopes.TileSlopeFactory.mapNinjaPhysics = function (index) {
+	offset = Phaser.Plugin.ArcadeSlopes.TileSlopeFactory.prepareIndex(index);
 	
 	var mapping = {};
 	
