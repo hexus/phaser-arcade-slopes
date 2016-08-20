@@ -71,8 +71,6 @@ declare module Phaser {
 				restrainers:Phaser.Plugin.ArcadeSlopes.SatRestainer;
 
 				prepareResponse(response:SAT.Response):SAT.Response;
-				putOnSlopeX(body:Phaser.Physics.Arcade.Body, tile:Phaser.Tile):void;
-				putOnSlopeY(body:Phaser.Physics.Arcade.Body, tile:Phaser.Tile):void;
 				minimumOffsetX(vector:SAT.Vector):number;
 				minimumOffsetY(vector:SAT.Vector):number;
 				movingAgainstY(body:Phaser.Physics.Arcade.Body, response:SAT.Response):boolean;
@@ -88,13 +86,13 @@ declare module Phaser {
 				shouldCollide(body:Phaser.Physics.Arcade.Body, tile:Phaser.Tile):boolean;
 				collide(i:number, body:Phaser.Physics.Arcade.Body, tile:Phaser.Tile, overlapOnly:boolean):boolean;
 				collideOnAxis(body:Phaser.Physics.Arcade.Body, tile:Phaser.Tile, axis:SAT.Vector, response:SAT.Response):boolean;
+				restrain(body:Phaser.Physics.Arcade.Body, tile:Phaser.Tile, response:SAT.Response):boolean;
 				shouldSeparate(i:number, body:Phaser.Physics.Arcade.Body, tile:Phaser.Tile, response:SAT.Response):boolean;
 				debug(position:Phaser.Point, response:SAT.Response):void;
 			}
 
 			interface SatSolverOptions {
 				preferY:boolean;
-				stick:Phaser.Point;
 				restrain:boolean;
 			}
 

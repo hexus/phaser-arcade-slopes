@@ -20,8 +20,6 @@ Phaser.Plugin.ArcadeSlopes.SatSolver = function (options) {
 	this.options = Phaser.Utils.mixin(options || {}, {
 		// Whether to prefer the minimum Y offset over the smallest separation
 		preferY: false,
-		// Velocity that has to be overcome on each axis to leave the slope, maybe? (stickiness)
-		stick: new Phaser.Point(0, 0),
 		// Whether to restrain SAT collisions
 		restrain: true
 	});
@@ -52,52 +50,6 @@ Phaser.Plugin.ArcadeSlopes.SatSolver.prepareResponse = function(response) {
 	response.overlapN.scale(-1);
 	
 	return response;
-};
-
-/**
- * Position a body on the slope of a tile using the X axis.
- *
- * TODO: Remove.
- *
- * @static
- * @method Phaser.Plugin.ArcadeSlopes.SatSolver#putOnSlopeX
- * @param {Phaser.Physics.Arcade.Body} body - The body to reposition.
- * @param {Phaser.Tile}                tile - The tile to put the body on.
- */
-Phaser.Plugin.ArcadeSlopes.SatSolver.putOnSlopeX = function(body, tile) {
-	// Calculate a slope definition
-	var slope = Phaser.Point.subtract(tile.slope.line.end, tile.slope.line.start);
-	
-	// Calculate how far into the slope the body is
-	//var lerpX = (body.x - tile.slope.line.start.x) / slope.x;
-	var lerpY = (body.y - tile.slope.line.start.y) / slope.y;
-	
-	// Place the body on the slope
-	body.position.x = tile.slope.line.start.x + lerpY * slope.y;
-	//body.position.y = tile.slope.line.start.y + lerpX * slope.y;
-};
-
-/**
- * Position a body on the slope of a tile using the Y axis.
- *
- * TODO: Remove.
- *
- * @static
- * @method Phaser.Plugin.ArcadeSlopes.SatSolver#putOnSlopeY
- * @param {Phaser.Physics.Arcade.Body} body - The body to reposition.
- * @param {Phaser.Tile}                tile - The tile to put the body on.
- */
-Phaser.Plugin.ArcadeSlopes.SatSolver.putOnSlopeY = function(body, tile) {
-	// Calculate a slope definition
-	var slope = Phaser.Point.subtract(tile.slope.line.end, tile.slope.line.start);
-	
-	// Calculate how far into the slope the body is
-	var lerpX = (body.x - tile.slope.line.start.x) / slope.x;
-	//var lerpY = (body.y - tile.slope.line.start.y) / slope.y;
-	
-	// Place the body on the slope
-	//body.position.x = tile.slope.line.start.x + lerpY * slope.y;
-	body.position.y = tile.slope.line.start.y + lerpX * slope.y;
 };
 
 /**
@@ -492,7 +444,6 @@ Phaser.Plugin.ArcadeSlopes.SatSolver.prototype.shouldCollide = function (body, t
  * Separate the given body and tile from each other and apply any relevant
  * changes to the body's velocity.
  *
- * TODO: Maybe the dot product test for moving into the collision is a good idea
  * TODO: Accept a process callback into this method
  * 
  * @method Phaser.Plugin.ArcadeSlopes.SatSolver#collide
@@ -596,6 +547,33 @@ Phaser.Plugin.ArcadeSlopes.SatSolver.prototype.collideOnAxis = function (body, t
 };
 
 /**
+ * Run a constraint check for the given physics body, tile and response.
+ *
+ * @method Phaser.Plugin.ArcadeSlopes.SatSolver#restrain
+ * @param  {Phaser.Physics.Arcade.Body} body     - The physics body.
+ * @param  {Phaser.Tile}                tile     - The tile.
+ * @param  {SAT.Response}               response - The initial collision response.
+ * @return {boolean}                             - Whether the collision was restrained.
+ */
+Phaser.Plugin.ArcadeSlopes.SatSolver.prototype.restrain = function (body, tile, response) {
+	for (var r in this.restrainers) {
+		var restrainer = this.restrainers[r];
+		
+		// Skip anything without a restrain function
+		if (typeof restrainer.restrain !== 'function') {
+			continue;
+		}
+		
+		// Bail if the restrainer dealt with the collision by itself
+		if (!restrainer.restrain(this, body, tile, response)) {
+			return true;
+		}
+	}
+	
+	return false;
+};
+
+/**
  * Determine whether to separate a body from a tile, given an SAT response.
  *
  * Checks against the tile slope's edge flags.
@@ -643,18 +621,8 @@ Phaser.Plugin.ArcadeSlopes.SatSolver.prototype.shouldSeparate = function (i, bod
 	}
 	
 	// Run any separation restrainers
-	for (var r in this.restrainers) {
-		var restrainer = this.restrainers[r];
-		
-		// Skip anything without a restrain function
-		if (typeof restrainer.restrain !== 'function') {
-			continue;
-		}
-		
-		// Bail if the restrainer dealt with the collision by itself
-		if (!restrainer.restrain(this, body, tile, response)) {
-			return false;
-		}
+	if (this.restrain(body, tile, response)) {
+		return false;
 	}
 	
 	return true;
