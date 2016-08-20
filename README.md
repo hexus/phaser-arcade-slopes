@@ -97,14 +97,15 @@ game.physics.arcade.collide(emitter, ground);
 ### Minimum Y Offset
 
 If you're making a platformer, your player has drag on the X axis, and you don't
-want it to slide down slopes, try this on for size in your `create()` method:
+want it to slide down slopes, try enabling either of these options in your
+`create()` method.
 
 ```js
+// Prefer the minimum Y offset for this physics body
+player.body.slopes.preferY = true;
+
 // Prefer the minimum Y offset globally
 game.slopes.solvers.sat.options.preferY = true;
-
-// Or prefer the minimum Y offset only for a specific physics body
-player.body.slopes.preferY = true;
 ```
 
 ## Building
@@ -136,7 +137,7 @@ My thanks go out to those who made this Plugin possible.
 - [Metanet](http://www.metanetsoftware.com/) - for their incredibly helpful
   tutorials about [collision](http://www.metanetsoftware.com/technique/tutorialA.html)
   [detection](http://www.metanetsoftware.com/technique/tutorialB.html)
-- [Oliver Renault](http://elancev.name/oliver/2D%20polygon.htm#tut4) - for their
+- [Olivier Renault](http://elancev.name/oliver/2D%20polygon.htm#tut4) - for their
   tutorial on 2D polygon collision and response (from 2004!)
 - [Jan Geselle](https://github.com/geselle-jan) - for writing [a sloped tile
   implementation](https://github.com/geselle-jan/Metroid/commit/9c213e9f5779df1dcd6f7d2bed2a9b676a9e3c6b#diff-467b4e6069f6692511fc5e60f3c426ccR158)
