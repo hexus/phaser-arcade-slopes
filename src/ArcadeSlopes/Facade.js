@@ -7,7 +7,8 @@
 /**
  * A facade class to attach to a Phaser game.
  *
- * Not yet in use, but will be when the plugin methods are moved here.
+ * TODO: Extract a CollisionHandler/CollisionResolver class that stores solvers
+ *       and defaultSolver that the facade can just forward calls to.
  * 
  * @class Phaser.Plugin.ArcadeSlopes.Facade
  * @constructor

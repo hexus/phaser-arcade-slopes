@@ -13,15 +13,7 @@ declare module Phaser {
 		class ArcadeSlopes extends Phaser.Plugin {
 			constructor(game:Phaser.Game, parent:any, defaultSolver:number);
 
-			defaultSolver:string;
-			solvers:Object;
 			facade:Phaser.Plugin.ArcadeSlopes.Facade;
-
-			enable(obj:Phaser.Sprite | Phaser.Group):void;
-			enableBody(body:Phaser.Physics.Arcade.Body):void;
-			convertTilemap(map:Phaser.Tilemap, layer:number | string | Phaser.TilemapLayer, slopeMap:Object):Phaser.Tilemap;
-			convertTilemapLayer(layer:Phaser.TilemapLayer, slopeMap:Object):Phaser.TilemapLayer;
-			collide(i:number, body:Phaser.Physics.Arcade.Body, tile:Phaser.Tile, overlapOnly:boolean):boolean;
 
 			static SAT:string;
 			static METROID:string;

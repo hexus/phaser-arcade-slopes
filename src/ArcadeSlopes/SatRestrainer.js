@@ -9,7 +9,7 @@
  *
  * Can separate on a tile's preferred axis if it has one.
  *
- * This is what keeps the sloped tiles fairly smooth for AABBs.
+ * This is what keeps the sloped tile collisions smooth for AABBs.
  * 
  * Think of it as the equivalent of the Arcade Physics tile face checks for all
  * of the sloped tiles and their possible neighbour combinations.

@@ -8,10 +8,6 @@
  * Arcade Slopes provides sloped tile functionality for tilemaps that use
  * Phaser's Arcade physics engine.
  * 
- * TODO: Extract all the handy methods to the Facade class, and a new
- *       CollisionResolver/CollisionHandler class that stores all the solvers
- *       and a default solver type?
- * 
  * @class Phaser.Plugin.ArcadeSlopes
  * @constructor
  * @extends Phaser.Plugin
@@ -23,23 +19,15 @@ Phaser.Plugin.ArcadeSlopes = function (game, parent, defaultSolver) {
 	Phaser.Plugin.call(this, game, parent);
 	
 	/**
-	 * The default collision solver type to use for sloped tiles.
-	 * 
-	 * @property {string} defaultSolver
-	 * @default
-	 */
-	this.defaultSolver = defaultSolver || Phaser.Plugin.ArcadeSlopes.SAT;
-	
-	/**
 	 * The collision solvers provided by the plugin.
 	 * 
 	 * Maps solver constants to their respective instances.
 	 * 
-	 * @property {object} solvers
+	 * @type {object}
 	 */
-	this.solvers = {};
+	var solvers = {};
 	
-	this.solvers[Phaser.Plugin.ArcadeSlopes.SAT] = new Phaser.Plugin.ArcadeSlopes.SatSolver();
+	solvers[Phaser.Plugin.ArcadeSlopes.SAT] = new Phaser.Plugin.ArcadeSlopes.SatSolver();
 	
 	/**
 	 * The Arcade Slopes facade.
@@ -48,8 +36,8 @@ Phaser.Plugin.ArcadeSlopes = function (game, parent, defaultSolver) {
 	 */
 	this.facade = new Phaser.Plugin.ArcadeSlopes.Facade(
 		new Phaser.Plugin.ArcadeSlopes.TileSlopeFactory(),
-		this.solvers,
-		this.defaultSolver
+		solvers,
+		defaultSolver || Phaser.Plugin.ArcadeSlopes.SAT
 	);
 };
 
@@ -62,7 +50,7 @@ Phaser.Plugin.ArcadeSlopes.prototype.constructor = Phaser.Plugin.ArcadeSlopes;
  * @constant
  * @type {string}
  */
-Phaser.Plugin.ArcadeSlopes.VERSION = '0.2.0-alpha';
+Phaser.Plugin.ArcadeSlopes.VERSION = '0.2.0-dev';
 
 /**
  * The Separating Axis Theorem collision solver type.
@@ -87,11 +75,14 @@ Phaser.Plugin.ArcadeSlopes.METROID = 'metroid';
 /**
  * Initializes the plugin.
  * 
+ * TODO: Set this.facade to this.game.slopes instead of just this. Then you can
+ *       remove all of the duplicate methods on the plugin class.
+ * 
  * @method Phaser.Plugin.ArcadeSlopes#init
  */
 Phaser.Plugin.ArcadeSlopes.prototype.init = function () {
 	// Give the game an Arcade Slopes facade
-	this.game.slopes = this.game.slopes || this;
+	this.game.slopes = this.game.slopes || this.facade;
 	
 	// Keep a reference to the original collideSpriteVsTilemapLayer method
 	this.originalCollideSpriteVsTilemapLayer = Phaser.Physics.Arcade.prototype.collideSpriteVsTilemapLayer;
@@ -115,7 +106,7 @@ Phaser.Plugin.ArcadeSlopes.prototype.init = function () {
  * @method Phaser.Plugin.ArcadeSlopes#destroy
  */
 Phaser.Plugin.ArcadeSlopes.prototype.destroy = function () {
-	// Null the game's reference to the facade.
+	// Null the game's reference to the facade
 	this.game.slopes = null;
 	
 	// Restore the original collideSpriteVsTilemapLayer method and null the rest
@@ -131,68 +122,4 @@ Phaser.Plugin.ArcadeSlopes.prototype.destroy = function () {
 	
 	// Call the parent destroy method
 	Phaser.Plugin.prototype.destroy.call(this);
-};
-
-/**
- * Enable the physics body of the given object for sloped tile interaction.
- *
- * @method Phaser.Plugin.ArcadeSlopes#enable
- * @param {Phaser.Sprite|Phaser.Group} object - The object to enable sloped tile physics for.
- */
-Phaser.Plugin.ArcadeSlopes.prototype.enable = function (object) {
-	this.facade.enable(object);
-};
-
-/**
- * Enable the given physics body for sloped tile interaction.
- * 
- * TODO: Circle body support, when it's released.
- *
- * @method Phaser.Plugin.ArcadeSlopes#enableBody
- * @param {Phaser.Physics.Arcade.Body} body - The physics body to enable.
- */
-Phaser.Plugin.ArcadeSlopes.prototype.enableBody = function (body) {
-	this.facade.enableBody(body);
-};
-
-/**
- * Converts a layer of the given tilemap.
- * 
- * Attaches Phaser.Plugin.ArcadeSlopes.TileSlope objects that are used to define
- * how the tile should collide with a physics body.
- *
- * @method Phaser.Plugin.ArcadeSlopes#convertTilemap
- * @param  {Phaser.Tilemap}                    map      - The map containing the layer to convert.
- * @param  {number|string|Phaser.TileMapLayer} layer    - The layer of the map to convert.
- * @param  {object}                            slopeMap - A map of tilemap indexes to ArcadeSlope.TileSlope constants.
- * @return {Phaser.Tilemap}                             - The converted tilemap.
- */
-Phaser.Plugin.ArcadeSlopes.prototype.convertTilemap = function (map, layer, slopeMap) {
-	return this.facade.convertTilemap(map, layer, slopeMap);
-};
-
-/**
- * Converts a tilemap layer.
- *
- * @method Phaser.Plugin.ArcadeSlopes#convertTilemapLayer
- * @param  {Phaser.TilemapLayer}  layer    - The tilemap layer to convert.
- * @param  {object}               slopeMap - A map of tilemap indexes to ArcadeSlope.TileSlope constants.
- * @return {Phaser.TilemapLayer}           - The converted tilemap layer.
- */
-Phaser.Plugin.ArcadeSlopes.prototype.convertTilemapLayer = function (layer, slopeMap) {
-	return this.facade.convertTilemapLayer(layer, slopeMap);
-};
-
-/**
- * Collides a physics body against a tile.
- *
- * @method Phaser.Plugin.ArcadeSlopes#collide
- * @param  {integer}                    i           - The tile index.
- * @param  {Phaser.Physics.Arcade.Body} body        - The physics body.
- * @param  {Phaser.Tile}                tile        - The tile.
- * @param  {boolean}                    overlapOnly - Whether to only check for an overlap.
- * @return {boolean}                                - Whether the body was separated.
- */
-Phaser.Plugin.ArcadeSlopes.prototype.collide = function (i, body, tile, overlapOnly) {
-	return this.facade.collide(i, body, tile, overlapOnly);
 };
