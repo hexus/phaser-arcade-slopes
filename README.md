@@ -48,10 +48,8 @@ game.plugins.add(Phaser.Plugin.ArcadeSlopes);
 
 After you've created your tilemap, and have a collision layer that you want
 to enable slopes for, you'll need run it through the Arcade Slopes converter.
-You'll need an explicit mapping of tile indexes to Arcade Slopes tile names to
-do so.
 
-Here's an example that maps the
+The plugin provides a built in mapping for the
 [Ninja Physics debug tilesheets](https://github.com/photonstorm/phaser/tree/v2.4.7/resources/Ninja%20Physics%20Debug%20Tiles) ([32px](https://raw.githubusercontent.com/photonstorm/phaser/v2.4.7/resources/Ninja%20Physics%20Debug%20Tiles/32px/ninja-tiles32.png), [64px](https://raw.githubusercontent.com/photonstorm/phaser/v2.4.7/resources/Ninja%20Physics%20Debug%20Tiles/64px/ninja-tiles64.png)).
 
 ```js
@@ -60,33 +58,14 @@ map.addTilesetImage('collision', 'ninja-tiles32');
 
 ground = map.createLayer('collision');
 
-game.slopes.convertTilemapLayer(ground, {
-	2:  'FULL',
-	3:  'HALF_BOTTOM_LEFT',
-	4:  'HALF_BOTTOM_RIGHT',
-	6:  'HALF_TOP_LEFT',
-	5:  'HALF_TOP_RIGHT',
-	15: 'QUARTER_BOTTOM_LEFT_LOW',
-	16: 'QUARTER_BOTTOM_RIGHT_LOW',
-	17: 'QUARTER_TOP_RIGHT_LOW',
-	18: 'QUARTER_TOP_LEFT_LOW',
-	19: 'QUARTER_BOTTOM_LEFT_HIGH',
-	20: 'QUARTER_BOTTOM_RIGHT_HIGH',
-	21: 'QUARTER_TOP_RIGHT_HIGH',
-	22: 'QUARTER_TOP_LEFT_HIGH',
-	23: 'QUARTER_LEFT_BOTTOM_HIGH',
-	24: 'QUARTER_RIGHT_BOTTOM_HIGH',
-	25: 'QUARTER_RIGHT_TOP_LOW',
-	26: 'QUARTER_LEFT_TOP_LOW',
-	27: 'QUARTER_LEFT_BOTTOM_LOW',
-	28: 'QUARTER_RIGHT_BOTTOM_LOW',
-	29: 'QUARTER_RIGHT_TOP_HIGH',
-	30: 'QUARTER_LEFT_TOP_HIGH',
-	31: 'HALF_BOTTOM',
-	32: 'HALF_RIGHT',
-	33: 'HALF_TOP',
-	34: 'HALF_LEFT'
-});
+game.slopes.convertTilemapLayer(ground, 'ninja');
+```
+
+If you need to offset the mapping, in the case that your first tile ID does not
+begin with 1, you can provide a third argument.
+
+```js
+game.slopes.convertTilemapLayer(ground, 'ninja', 16);
 ```
 
 ### Enabling physics bodies
