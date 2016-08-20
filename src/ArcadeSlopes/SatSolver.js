@@ -18,6 +18,8 @@ Phaser.Plugin.ArcadeSlopes.SatSolver = function (options) {
 	 * @property {object} options
 	 */
 	this.options = Phaser.Utils.mixin(options || {}, {
+		// Whether to store debug data with all encountered physics bodies
+		debug: false,
 		// Whether to prefer the minimum Y offset over the smallest separation
 		preferY: false,
 		// Whether to restrain SAT collisions

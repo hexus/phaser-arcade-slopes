@@ -98,6 +98,7 @@ Phaser.Plugin.ArcadeSlopes.Facade.prototype.enableBody = function (body) {
 	// Attach a new set of properties that configure the body's interaction
 	// with sloped tiles (TODO: Formalize as a class?)
 	body.slopes = Phaser.Utils.mixin(body.slopes || {}, {
+		debug: false,
 		friction: new Phaser.Point(),
 		preferY: false,
 		pullUp: 0,

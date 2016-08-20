@@ -46,6 +46,18 @@ Phaser.Plugin.ArcadeSlopes.TileSlopeFactory = function () {
 	this.definitions[Phaser.Plugin.ArcadeSlopes.TileSlope.QUARTER_TOP_LEFT_HIGH]     = Phaser.Plugin.ArcadeSlopes.TileSlopeFactory.createQuarterTopLeftHigh;
 	this.definitions[Phaser.Plugin.ArcadeSlopes.TileSlope.QUARTER_TOP_RIGHT_LOW]     = Phaser.Plugin.ArcadeSlopes.TileSlopeFactory.createQuarterTopRightLow;
 	this.definitions[Phaser.Plugin.ArcadeSlopes.TileSlope.QUARTER_TOP_RIGHT_HIGH]    = Phaser.Plugin.ArcadeSlopes.TileSlopeFactory.createQuarterTopRightHigh;
+	
+	/**
+	 * A set of common slope mapping functions that can be used instead of an
+	 * explicit map.
+	 * 
+	 * Maps TileSlopeFactory constants to mapping functions.
+	 * 
+	 * @property {object} mappings
+	 */
+	this.mappings = {};
+	
+	this.mappings[Phaser.Plugin.ArcadeSlopes.TileSlopeFactory.NINJA] = Phaser.Plugin.ArcadeSlopes.TileSlopeFactory.mapNinjaPhysics;
 };
 
 Phaser.Plugin.ArcadeSlopes.TileSlopeFactory.prototype.constructor = Phaser.Plugin.ArcadeSlopes.TileSlopeFactory;
@@ -102,13 +114,14 @@ Phaser.Plugin.ArcadeSlopes.TileSlopeFactory.prototype.create = function (type, t
  * @method Phaser.Plugin.ArcadeSlopes.TileSlopeFactory#convertTilemap
  * @param  {Phaser.Tilemap}                    map      - The map containing the layer to convert.
  * @param  {number|string|Phaser.TileMapLayer} layer    - The layer of the map to convert.
- * @param  {object}                            slopeMap - A map of tilemap indexes to ArcadeSlope.TileSlope constants.
+ * @param  {string|object}                     slopeMap - A mapping type string, or a map of tilemap indexes to ArcadeSlope.TileSlope constants.
+ * @param  {integer}                           offset   - An optional offset for the mapping (firstgid).
  * @return {Phaser.Tilemap}                             - The converted tilemap.
  */
-Phaser.Plugin.ArcadeSlopes.TileSlopeFactory.prototype.convertTilemap = function (map, layer, slopeMap) {
+Phaser.Plugin.ArcadeSlopes.TileSlopeFactory.prototype.convertTilemap = function (map, layer, slopeMap, offset) {
 	layer = map.getLayer(layer);
 	
-	this.convertTilemapLayer(layer, slopeMap);
+	this.convertTilemapLayer(layer, slopeMap, offset);
 	
 	return map;
 };
@@ -118,11 +131,26 @@ Phaser.Plugin.ArcadeSlopes.TileSlopeFactory.prototype.convertTilemap = function 
  *
  * @method Phaser.Plugin.ArcadeSlopes.TileSlopeFactory#convertTilemapLayer
  * @param  {Phaser.TilemapLayer} layer    - The tilemap layer to convert.
- * @param  {object}              slopeMap - A map of tilemap indexes to ArcadeSlope.TileSlope constants.
+ * @param  {string|object}       slopeMap - A mapping type string, or a map of tilemap indexes to ArcadeSlope.TileSlope constants.
+ * @param  {integer}             offset   - An optional offset for the mapping (firstgid).
  * @return {Phaser.TilemapLayer}          - The converted tilemap layer.
  */
-Phaser.Plugin.ArcadeSlopes.TileSlopeFactory.prototype.convertTilemapLayer = function (layer, slopeMap) {
+Phaser.Plugin.ArcadeSlopes.TileSlopeFactory.prototype.convertTilemapLayer = function (layer, slopeMap, offset) {
 	var that = this;
+	
+	// Resolve a predefined slope map if a string is given
+	if (typeof slopeMap === 'string') {
+		var mappingType = this.resolveMappingType(slopeMap);
+		
+		if (!this.mappings[mappingType]) {
+			console.warn('Tilemap could not be converted; mapping type \'' + slopeMap + '\' is unknown');
+			
+			return layer;
+		}
+		
+		slopeMap = this.mappings[mappingType](offset);
+		console.log(slopeMap);
+	}
 	
 	// Create the TileSlope objects for each relevant tile in the layer
 	layer.layer.data.forEach(function (row) {
@@ -206,7 +234,7 @@ Phaser.Plugin.ArcadeSlopes.TileSlopeFactory.prototype.calculateEdges = function 
 
 /**
  * Resolve the given flags of two shared tile edges.
- *
+ * 
  * Returns the new flag to use for the first edge after comparing it with the
  * second edge.
  * 
@@ -225,6 +253,31 @@ Phaser.Plugin.ArcadeSlopes.TileSlopeFactory.prototype.compareEdges = function (f
 	}
 	
 	return firstEdge;
+};
+
+/**
+ * Resolve a tileset mapping constant from the given value.
+ * 
+ * @method Phaser.Plugin.Arcadeslopes.TileSlopeFactory#resolveMapping
+ * @param  {string}  type - The value to resolve a mapping from.
+ * @return {integer}
+ */
+Phaser.Plugin.ArcadeSlopes.TileSlopeFactory.prototype.resolveMappingType = function (type) {
+	if (parseInt(type) >= 0) {
+		return type;
+	}
+	
+	if (typeof type === 'string') {
+		type = type.toUpperCase();
+	}
+	
+	if (Phaser.Plugin.ArcadeSlopes.TileSlopeFactory.hasOwnProperty(type)) {
+		return Phaser.Plugin.ArcadeSlopes.TileSlopeFactory[type];
+	}
+	
+	console.warn('Unknown tileset mapping type \'' + type + '\'');
+	
+	return -1;
 };
 
 /**
@@ -944,3 +997,53 @@ Phaser.Plugin.ArcadeSlopes.TileSlopeFactory.createQuarterTopRightHigh = function
 	
 	return new Phaser.Plugin.ArcadeSlopes.TileSlope(type, tile, polygon, line, edges, axis);
 };
+
+/**
+ * Create a tile slope mapping for the Ninja Physics tileset.
+ *
+ * @static
+ * @param  {integer} offset - An optional offset for the mapping (firstgid). Defaults to 1.
+ * @return {object}
+ */
+Phaser.Plugin.ArcadeSlopes.TileSlopeFactory.mapNinjaPhysics = function (offset) {
+	offset = parseInt(offset);
+	offset = !isNaN(offset) && typeof offset === 'number' ? offset : 0;
+	
+	var mapping = {};
+	
+	mapping[offset + 2] =  'FULL';
+	mapping[offset + 3] =  'HALF_BOTTOM_LEFT';
+	mapping[offset + 4] =  'HALF_BOTTOM_RIGHT';
+	mapping[offset + 6] =  'HALF_TOP_LEFT';
+	mapping[offset + 5] =  'HALF_TOP_RIGHT';
+	mapping[offset + 15] = 'QUARTER_BOTTOM_LEFT_LOW';
+	mapping[offset + 16] = 'QUARTER_BOTTOM_RIGHT_LOW';
+	mapping[offset + 17] = 'QUARTER_TOP_RIGHT_LOW';
+	mapping[offset + 18] = 'QUARTER_TOP_LEFT_LOW';
+	mapping[offset + 19] = 'QUARTER_BOTTOM_LEFT_HIGH';
+	mapping[offset + 20] = 'QUARTER_BOTTOM_RIGHT_HIGH';
+	mapping[offset + 21] = 'QUARTER_TOP_RIGHT_HIGH';
+	mapping[offset + 22] = 'QUARTER_TOP_LEFT_HIGH';
+	mapping[offset + 23] = 'QUARTER_LEFT_BOTTOM_HIGH';
+	mapping[offset + 24] = 'QUARTER_RIGHT_BOTTOM_HIGH';
+	mapping[offset + 25] = 'QUARTER_RIGHT_TOP_LOW';
+	mapping[offset + 26] = 'QUARTER_LEFT_TOP_LOW';
+	mapping[offset + 27] = 'QUARTER_LEFT_BOTTOM_LOW';
+	mapping[offset + 28] = 'QUARTER_RIGHT_BOTTOM_LOW';
+	mapping[offset + 29] = 'QUARTER_RIGHT_TOP_HIGH';
+	mapping[offset + 30] = 'QUARTER_LEFT_TOP_HIGH';
+	mapping[offset + 31] = 'HALF_BOTTOM';
+	mapping[offset + 32] = 'HALF_RIGHT';
+	mapping[offset + 33] = 'HALF_TOP';
+	mapping[offset + 34] = 'HALF_LEFT';
+
+	return mapping;
+};
+
+/**
+ * The Ninja Physics tileset mapping.
+ *
+ * @constant
+ * @type {integer}
+ */
+Phaser.Plugin.ArcadeSlopes.TileSlopeFactory.NINJA = 1;

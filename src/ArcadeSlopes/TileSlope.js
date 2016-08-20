@@ -82,25 +82,29 @@ Phaser.Plugin.ArcadeSlopes.TileSlope = function (type, tile, polygon, line, edge
 /**
  * Resolve a tile slope type constant from the given value.
  *
- * Returns any successfully parsed non-zero integers regardless of whether they
- * are valid slope tile types. This method is really for strings.
+ * Returns any successfully parsed non-negative integers regardless of whether
+ * they are valid slope tile types. This method is really for strings.
  *
  * @method Phaser.Plugin.ArcadeSlopes.TileSlope#resolveType
  * @param  {string|integer} type - The value to resolve.
  * @return {integer}             - The resolved tile slope type constant.
  */
 Phaser.Plugin.ArcadeSlopes.TileSlope.resolveType = function (type) {
-	if (parseInt(type) > -1) {
+	if (parseInt(type) >= 0) {
 		return type;
+	}
+	
+	if (typeof type === 'string') {
+		type = type.toUpperCase();
 	}
 	
 	if (Phaser.Plugin.ArcadeSlopes.TileSlope.hasOwnProperty(type)) {
 		return Phaser.Plugin.ArcadeSlopes.TileSlope[type];
 	}
 	
-	console.warn('Unresolved slope type \'' + type + '\'');
+	console.warn('Unknown slope type \'' + type + '\'');
 	
-	return -1;
+	return Phaser.Plugin.ArcadeSlopes.TileSlope.UNKNOWN;
 };
 
 /**

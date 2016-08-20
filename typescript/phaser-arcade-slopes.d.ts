@@ -92,6 +92,7 @@ declare module Phaser {
 			}
 
 			interface SatSolverOptions {
+				debug:boolean;
 				preferY:boolean;
 				restrain:boolean;
 			}
@@ -147,38 +148,45 @@ declare module Phaser {
 			class TileSlopeFactory {
 				define(type:number, definition:any):void;
 				create(type:number, tile:Phaser.Tile):Phaser.Plugin.ArcadeSlopes.TileSlope;
-				convertTilemap(tilemap:Phaser.Tilemap, layer:number | string | Phaser.TilemapLayer, slopeMap:Object):Phaser.Tilemap;
-				convertTilemapLayer(layer:Phaser.TilemapLayer, slopeMap:Object):Phaser.TilemapLayer;
+				convertTilemap(tilemap:Phaser.Tilemap, layer:number | string | Phaser.TilemapLayer, slopeMap:string | Object, offset:number):Phaser.Tilemap;
+				convertTilemapLayer(layer:Phaser.TilemapLayer, slopeMap:string | Object, offset:number):Phaser.TilemapLayer;
 				calculateEdges(layer:Phaser.TilemapLayer):void;
 				compareEdges(firstEdge:number, secondEdge:number):number;
-				createFull(type:number, tile:Phaser.Tile):Phaser.Plugin.ArcadeSlopes.TileSlope;
-				createHalfBottom(type:number, tile:Phaser.Tile):Phaser.Plugin.ArcadeSlopes.TileSlope;
-				createHalfTop(type:number, tile:Phaser.Tile):Phaser.Plugin.ArcadeSlopes.TileSlope;
-				createHalfLeft(type:number, tile:Phaser.Tile):Phaser.Plugin.ArcadeSlopes.TileSlope;
-				createHalfRight(type:number, tile:Phaser.Tile):Phaser.Plugin.ArcadeSlopes.TileSlope;
-				createHalfBottomLeft(type:number, tile:Phaser.Tile):Phaser.Plugin.ArcadeSlopes.TileSlope;
-				createHalfBottomRight(type:number, tile:Phaser.Tile):Phaser.Plugin.ArcadeSlopes.TileSlope;
-				createHalfTopLeft(type:number, tile:Phaser.Tile):Phaser.Plugin.ArcadeSlopes.TileSlope;
-				createHalfTopRight(type:number, tile:Phaser.Tile):Phaser.Plugin.ArcadeSlopes.TileSlope;
-				createQuarterBottomLeftLow(type:number, tile:Phaser.Tile):Phaser.Plugin.ArcadeSlopes.TileSlope;
-				createQuarterBottomLeftHigh(type:number, tile:Phaser.Tile):Phaser.Plugin.ArcadeSlopes.TileSlope;
-				createQuarterBottomRightLow(type:number, tile:Phaser.Tile):Phaser.Plugin.ArcadeSlopes.TileSlope;
-				createQuarterBottomRightHigh(type:number, tile:Phaser.Tile):Phaser.Plugin.ArcadeSlopes.TileSlope;
-				createQuarterLeftBottomLow(type:number, tile:Phaser.Tile):Phaser.Plugin.ArcadeSlopes.TileSlope;
-				createQuarterLeftBottomHigh(type:number, tile:Phaser.Tile):Phaser.Plugin.ArcadeSlopes.TileSlope;
-				createQuarterRightBottomLow(type:number, tile:Phaser.Tile):Phaser.Plugin.ArcadeSlopes.TileSlope;
-				createQuarterRightBottomHigh(type:number, tile:Phaser.Tile):Phaser.Plugin.ArcadeSlopes.TileSlope;
-				createQuarterLeftTopLow(type:number, tile:Phaser.Tile):Phaser.Plugin.ArcadeSlopes.TileSlope;
-				createQuarterLeftTopHigh(type:number, tile:Phaser.Tile):Phaser.Plugin.ArcadeSlopes.TileSlope;
-				createQuarterRightTopLow(type:number, tile:Phaser.Tile):Phaser.Plugin.ArcadeSlopes.TileSlope;
-				createQuarterRightTopHigh(type:number, tile:Phaser.Tile):Phaser.Plugin.ArcadeSlopes.TileSlope;
-				createQuarterTopLeftLow(type:number, tile:Phaser.Tile):Phaser.Plugin.ArcadeSlopes.TileSlope;
-				createQuarterTopLeftHigh(type:number, tile:Phaser.Tile):Phaser.Plugin.ArcadeSlopes.TileSlope;
-				createQuarterTopRightLow(type:number, tile:Phaser.Tile):Phaser.Plugin.ArcadeSlopes.TileSlope;
-				createQuarterTopRightHigh(type:number, tile:Phaser.Tile):Phaser.Plugin.ArcadeSlopes.TileSlope;
+				resolveMappingType(type:string):number;
+				
+				static createFull(type:number, tile:Phaser.Tile):Phaser.Plugin.ArcadeSlopes.TileSlope;
+				static createHalfBottom(type:number, tile:Phaser.Tile):Phaser.Plugin.ArcadeSlopes.TileSlope;
+				static createHalfTop(type:number, tile:Phaser.Tile):Phaser.Plugin.ArcadeSlopes.TileSlope;
+				static createHalfLeft(type:number, tile:Phaser.Tile):Phaser.Plugin.ArcadeSlopes.TileSlope;
+				static createHalfRight(type:number, tile:Phaser.Tile):Phaser.Plugin.ArcadeSlopes.TileSlope;
+				static createHalfBottomLeft(type:number, tile:Phaser.Tile):Phaser.Plugin.ArcadeSlopes.TileSlope;
+				static createHalfBottomRight(type:number, tile:Phaser.Tile):Phaser.Plugin.ArcadeSlopes.TileSlope;
+				static createHalfTopLeft(type:number, tile:Phaser.Tile):Phaser.Plugin.ArcadeSlopes.TileSlope;
+				static createHalfTopRight(type:number, tile:Phaser.Tile):Phaser.Plugin.ArcadeSlopes.TileSlope;
+				static createQuarterBottomLeftLow(type:number, tile:Phaser.Tile):Phaser.Plugin.ArcadeSlopes.TileSlope;
+				static createQuarterBottomLeftHigh(type:number, tile:Phaser.Tile):Phaser.Plugin.ArcadeSlopes.TileSlope;
+				static createQuarterBottomRightLow(type:number, tile:Phaser.Tile):Phaser.Plugin.ArcadeSlopes.TileSlope;
+				static createQuarterBottomRightHigh(type:number, tile:Phaser.Tile):Phaser.Plugin.ArcadeSlopes.TileSlope;
+				static createQuarterLeftBottomLow(type:number, tile:Phaser.Tile):Phaser.Plugin.ArcadeSlopes.TileSlope;
+				static createQuarterLeftBottomHigh(type:number, tile:Phaser.Tile):Phaser.Plugin.ArcadeSlopes.TileSlope;
+				static createQuarterRightBottomLow(type:number, tile:Phaser.Tile):Phaser.Plugin.ArcadeSlopes.TileSlope;
+				static createQuarterRightBottomHigh(type:number, tile:Phaser.Tile):Phaser.Plugin.ArcadeSlopes.TileSlope;
+				static createQuarterLeftTopLow(type:number, tile:Phaser.Tile):Phaser.Plugin.ArcadeSlopes.TileSlope;
+				static createQuarterLeftTopHigh(type:number, tile:Phaser.Tile):Phaser.Plugin.ArcadeSlopes.TileSlope;
+				static createQuarterRightTopLow(type:number, tile:Phaser.Tile):Phaser.Plugin.ArcadeSlopes.TileSlope;
+				static createQuarterRightTopHigh(type:number, tile:Phaser.Tile):Phaser.Plugin.ArcadeSlopes.TileSlope;
+				static createQuarterTopLeftLow(type:number, tile:Phaser.Tile):Phaser.Plugin.ArcadeSlopes.TileSlope;
+				static createQuarterTopLeftHigh(type:number, tile:Phaser.Tile):Phaser.Plugin.ArcadeSlopes.TileSlope;
+				static createQuarterTopRightLow(type:number, tile:Phaser.Tile):Phaser.Plugin.ArcadeSlopes.TileSlope;
+				static createQuarterTopRightHigh(type:number, tile:Phaser.Tile):Phaser.Plugin.ArcadeSlopes.TileSlope;
+				
+				static mapNinjaPhysics(offset:number):Object;
+				
+				static NINJA:number;
 			}
 
 			interface BodySlopes {
+				debug:boolean;
 				friction:Phaser.Point;
 				preferY:boolean;
 				pullUp:number;
