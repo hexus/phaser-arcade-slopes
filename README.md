@@ -61,8 +61,8 @@ ground = map.createLayer('collision');
 game.slopes.convertTilemapLayer(ground, 'ninja');
 ```
 
-If you need to offset the mapping, in the case that your first tile ID does not
-begin with 1, you can provide a third argument.
+In the case that your first tile ID is not 1, you can provide a third argument
+to specify the first tile ID of the collision tileset in your tilemap.
 
 ```js
 game.slopes.convertTilemapLayer(ground, 'ninja', 16);

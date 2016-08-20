@@ -16,7 +16,7 @@
     - [ ] Premade tilesheets
     - [ ] Tilesheet generator
   - [ ] Mapping shortcuts
-    - [ ] Ninja Physics debug tilesheet
+    - [x] Ninja Physics debug tilesheet
     - [ ] Arcade Slopes tilesheet
     - [ ] Tile properties (`tile.properties.type`)
   - [ ] Graphical debug output

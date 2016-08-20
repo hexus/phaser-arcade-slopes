@@ -1007,8 +1007,9 @@ Phaser.Plugin.ArcadeSlopes.TileSlopeFactory.createQuarterTopRightHigh = function
  * @param  {integer} index - A tile index.
  * @return {integer}
  */
-Phaser.Plugin.ArcadeSlopes.TileSlopeFactory.prepareIndex = function (index) {
+Phaser.Plugin.ArcadeSlopes.TileSlopeFactory.prepareOffset = function (index) {
 	var offset = parseInt(index);
+	
 	offset = !isNaN(offset) && typeof offset === 'number' ? offset - 1 : 0;
 	
 	return offset;
@@ -1022,7 +1023,7 @@ Phaser.Plugin.ArcadeSlopes.TileSlopeFactory.prepareIndex = function (index) {
  * @return {object}
  */
 Phaser.Plugin.ArcadeSlopes.TileSlopeFactory.mapNinjaPhysics = function (index) {
-	offset = Phaser.Plugin.ArcadeSlopes.TileSlopeFactory.prepareIndex(index);
+	offset = Phaser.Plugin.ArcadeSlopes.TileSlopeFactory.prepareOffset(index);
 	
 	var mapping = {};
 	
