@@ -267,7 +267,8 @@ Phaser.Plugin.ArcadeSlopes.TileSlopeFactory.prototype.compareEdges = function (f
  * edges, the first vector (assuming they are specified clockwise) of each
  * potential edge is flagged instead.
  * 
- * This is currently hacky and should be formalized.
+ * TODO: Optimise by bailing if both first vertices are already flagged and
+ *       possibly by avoiding SAT.Vector instantiation.
  *
  * @method Phaser.Plugin.ArcadeSlopes.TileSlopeFactory#flagInternalVertices
  * @param  {Phaser.Tile} firstTile  - The first tile to compare.
