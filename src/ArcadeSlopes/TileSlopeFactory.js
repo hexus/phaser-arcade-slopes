@@ -210,21 +210,25 @@ Phaser.Plugin.ArcadeSlopes.TileSlopeFactory.prototype.calculateEdges = function 
 				if (above && above.hasOwnProperty('slope')) {
 					tile.slope.edges.top = this.compareEdges(tile.slope.edges.top, above.slope.edges.bottom);
 					tile.collideUp = tile.slope.edges.top !== Phaser.Plugin.ArcadeSlopes.TileSlope.EMPTY;
+					this.flagInternalVertices(tile, above);
 				}
 				
 				if (below && below.hasOwnProperty('slope')) {
 					tile.slope.edges.bottom = this.compareEdges(tile.slope.edges.bottom, below.slope.edges.top);
 					tile.collideDown = tile.slope.edges.bottom !== Phaser.Plugin.ArcadeSlopes.TileSlope.EMPTY;
+					this.flagInternalVertices(tile, below);
 				}
 				
 				if (left && left.hasOwnProperty('slope')) {
 					tile.slope.edges.left = this.compareEdges(tile.slope.edges.left, left.slope.edges.right);
 					tile.collideLeft = tile.slope.edges.left !== Phaser.Plugin.ArcadeSlopes.TileSlope.EMPTY;
+					this.flagInternalVertices(tile, left);
 				}
 				
 				if (right && right.hasOwnProperty('slope')) {
 					tile.slope.edges.right = this.compareEdges(tile.slope.edges.right, right.slope.edges.left);
 					tile.collideRight = tile.slope.edges.right !== Phaser.Plugin.ArcadeSlopes.TileSlope.EMPTY;
+					this.flagInternalVertices(tile, right);
 				}
 			}
 		}
@@ -236,6 +240,8 @@ Phaser.Plugin.ArcadeSlopes.TileSlopeFactory.prototype.calculateEdges = function 
  * 
  * Returns the new flag to use for the first edge after comparing it with the
  * second edge.
+ * 
+ * This compares AABB edges of each tile, not polygon edges.
  * 
  * @method Phaser.Plugin.ArcadeSlopes.TileSlopeFactory#compareEdges
  * @param  {integer} firstEdge  - The edge to resolve.
@@ -252,6 +258,58 @@ Phaser.Plugin.ArcadeSlopes.TileSlopeFactory.prototype.compareEdges = function (f
 	}
 	
 	return firstEdge;
+};
+
+/**
+ * Compares the polygon edges of two tiles and flags those that match.
+ * 
+ * Because the polygons are represented by a set of points, instead of actual
+ * edges, the first vector (assuming they are specified clockwise) of each
+ * potential edge is flagged instead.
+ * 
+ * This is currently hacky and should be formalized.
+ *
+ * @method Phaser.Plugin.ArcadeSlopes.TileSlopeFactory#flagInternalVertices
+ * @param  {Phaser.Tile} firstTile  - The first tile to compare.
+ * @param  {Phaser.Tile} secondTile - The second tile to compare.
+ */
+Phaser.Plugin.ArcadeSlopes.TileSlopeFactory.prototype.flagInternalVertices = function (firstTile, secondTile) {
+	// Bail if either tile lacks a polygon
+	if (!firstTile.slope.polygon || !secondTile.slope.polygon) {
+		return;
+	}
+	
+	var firstPolygon = firstTile.slope.polygon;
+	var secondPolygon = secondTile.slope.polygon;
+	var firstPosition = new SAT.Vector(firstTile.worldX, firstTile.worldY);
+	var secondPosition = new SAT.Vector(secondTile.worldX, secondTile.worldY);
+	
+	for (var i = 0; i < firstPolygon.points.length; i++) {
+		var firstTileVertexOne = firstPolygon.points[i].clone().add(firstPosition);
+		var firstTileVertexTwo = firstPolygon.points[(i + 1) % firstPolygon.points.length].clone().add(firstPosition);
+		
+		for (var j = 0; j < secondPolygon.points.length; j++) {
+			var secondTileVertexOne = secondPolygon.points[j].clone().add(secondPosition);
+			var secondTileVertexTwo = secondPolygon.points[(j + 1) % secondPolygon.points.length].clone().add(secondPosition);
+			
+			// Now we can compare vertices for an exact or inverse match
+			var exactMatch = firstTileVertexOne.x === secondTileVertexOne.x &&
+				firstTileVertexOne.y === secondTileVertexOne.y &&
+				firstTileVertexTwo.x === secondTileVertexTwo.x &&
+				firstTileVertexTwo.y === secondTileVertexTwo.y;
+			
+			var inverseMatch = firstTileVertexOne.x === secondTileVertexTwo.x &&
+				firstTileVertexOne.y === secondTileVertexTwo.y &&
+				firstTileVertexTwo.x === secondTileVertexOne.x &&
+				firstTileVertexTwo.y === secondTileVertexOne.y;
+			
+			// Flag the vertices that begin the edge
+			if (exactMatch || inverseMatch) {
+				firstPolygon.points[i].internal = true;
+				secondPolygon.points[j].internal = true;
+			}
+		}
+	}
 };
 
 /**
