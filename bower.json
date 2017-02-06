@@ -17,6 +17,6 @@
 		"tests"
 	],
 	"dependencies": {
-		"sat-js": "hexus/sat-js#expose"
+		"sat-js": "jriecken/sat-js#0.6.0"
 	}
 }
