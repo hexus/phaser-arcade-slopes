@@ -23,7 +23,7 @@ Phaser.Plugin.ArcadeSlopes = function (game, parent, defaultSolver) {
 	 * 
 	 * Maps solver constants to their respective instances.
 	 * 
-	 * @type {object}
+	 * @property {object} solvers
 	 */
 	var solvers = {};
 	
@@ -61,16 +61,6 @@ Phaser.Plugin.ArcadeSlopes.VERSION = '0.2.0-dev';
  * @type {string}
  */
 Phaser.Plugin.ArcadeSlopes.SAT = 'sat';
-
-/**
- * The Metroid collision solver type.
- * 
- * Inspired by and adapted from the source of a Metroid clone by Jan Geselle.
- * 
- * @constant
- * @type {string}
- */
-Phaser.Plugin.ArcadeSlopes.METROID = 'metroid';
 
 /**
  * Initializes the plugin.

@@ -463,7 +463,7 @@ Phaser.Plugin.ArcadeSlopes.SatSolver.prototype.shouldCollide = function (body, t
  * @param  {boolean}                    overlapOnly - Whether to only check for an overlap.
  * @return {boolean}                                - Whether the body was separated.
  */
-Phaser.Plugin.ArcadeSlopes.SatSolver.prototype.collide = function (i, body, tile, overlapOnly) {
+Phaser.Plugin.ArcadeSlopes.SatSolver.prototype.collide = function (i, body, tile, tilemapLayer, overlapOnly) {
 	// Update the body's polygon position and velocity vector
 	this.updateValues(body);
 	
@@ -472,14 +472,19 @@ Phaser.Plugin.ArcadeSlopes.SatSolver.prototype.collide = function (i, body, tile
 		return false;
 	}
 	
+	// Cater for SAT.js requiring center-origin circles
 	if (body.isCircle) {
 		body.polygon.pos.x += body.halfWidth;
 		body.polygon.pos.y += body.halfHeight;
 	}
 	
+	// Determine the offset of the tilemap layer
+	var tilemapLayerOffsetX = (!tilemapLayer.fixedToCamera) ? tilemapLayer.position.x : 0;
+	var tilemapLayerOffsetY = (!tilemapLayer.fixedToCamera) ? tilemapLayer.position.y : 0;
+	
 	// Update the tile polygon position
-	tile.slope.polygon.pos.x = tile.worldX;
-	tile.slope.polygon.pos.y = tile.worldY;
+	tile.slope.polygon.pos.x = tile.worldX + tilemapLayerOffsetX;
+	tile.slope.polygon.pos.y = tile.worldY + tilemapLayerOffsetY;
 	
 	var response = new SAT.Response();
 	

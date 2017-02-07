@@ -24,7 +24,7 @@
     - [ ] Tile face properties
     - [ ] Tile polygons
   - [x] Flag internal polygon edges
-  - [ ] Offset tilemap layer support
+  - [x] Offset tilemap layer support
   - [x] Circular physics body support
   - [ ] Clearer yet more in-depth readme
 - [ ] v0.3.0

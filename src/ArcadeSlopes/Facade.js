@@ -161,10 +161,10 @@ Phaser.Plugin.ArcadeSlopes.Facade.prototype.convertTilemapLayer = function (laye
  * @param  {boolean}                    overlapOnly - Whether to only check for an overlap.
  * @return {boolean}                                - Whether the body was separated.
  */
-Phaser.Plugin.ArcadeSlopes.Facade.prototype.collide = function (i, body, tile, overlapOnly) {
+Phaser.Plugin.ArcadeSlopes.Facade.prototype.collide = function (i, body, tile, tilemapLayer, overlapOnly) {
 	if (tile.slope.solver && this.solvers.hasOwnProperty(tile.slope.solver)) {
-		return this.solvers[tile.slope.solver].collide(i, body, tile, overlapOnly);
+		return this.solvers[tile.slope.solver].collide(i, body, tile, tilemapLayer, overlapOnly);
 	}
 	
-	return this.solvers[this.defaultSolver].collide(i, body, tile, overlapOnly);
+	return this.solvers[this.defaultSolver].collide(i, body, tile, tilemapLayer, overlapOnly);
 };

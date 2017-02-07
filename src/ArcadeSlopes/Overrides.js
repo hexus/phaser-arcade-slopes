@@ -33,7 +33,7 @@ Phaser.Plugin.ArcadeSlopes.Overrides.collideSpriteVsTile = function (i, sprite, 
 	}
 	
 	if (tile.hasOwnProperty('slope')) {
-		if (this.game.slopes.collide(i, sprite.body, tile, overlapOnly)) {
+		if (this.game.slopes.collide(i, sprite.body, tile, tilemapLayer, overlapOnly)) {
 			this._total++;
 			
 			if (collideCallback) {
@@ -108,9 +108,12 @@ Phaser.Plugin.ArcadeSlopes.Overrides.collideSpriteVsTilemapLayer = function (spr
 		return false;
 	}
 	
+	var tilemapLayerOffsetX = (!tilemapLayer.fixedToCamera) ? tilemapLayer.position.x : 0;
+	var tilemapLayerOffsetY = (!tilemapLayer.fixedToCamera) ? tilemapLayer.position.y : 0;
+	
 	var tiles = tilemapLayer.getTiles(
-		sprite.body.position.x - sprite.body.tilePadding.x,
-		sprite.body.position.y - sprite.body.tilePadding.y,
+		sprite.body.position.x - sprite.body.tilePadding.x - tilemapLayerOffsetX,
+		sprite.body.position.y - sprite.body.tilePadding.y - tilemapLayerOffsetY,
 		sprite.body.width      + sprite.body.tilePadding.x,
 		sprite.body.height     + sprite.body.tilePadding.y,
 		false,
