@@ -8,10 +8,6 @@
  * Arcade Slopes provides sloped tile functionality for tilemaps that use
  * Phaser's Arcade physics engine.
  * 
- * TODO: Extract all the handy methods to the Facade class, and a new
- *       CollisionResolver/CollisionHandler class that stores all the solvers
- *       and a default solver type?
- * 
  * @class Phaser.Plugin.ArcadeSlopes
  * @constructor
  * @extends Phaser.Plugin
@@ -23,23 +19,15 @@ Phaser.Plugin.ArcadeSlopes = function (game, parent, defaultSolver) {
 	Phaser.Plugin.call(this, game, parent);
 	
 	/**
-	 * The default collision solver type to use for sloped tiles.
-	 * 
-	 * @property {string} defaultSolver
-	 * @default
-	 */
-	this.defaultSolver = defaultSolver || Phaser.Plugin.ArcadeSlopes.SAT;
-	
-	/**
 	 * The collision solvers provided by the plugin.
 	 * 
 	 * Maps solver constants to their respective instances.
 	 * 
 	 * @property {object} solvers
 	 */
-	this.solvers = {};
+	var solvers = {};
 	
-	this.solvers[Phaser.Plugin.ArcadeSlopes.SAT] = new Phaser.Plugin.ArcadeSlopes.SatSolver();
+	solvers[Phaser.Plugin.ArcadeSlopes.SAT] = new Phaser.Plugin.ArcadeSlopes.SatSolver();
 	
 	/**
 	 * The Arcade Slopes facade.
@@ -48,8 +36,8 @@ Phaser.Plugin.ArcadeSlopes = function (game, parent, defaultSolver) {
 	 */
 	this.facade = new Phaser.Plugin.ArcadeSlopes.Facade(
 		new Phaser.Plugin.ArcadeSlopes.TileSlopeFactory(),
-		this.solvers,
-		this.defaultSolver
+		solvers,
+		defaultSolver || Phaser.Plugin.ArcadeSlopes.SAT
 	);
 };
 
@@ -62,7 +50,7 @@ Phaser.Plugin.ArcadeSlopes.prototype.constructor = Phaser.Plugin.ArcadeSlopes;
  * @constant
  * @type {string}
  */
-Phaser.Plugin.ArcadeSlopes.VERSION = '0.2.0-alpha';
+Phaser.Plugin.ArcadeSlopes.VERSION = '0.2.0-alpha2';
 
 /**
  * The Separating Axis Theorem collision solver type.
@@ -75,23 +63,13 @@ Phaser.Plugin.ArcadeSlopes.VERSION = '0.2.0-alpha';
 Phaser.Plugin.ArcadeSlopes.SAT = 'sat';
 
 /**
- * The Metroid collision solver type.
- * 
- * Inspired by and adapted from the source of a Metroid clone by Jan Geselle.
- * 
- * @constant
- * @type {string}
- */
-Phaser.Plugin.ArcadeSlopes.METROID = 'metroid';
-
-/**
  * Initializes the plugin.
  * 
  * @method Phaser.Plugin.ArcadeSlopes#init
  */
 Phaser.Plugin.ArcadeSlopes.prototype.init = function () {
 	// Give the game an Arcade Slopes facade
-	this.game.slopes = this.game.slopes || this;
+	this.game.slopes = this.game.slopes || this.facade;
 	
 	// Keep a reference to the original collideSpriteVsTilemapLayer method
 	this.originalCollideSpriteVsTilemapLayer = Phaser.Physics.Arcade.prototype.collideSpriteVsTilemapLayer;
@@ -115,7 +93,7 @@ Phaser.Plugin.ArcadeSlopes.prototype.init = function () {
  * @method Phaser.Plugin.ArcadeSlopes#destroy
  */
 Phaser.Plugin.ArcadeSlopes.prototype.destroy = function () {
-	// Null the game's reference to the facade.
+	// Null the game's reference to the facade
 	this.game.slopes = null;
 	
 	// Restore the original collideSpriteVsTilemapLayer method and null the rest
@@ -134,70 +112,6 @@ Phaser.Plugin.ArcadeSlopes.prototype.destroy = function () {
 };
 
 /**
- * Enable the physics body of the given object for sloped tile interaction.
- *
- * @method Phaser.Plugin.ArcadeSlopes#enable
- * @param {Phaser.Sprite|Phaser.Group} object - The object to enable sloped tile physics for.
- */
-Phaser.Plugin.ArcadeSlopes.prototype.enable = function (object) {
-	this.facade.enable(object);
-};
-
-/**
- * Enable the given physics body for sloped tile interaction.
- * 
- * TODO: Circle body support, when it's released.
- *
- * @method Phaser.Plugin.ArcadeSlopes#enableBody
- * @param {Phaser.Physics.Arcade.Body} body - The physics body to enable.
- */
-Phaser.Plugin.ArcadeSlopes.prototype.enableBody = function (body) {
-	this.facade.enableBody(body);
-};
-
-/**
- * Converts a layer of the given tilemap.
- * 
- * Attaches Phaser.Plugin.ArcadeSlopes.TileSlope objects that are used to define
- * how the tile should collide with a physics body.
- *
- * @method Phaser.Plugin.ArcadeSlopes#convertTilemap
- * @param  {Phaser.Tilemap}                    map      - The map containing the layer to convert.
- * @param  {number|string|Phaser.TileMapLayer} layer    - The layer of the map to convert.
- * @param  {object}                            slopeMap - A map of tilemap indexes to ArcadeSlope.TileSlope constants.
- * @return {Phaser.Tilemap}                             - The converted tilemap.
- */
-Phaser.Plugin.ArcadeSlopes.prototype.convertTilemap = function (map, layer, slopeMap) {
-	return this.facade.convertTilemap(map, layer, slopeMap);
-};
-
-/**
- * Converts a tilemap layer.
- *
- * @method Phaser.Plugin.ArcadeSlopes#convertTilemapLayer
- * @param  {Phaser.TilemapLayer}  layer    - The tilemap layer to convert.
- * @param  {object}               slopeMap - A map of tilemap indexes to ArcadeSlope.TileSlope constants.
- * @return {Phaser.TilemapLayer}           - The converted tilemap layer.
- */
-Phaser.Plugin.ArcadeSlopes.prototype.convertTilemapLayer = function (layer, slopeMap) {
-	return this.facade.convertTilemapLayer(layer, slopeMap);
-};
-
-/**
- * Collides a physics body against a tile.
- *
- * @method Phaser.Plugin.ArcadeSlopes#collide
- * @param  {integer}                    i           - The tile index.
- * @param  {Phaser.Physics.Arcade.Body} body        - The physics body.
- * @param  {Phaser.Tile}                tile        - The tile.
- * @param  {boolean}                    overlapOnly - Whether to only check for an overlap.
- * @return {boolean}                                - Whether the body was separated.
- */
-Phaser.Plugin.ArcadeSlopes.prototype.collide = function (i, body, tile, overlapOnly) {
-	return this.facade.collide(i, body, tile, overlapOnly);
-};
-
-/**
  * @author Chris Andrew <chris@hexus.io>
  * @copyright 2016 Chris Andrew
  * @license MIT
@@ -206,7 +120,8 @@ Phaser.Plugin.ArcadeSlopes.prototype.collide = function (i, body, tile, overlapO
 /**
  * A facade class to attach to a Phaser game.
  *
- * Not yet in use, but will be when the plugin methods are moved here.
+ * TODO: Extract a CollisionHandler/CollisionResolver class that stores solvers
+ *       and defaultSolver that the facade can just forward calls to.
  * 
  * @class Phaser.Plugin.ArcadeSlopes.Facade
  * @constructor
@@ -296,6 +211,7 @@ Phaser.Plugin.ArcadeSlopes.Facade.prototype.enableBody = function (body) {
 	// Attach a new set of properties that configure the body's interaction
 	// with sloped tiles (TODO: Formalize as a class?)
 	body.slopes = Phaser.Utils.mixin(body.slopes || {}, {
+		debug: false,
 		friction: new Phaser.Point(),
 		preferY: false,
 		pullUp: 0,
@@ -327,11 +243,12 @@ Phaser.Plugin.ArcadeSlopes.Facade.prototype.enableBody = function (body) {
  * @method Phaser.Plugin.ArcadeSlopes.Facade#convertTilemap
  * @param  {Phaser.Tilemap}                    map      - The map containing the layer to convert.
  * @param  {number|string|Phaser.TileMapLayer} layer    - The layer of the map to convert.
- * @param  {object}                            slopeMap - A map of tilemap indexes to ArcadeSlope.TileSlope constants.
+ * @param  {string|object}                     slopeMap - A mapping type string, or a map of tilemap indexes to ArcadeSlope.TileSlope constants.
+ * @param  {integer}                           index    - An optional first tile index (firstgid).
  * @return {Phaser.Tilemap}                             - The converted tilemap.
  */
-Phaser.Plugin.ArcadeSlopes.Facade.prototype.convertTilemap = function (map, layer, slopeMap) {
-	return this.factory.convertTilemap(map, layer, slopeMap);
+Phaser.Plugin.ArcadeSlopes.Facade.prototype.convertTilemap = function (map, layer, slopeMap, index) {
+	return this.factory.convertTilemap(map, layer, slopeMap, index);
 };
 
 /**
@@ -339,11 +256,12 @@ Phaser.Plugin.ArcadeSlopes.Facade.prototype.convertTilemap = function (map, laye
  *
  * @method Phaser.Plugin.ArcadeSlopes.Facade#convertTilemapLayer
  * @param  {Phaser.TilemapLayer}  layer    - The tilemap layer to convert.
- * @param  {object}               slopeMap - A map of tilemap indexes to ArcadeSlope.TileSlope constants.
+ * @param  {string|object}        slopeMap - A mapping type string, or a map of tilemap indexes to ArcadeSlope.TileSlope constants.
+ * @param  {integer}              index    - An optional first tile index (firstgid).
  * @return {Phaser.TilemapLayer}           - The converted tilemap layer.
  */
-Phaser.Plugin.ArcadeSlopes.Facade.prototype.convertTilemapLayer = function (layer, slopeMap) {
-	return this.factory.convertTilemapLayer(layer, slopeMap);
+Phaser.Plugin.ArcadeSlopes.Facade.prototype.convertTilemapLayer = function (layer, slopeMap, index) {
+	return this.factory.convertTilemapLayer(layer, slopeMap, index);
 };
 
 /**
@@ -356,12 +274,12 @@ Phaser.Plugin.ArcadeSlopes.Facade.prototype.convertTilemapLayer = function (laye
  * @param  {boolean}                    overlapOnly - Whether to only check for an overlap.
  * @return {boolean}                                - Whether the body was separated.
  */
-Phaser.Plugin.ArcadeSlopes.Facade.prototype.collide = function (i, body, tile, overlapOnly) {
+Phaser.Plugin.ArcadeSlopes.Facade.prototype.collide = function (i, body, tile, tilemapLayer, overlapOnly) {
 	if (tile.slope.solver && this.solvers.hasOwnProperty(tile.slope.solver)) {
-		return this.solvers[tile.slope.solver].collide(i, body, tile, overlapOnly);
+		return this.solvers[tile.slope.solver].collide(i, body, tile, tilemapLayer, overlapOnly);
 	}
 	
-	return this.solvers[this.defaultSolver].collide(i, body, tile, overlapOnly);
+	return this.solvers[this.defaultSolver].collide(i, body, tile, tilemapLayer, overlapOnly);
 };
 
 /**
@@ -399,7 +317,7 @@ Phaser.Plugin.ArcadeSlopes.Overrides.collideSpriteVsTile = function (i, sprite, 
 	}
 	
 	if (tile.hasOwnProperty('slope')) {
-		if (this.game.slopes.collide(i, sprite.body, tile, overlapOnly)) {
+		if (this.game.slopes.collide(i, sprite.body, tile, tilemapLayer, overlapOnly)) {
 			this._total++;
 			
 			if (collideCallback) {
@@ -474,9 +392,12 @@ Phaser.Plugin.ArcadeSlopes.Overrides.collideSpriteVsTilemapLayer = function (spr
 		return false;
 	}
 	
+	var tilemapLayerOffsetX = (!tilemapLayer.fixedToCamera) ? tilemapLayer.position.x : 0;
+	var tilemapLayerOffsetY = (!tilemapLayer.fixedToCamera) ? tilemapLayer.position.y : 0;
+	
 	var tiles = tilemapLayer.getTiles(
-		sprite.body.position.x - sprite.body.tilePadding.x,
-		sprite.body.position.y - sprite.body.tilePadding.y,
+		sprite.body.position.x - sprite.body.tilePadding.x - tilemapLayerOffsetX,
+		sprite.body.position.y - sprite.body.tilePadding.y - tilemapLayerOffsetY,
 		sprite.body.width      + sprite.body.tilePadding.x,
 		sprite.body.height     + sprite.body.tilePadding.y,
 		false,
@@ -576,7 +497,7 @@ Phaser.Plugin.ArcadeSlopes.Overrides.getTileBottomRight = function(layer, x, y) 
  *
  * Can separate on a tile's preferred axis if it has one.
  *
- * This is what keeps the sloped tiles fairly smooth for AABBs.
+ * This is what keeps the sloped tile collisions smooth for AABBs.
  * 
  * Think of it as the equivalent of the Arcade Physics tile face checks for all
  * of the sloped tiles and their possible neighbour combinations.
@@ -1463,10 +1384,10 @@ Phaser.Plugin.ArcadeSlopes.SatSolver = function (options) {
 	 * @property {object} options
 	 */
 	this.options = Phaser.Utils.mixin(options || {}, {
+		// Whether to store debug data with all encountered physics bodies
+		debug: false,
 		// Whether to prefer the minimum Y offset over the smallest separation
 		preferY: false,
-		// Velocity that has to be overcome on each axis to leave the slope, maybe? (stickiness)
-		stick: new Phaser.Point(0, 0),
 		// Whether to restrain SAT collisions
 		restrain: true
 	});
@@ -1497,52 +1418,6 @@ Phaser.Plugin.ArcadeSlopes.SatSolver.prepareResponse = function(response) {
 	response.overlapN.scale(-1);
 	
 	return response;
-};
-
-/**
- * Position a body on the slope of a tile using the X axis.
- *
- * TODO: Remove.
- *
- * @static
- * @method Phaser.Plugin.ArcadeSlopes.SatSolver#putOnSlopeX
- * @param {Phaser.Physics.Arcade.Body} body - The body to reposition.
- * @param {Phaser.Tile}                tile - The tile to put the body on.
- */
-Phaser.Plugin.ArcadeSlopes.SatSolver.putOnSlopeX = function(body, tile) {
-	// Calculate a slope definition
-	var slope = Phaser.Point.subtract(tile.slope.line.end, tile.slope.line.start);
-	
-	// Calculate how far into the slope the body is
-	//var lerpX = (body.x - tile.slope.line.start.x) / slope.x;
-	var lerpY = (body.y - tile.slope.line.start.y) / slope.y;
-	
-	// Place the body on the slope
-	body.position.x = tile.slope.line.start.x + lerpY * slope.y;
-	//body.position.y = tile.slope.line.start.y + lerpX * slope.y;
-};
-
-/**
- * Position a body on the slope of a tile using the Y axis.
- *
- * TODO: Remove.
- *
- * @static
- * @method Phaser.Plugin.ArcadeSlopes.SatSolver#putOnSlopeY
- * @param {Phaser.Physics.Arcade.Body} body - The body to reposition.
- * @param {Phaser.Tile}                tile - The tile to put the body on.
- */
-Phaser.Plugin.ArcadeSlopes.SatSolver.putOnSlopeY = function(body, tile) {
-	// Calculate a slope definition
-	var slope = Phaser.Point.subtract(tile.slope.line.end, tile.slope.line.start);
-	
-	// Calculate how far into the slope the body is
-	var lerpX = (body.x - tile.slope.line.start.x) / slope.x;
-	//var lerpY = (body.y - tile.slope.line.start.y) / slope.y;
-	
-	// Place the body on the slope
-	//body.position.x = tile.slope.line.start.x + lerpY * slope.y;
-	body.position.y = tile.slope.line.start.y + lerpX * slope.y;
 };
 
 /**
@@ -1674,10 +1549,6 @@ Phaser.Plugin.ArcadeSlopes.SatSolver.prototype.separate = function (body, tile, 
  * @param  {SAT.Response}               response - The SAT response.
  */
 Phaser.Plugin.ArcadeSlopes.SatSolver.prototype.applyVelocity = function (body, tile, response) {
-	// Update the body's velocity vector
-	body.slopes.velocity.x = body.velocity.x;
-	body.slopes.velocity.y = body.velocity.y;
-	
 	// Project our velocity onto the overlap normal for the bounce vector (Vn)
 	var bounce = body.slopes.velocity.clone().projectN(response.overlapN);
 	
@@ -1701,6 +1572,22 @@ Phaser.Plugin.ArcadeSlopes.SatSolver.prototype.applyVelocity = function (body, t
 };
 
 /**
+ * Update the position and velocity values of the slopes body.
+ *
+ * @method Phaser.Plugin.ArcadeSlopes.SatSolver#updateValues
+ * @param  {Phaser.Physics.Arcade.Body} body - The physics body.
+ */
+Phaser.Plugin.ArcadeSlopes.SatSolver.prototype.updateValues = function (body) {
+	// Update the body polygon position
+	body.polygon.pos.x = body.x;
+	body.polygon.pos.y = body.y;
+	
+	// Update the body's velocity vector
+	body.slopes.velocity.x = body.velocity.x;
+	body.slopes.velocity.y = body.velocity.y;
+};
+
+/**
  * Update the flags of a physics body using a given SAT response.
  *
  * @method Phaser.Plugin.ArcadeSlopes.SatSolver#updateFlags
@@ -1708,16 +1595,24 @@ Phaser.Plugin.ArcadeSlopes.SatSolver.prototype.applyVelocity = function (body, t
  * @param  {SAT.Response}               response - The SAT response.
  */
 Phaser.Plugin.ArcadeSlopes.SatSolver.prototype.updateFlags = function (body, response) {
+	// Set the wasTouching values
+	body.wasTouching.up    = body.touching.up;
+	body.wasTouching.down  = body.touching.down;
+	body.wasTouching.left  = body.touching.left;
+	body.wasTouching.right = body.touching.right;
+	body.wasTouching.none  = body.touching.none;
+
 	// Set the touching values
-	body.touching.up    = body.touching.up || response.overlapV.y > 0;
-	body.touching.down  = body.touching.down || response.overlapV.y < 0;
-	body.touching.left  = body.touching.left || response.overlapV.x > 0;
+	body.touching.up    = body.touching.up    || response.overlapV.y > 0;
+	body.touching.down  = body.touching.down  || response.overlapV.y < 0;
+	body.touching.left  = body.touching.left  || response.overlapV.x > 0;
 	body.touching.right = body.touching.right || response.overlapV.x < 0;
+	body.touching.none  = !body.touching.up && !body.touching.down && !body.touching.left && !body.touching.right;
 	
 	// Set the blocked values
-	body.blocked.up    = body.blocked.up || response.overlapV.x === 0 && response.overlapV.y > 0;
-	body.blocked.down  = body.blocked.down || response.overlapV.x === 0 && response.overlapV.y < 0;
-	body.blocked.left  = body.blocked.left || response.overlapV.y === 0 && response.overlapV.x > 0;
+	body.blocked.up    = body.blocked.up    || response.overlapV.x === 0 && response.overlapV.y > 0;
+	body.blocked.down  = body.blocked.down  || response.overlapV.x === 0 && response.overlapV.y < 0;
+	body.blocked.left  = body.blocked.left  || response.overlapV.y === 0 && response.overlapV.x > 0;
 	body.blocked.right = body.blocked.right || response.overlapV.y === 0 && response.overlapV.x < 0;
 };
 
@@ -1925,7 +1820,6 @@ Phaser.Plugin.ArcadeSlopes.SatSolver.prototype.shouldCollide = function (body, t
  * Separate the given body and tile from each other and apply any relevant
  * changes to the body's velocity.
  *
- * TODO: Maybe the dot product test for moving into the collision is a good idea
  * TODO: Accept a process callback into this method
  * 
  * @method Phaser.Plugin.ArcadeSlopes.SatSolver#collide
@@ -1935,24 +1829,28 @@ Phaser.Plugin.ArcadeSlopes.SatSolver.prototype.shouldCollide = function (body, t
  * @param  {boolean}                    overlapOnly - Whether to only check for an overlap.
  * @return {boolean}                                - Whether the body was separated.
  */
-Phaser.Plugin.ArcadeSlopes.SatSolver.prototype.collide = function (i, body, tile, overlapOnly) {
+Phaser.Plugin.ArcadeSlopes.SatSolver.prototype.collide = function (i, body, tile, tilemapLayer, overlapOnly) {
+	// Update the body's polygon position and velocity vector
+	this.updateValues(body);
+	
 	// Bail out if we don't have everything we need
 	if (!this.shouldCollide(body, tile)) {
 		return false;
 	}
 	
-	// Update the body polygon position
-	body.polygon.pos.x = body.x;
-	body.polygon.pos.y = body.y;
-	
+	// Cater for SAT.js requiring center-origin circles
 	if (body.isCircle) {
 		body.polygon.pos.x += body.halfWidth;
 		body.polygon.pos.y += body.halfHeight;
 	}
 	
+	// Determine the offset of the tilemap layer
+	var tilemapLayerOffsetX = (!tilemapLayer.fixedToCamera) ? tilemapLayer.position.x : 0;
+	var tilemapLayerOffsetY = (!tilemapLayer.fixedToCamera) ? tilemapLayer.position.y : 0;
+	
 	// Update the tile polygon position
-	tile.slope.polygon.pos.x = tile.worldX;
-	tile.slope.polygon.pos.y = tile.worldY;
+	tile.slope.polygon.pos.x = tile.worldX + tilemapLayerOffsetX;
+	tile.slope.polygon.pos.y = tile.worldY + tilemapLayerOffsetY;
 	
 	var response = new SAT.Response();
 	
@@ -2001,6 +1899,9 @@ Phaser.Plugin.ArcadeSlopes.SatSolver.prototype.collide = function (i, body, tile
  * @return {boolean}                             - Whether the body was separated.
  */
 Phaser.Plugin.ArcadeSlopes.SatSolver.prototype.collideOnAxis = function (body, tile, axis, response) {
+	// Update the body's polygon position and velocity vector
+	this.updateValues(body);
+	
 	// Bail out if we don't have everything we need
 	if (!this.shouldCollide(body, tile)) {
 		return false;
@@ -2027,6 +1928,33 @@ Phaser.Plugin.ArcadeSlopes.SatSolver.prototype.collideOnAxis = function (body, t
 };
 
 /**
+ * Run a constraint check for the given physics body, tile and response.
+ *
+ * @method Phaser.Plugin.ArcadeSlopes.SatSolver#restrain
+ * @param  {Phaser.Physics.Arcade.Body} body     - The physics body.
+ * @param  {Phaser.Tile}                tile     - The tile.
+ * @param  {SAT.Response}               response - The initial collision response.
+ * @return {boolean}                             - Whether the collision was restrained.
+ */
+Phaser.Plugin.ArcadeSlopes.SatSolver.prototype.restrain = function (body, tile, response) {
+	for (var r in this.restrainers) {
+		var restrainer = this.restrainers[r];
+		
+		// Skip anything without a restrain function
+		if (typeof restrainer.restrain !== 'function') {
+			continue;
+		}
+		
+		// Bail if the restrainer dealt with the collision by itself
+		if (!restrainer.restrain(this, body, tile, response)) {
+			return true;
+		}
+	}
+	
+	return false;
+};
+
+/**
  * Determine whether to separate a body from a tile, given an SAT response.
  *
  * Checks against the tile slope's edge flags.
@@ -2041,10 +1969,12 @@ Phaser.Plugin.ArcadeSlopes.SatSolver.prototype.collideOnAxis = function (body, t
  * @return {boolean}                             - Whether to pursue the narrow phase.
  */
 Phaser.Plugin.ArcadeSlopes.SatSolver.prototype.shouldSeparate = function (i, body, tile, response) {
+	// Bail if the body is disabled or there is no overlap
 	if (!(body.enable && response.overlap)) {
 		return false;
 	}
 	
+	// Ignore any internal edges identified by the slope factory
 	if (tile.slope.edges.top === Phaser.Plugin.ArcadeSlopes.TileSlope.EMPTY && response.overlapN.y < 0 && response.overlapN.x === 0) {
 		return false;
 	}
@@ -2061,22 +1991,19 @@ Phaser.Plugin.ArcadeSlopes.SatSolver.prototype.shouldSeparate = function (i, bod
 		return false;
 	}
 	
+	// Only separate when the body is moving into the tile
+	if (response.overlapV.clone().scale(-1).dot(body.slopes.velocity) < 0) {
+		return false;
+	}
+	
+	// Always separate if restraints are disabled or the body is circular
 	if (!this.options.restrain || body.isCircle) {
 		return true;
 	}
 	
-	for (var r in this.restrainers) {
-		var restrainer = this.restrainers[r];
-		
-		// Skip anything without a restrain function
-		if (typeof restrainer.restrain !== 'function') {
-			continue;
-		}
-		
-		// Bail if the restrainer dealt with the collision by itself
-		if (!restrainer.restrain(this, body, tile, response)) {
-			return false;
-		}
+	// Run any separation restrainers
+	if (this.restrain(body, tile, response)) {
+		return false;
 	}
 	
 	return true;
@@ -2181,25 +2108,29 @@ Phaser.Plugin.ArcadeSlopes.TileSlope = function (type, tile, polygon, line, edge
 /**
  * Resolve a tile slope type constant from the given value.
  *
- * Returns any successfully parsed non-zero integers regardless of whether they
- * are valid slope tile types. This method is really for strings.
+ * Returns any successfully parsed non-negative integers regardless of whether
+ * they are valid slope tile types. This method is really for strings.
  *
  * @method Phaser.Plugin.ArcadeSlopes.TileSlope#resolveType
  * @param  {string|integer} type - The value to resolve.
  * @return {integer}             - The resolved tile slope type constant.
  */
 Phaser.Plugin.ArcadeSlopes.TileSlope.resolveType = function (type) {
-	if (parseInt(type) > -1) {
+	if (parseInt(type) >= 0) {
 		return type;
+	}
+	
+	if (typeof type === 'string') {
+		type = type.toUpperCase();
 	}
 	
 	if (Phaser.Plugin.ArcadeSlopes.TileSlope.hasOwnProperty(type)) {
 		return Phaser.Plugin.ArcadeSlopes.TileSlope[type];
 	}
 	
-	console.warn('Unresolved slope type \'' + type + '\'');
+	console.warn('Unknown slope type \'' + type + '\'');
 	
-	return -1;
+	return Phaser.Plugin.ArcadeSlopes.TileSlope.UNKNOWN;
 };
 
 /**
@@ -2654,6 +2585,18 @@ Phaser.Plugin.ArcadeSlopes.TileSlopeFactory = function () {
 	this.definitions[Phaser.Plugin.ArcadeSlopes.TileSlope.QUARTER_TOP_LEFT_HIGH]     = Phaser.Plugin.ArcadeSlopes.TileSlopeFactory.createQuarterTopLeftHigh;
 	this.definitions[Phaser.Plugin.ArcadeSlopes.TileSlope.QUARTER_TOP_RIGHT_LOW]     = Phaser.Plugin.ArcadeSlopes.TileSlopeFactory.createQuarterTopRightLow;
 	this.definitions[Phaser.Plugin.ArcadeSlopes.TileSlope.QUARTER_TOP_RIGHT_HIGH]    = Phaser.Plugin.ArcadeSlopes.TileSlopeFactory.createQuarterTopRightHigh;
+	
+	/**
+	 * A set of common slope mapping functions that can be used instead of an
+	 * explicit map.
+	 * 
+	 * Maps TileSlopeFactory constants to mapping functions.
+	 * 
+	 * @property {object} mappings
+	 */
+	this.mappings = {};
+	
+	this.mappings[Phaser.Plugin.ArcadeSlopes.TileSlopeFactory.NINJA] = Phaser.Plugin.ArcadeSlopes.TileSlopeFactory.mapNinjaPhysics;
 };
 
 Phaser.Plugin.ArcadeSlopes.TileSlopeFactory.prototype.constructor = Phaser.Plugin.ArcadeSlopes.TileSlopeFactory;
@@ -2710,13 +2653,14 @@ Phaser.Plugin.ArcadeSlopes.TileSlopeFactory.prototype.create = function (type, t
  * @method Phaser.Plugin.ArcadeSlopes.TileSlopeFactory#convertTilemap
  * @param  {Phaser.Tilemap}                    map      - The map containing the layer to convert.
  * @param  {number|string|Phaser.TileMapLayer} layer    - The layer of the map to convert.
- * @param  {object}                            slopeMap - A map of tilemap indexes to ArcadeSlope.TileSlope constants.
+ * @param  {string|object}                     slopeMap - A mapping type string, or a map of tilemap indexes to ArcadeSlope.TileSlope constants.
+ * @param  {integer}                           index    - An optional first tile index (firstgid).
  * @return {Phaser.Tilemap}                             - The converted tilemap.
  */
-Phaser.Plugin.ArcadeSlopes.TileSlopeFactory.prototype.convertTilemap = function (map, layer, slopeMap) {
+Phaser.Plugin.ArcadeSlopes.TileSlopeFactory.prototype.convertTilemap = function (map, layer, slopeMap, offset) {
 	layer = map.getLayer(layer);
 	
-	this.convertTilemapLayer(layer, slopeMap);
+	this.convertTilemapLayer(layer, slopeMap, offset);
 	
 	return map;
 };
@@ -2726,11 +2670,25 @@ Phaser.Plugin.ArcadeSlopes.TileSlopeFactory.prototype.convertTilemap = function 
  *
  * @method Phaser.Plugin.ArcadeSlopes.TileSlopeFactory#convertTilemapLayer
  * @param  {Phaser.TilemapLayer} layer    - The tilemap layer to convert.
- * @param  {object}              slopeMap - A map of tilemap indexes to ArcadeSlope.TileSlope constants.
+ * @param  {string|object}       slopeMap - A mapping type string, or a map of tilemap indexes to ArcadeSlope.TileSlope constants.
+ * @param  {integer}             index    - An optional first tile index (firstgid).
  * @return {Phaser.TilemapLayer}          - The converted tilemap layer.
  */
-Phaser.Plugin.ArcadeSlopes.TileSlopeFactory.prototype.convertTilemapLayer = function (layer, slopeMap) {
+Phaser.Plugin.ArcadeSlopes.TileSlopeFactory.prototype.convertTilemapLayer = function (layer, slopeMap, index) {
 	var that = this;
+	
+	// Resolve a predefined slope map if a string is given
+	if (typeof slopeMap === 'string') {
+		var mappingType = this.resolveMappingType(slopeMap);
+		
+		if (!this.mappings[mappingType]) {
+			console.warn('Tilemap could not be converted; mapping type \'' + slopeMap + '\' is unknown');
+			
+			return layer;
+		}
+		
+		slopeMap = this.mappings[mappingType](index);
+	}
 	
 	// Create the TileSlope objects for each relevant tile in the layer
 	layer.layer.data.forEach(function (row) {
@@ -2791,21 +2749,25 @@ Phaser.Plugin.ArcadeSlopes.TileSlopeFactory.prototype.calculateEdges = function 
 				if (above && above.hasOwnProperty('slope')) {
 					tile.slope.edges.top = this.compareEdges(tile.slope.edges.top, above.slope.edges.bottom);
 					tile.collideUp = tile.slope.edges.top !== Phaser.Plugin.ArcadeSlopes.TileSlope.EMPTY;
+					this.flagInternalVertices(tile, above);
 				}
 				
 				if (below && below.hasOwnProperty('slope')) {
 					tile.slope.edges.bottom = this.compareEdges(tile.slope.edges.bottom, below.slope.edges.top);
 					tile.collideDown = tile.slope.edges.bottom !== Phaser.Plugin.ArcadeSlopes.TileSlope.EMPTY;
+					this.flagInternalVertices(tile, below);
 				}
 				
 				if (left && left.hasOwnProperty('slope')) {
 					tile.slope.edges.left = this.compareEdges(tile.slope.edges.left, left.slope.edges.right);
 					tile.collideLeft = tile.slope.edges.left !== Phaser.Plugin.ArcadeSlopes.TileSlope.EMPTY;
+					this.flagInternalVertices(tile, left);
 				}
 				
 				if (right && right.hasOwnProperty('slope')) {
 					tile.slope.edges.right = this.compareEdges(tile.slope.edges.right, right.slope.edges.left);
 					tile.collideRight = tile.slope.edges.right !== Phaser.Plugin.ArcadeSlopes.TileSlope.EMPTY;
+					this.flagInternalVertices(tile, right);
 				}
 			}
 		}
@@ -2814,9 +2776,11 @@ Phaser.Plugin.ArcadeSlopes.TileSlopeFactory.prototype.calculateEdges = function 
 
 /**
  * Resolve the given flags of two shared tile edges.
- *
+ * 
  * Returns the new flag to use for the first edge after comparing it with the
  * second edge.
+ * 
+ * This compares AABB edges of each tile, not polygon edges.
  * 
  * @method Phaser.Plugin.ArcadeSlopes.TileSlopeFactory#compareEdges
  * @param  {integer} firstEdge  - The edge to resolve.
@@ -2833,6 +2797,84 @@ Phaser.Plugin.ArcadeSlopes.TileSlopeFactory.prototype.compareEdges = function (f
 	}
 	
 	return firstEdge;
+};
+
+/**
+ * Compares the polygon edges of two tiles and flags those that match.
+ * 
+ * Because the polygons are represented by a set of points, instead of actual
+ * edges, the first vector (assuming they are specified clockwise) of each
+ * potential edge is flagged instead.
+ * 
+ * TODO: Optimise by bailing if both first vertices are already flagged and
+ *       possibly by avoiding SAT.Vector instantiation.
+ *
+ * @method Phaser.Plugin.ArcadeSlopes.TileSlopeFactory#flagInternalVertices
+ * @param  {Phaser.Tile} firstTile  - The first tile to compare.
+ * @param  {Phaser.Tile} secondTile - The second tile to compare.
+ */
+Phaser.Plugin.ArcadeSlopes.TileSlopeFactory.prototype.flagInternalVertices = function (firstTile, secondTile) {
+	// Bail if either tile lacks a polygon
+	if (!firstTile.slope.polygon || !secondTile.slope.polygon) {
+		return;
+	}
+	
+	var firstPolygon = firstTile.slope.polygon;
+	var secondPolygon = secondTile.slope.polygon;
+	var firstPosition = new SAT.Vector(firstTile.worldX, firstTile.worldY);
+	var secondPosition = new SAT.Vector(secondTile.worldX, secondTile.worldY);
+	
+	for (var i = 0; i < firstPolygon.points.length; i++) {
+		var firstTileVertexOne = firstPolygon.points[i].clone().add(firstPosition);
+		var firstTileVertexTwo = firstPolygon.points[(i + 1) % firstPolygon.points.length].clone().add(firstPosition);
+		
+		for (var j = 0; j < secondPolygon.points.length; j++) {
+			var secondTileVertexOne = secondPolygon.points[j].clone().add(secondPosition);
+			var secondTileVertexTwo = secondPolygon.points[(j + 1) % secondPolygon.points.length].clone().add(secondPosition);
+			
+			// Now we can compare vertices for an exact or inverse match
+			var exactMatch = firstTileVertexOne.x === secondTileVertexOne.x &&
+				firstTileVertexOne.y === secondTileVertexOne.y &&
+				firstTileVertexTwo.x === secondTileVertexTwo.x &&
+				firstTileVertexTwo.y === secondTileVertexTwo.y;
+			
+			var inverseMatch = firstTileVertexOne.x === secondTileVertexTwo.x &&
+				firstTileVertexOne.y === secondTileVertexTwo.y &&
+				firstTileVertexTwo.x === secondTileVertexOne.x &&
+				firstTileVertexTwo.y === secondTileVertexOne.y;
+			
+			// Flag the vertices that begin the edge
+			if (exactMatch || inverseMatch) {
+				firstPolygon.points[i].internal = true;
+				secondPolygon.points[j].internal = true;
+			}
+		}
+	}
+};
+
+/**
+ * Resolve a tileset mapping constant from the given value.
+ * 
+ * @method Phaser.Plugin.Arcadeslopes.TileSlopeFactory#resolveMapping
+ * @param  {string}  type - The value to resolve a mapping from.
+ * @return {integer}
+ */
+Phaser.Plugin.ArcadeSlopes.TileSlopeFactory.prototype.resolveMappingType = function (type) {
+	if (parseInt(type) >= 0) {
+		return type;
+	}
+	
+	if (typeof type === 'string') {
+		type = type.toUpperCase();
+	}
+	
+	if (Phaser.Plugin.ArcadeSlopes.TileSlopeFactory.hasOwnProperty(type)) {
+		return Phaser.Plugin.ArcadeSlopes.TileSlopeFactory[type];
+	}
+	
+	console.warn('Unknown tileset mapping type \'' + type + '\'');
+	
+	return -1;
 };
 
 /**
@@ -3553,13 +3595,80 @@ Phaser.Plugin.ArcadeSlopes.TileSlopeFactory.createQuarterTopRightHigh = function
 	return new Phaser.Plugin.ArcadeSlopes.TileSlope(type, tile, polygon, line, edges, axis);
 };
 
-// Version 0.5.0 - Copyright 2012 - 2015 -  Jim Riecken <jimr@jimr.ca>
+/**
+ * Prepare a slope mapping offset from the given tile index.
+ * 
+ * An offset is just the first tile index - 1. Returns 0 if an integer can't be
+ * parsed.
+ * 
+ * @static
+ * @param  {integer} index - A tile index.
+ * @return {integer}
+ */
+Phaser.Plugin.ArcadeSlopes.TileSlopeFactory.prepareOffset = function (index) {
+	var offset = parseInt(index);
+	
+	offset = !isNaN(offset) && typeof offset === 'number' ? offset - 1 : 0;
+	
+	return offset;
+};
+
+/**
+ * Create a tile slope mapping for the Ninja Physics tileset.
+ *
+ * @static
+ * @param  {integer} index - An optional first tile index (firstgid).
+ * @return {object}
+ */
+Phaser.Plugin.ArcadeSlopes.TileSlopeFactory.mapNinjaPhysics = function (index) {
+	offset = Phaser.Plugin.ArcadeSlopes.TileSlopeFactory.prepareOffset(index);
+	
+	var mapping = {};
+	
+	mapping[offset + 2] =  'FULL';
+	mapping[offset + 3] =  'HALF_BOTTOM_LEFT';
+	mapping[offset + 4] =  'HALF_BOTTOM_RIGHT';
+	mapping[offset + 6] =  'HALF_TOP_LEFT';
+	mapping[offset + 5] =  'HALF_TOP_RIGHT';
+	mapping[offset + 15] = 'QUARTER_BOTTOM_LEFT_LOW';
+	mapping[offset + 16] = 'QUARTER_BOTTOM_RIGHT_LOW';
+	mapping[offset + 17] = 'QUARTER_TOP_RIGHT_LOW';
+	mapping[offset + 18] = 'QUARTER_TOP_LEFT_LOW';
+	mapping[offset + 19] = 'QUARTER_BOTTOM_LEFT_HIGH';
+	mapping[offset + 20] = 'QUARTER_BOTTOM_RIGHT_HIGH';
+	mapping[offset + 21] = 'QUARTER_TOP_RIGHT_HIGH';
+	mapping[offset + 22] = 'QUARTER_TOP_LEFT_HIGH';
+	mapping[offset + 23] = 'QUARTER_LEFT_BOTTOM_HIGH';
+	mapping[offset + 24] = 'QUARTER_RIGHT_BOTTOM_HIGH';
+	mapping[offset + 25] = 'QUARTER_RIGHT_TOP_LOW';
+	mapping[offset + 26] = 'QUARTER_LEFT_TOP_LOW';
+	mapping[offset + 27] = 'QUARTER_LEFT_BOTTOM_LOW';
+	mapping[offset + 28] = 'QUARTER_RIGHT_BOTTOM_LOW';
+	mapping[offset + 29] = 'QUARTER_RIGHT_TOP_HIGH';
+	mapping[offset + 30] = 'QUARTER_LEFT_TOP_HIGH';
+	mapping[offset + 31] = 'HALF_BOTTOM';
+	mapping[offset + 32] = 'HALF_RIGHT';
+	mapping[offset + 33] = 'HALF_TOP';
+	mapping[offset + 34] = 'HALF_LEFT';
+
+	return mapping;
+};
+
+/**
+ * The Ninja Physics tileset mapping.
+ *
+ * @constant
+ * @type {integer}
+ */
+Phaser.Plugin.ArcadeSlopes.TileSlopeFactory.NINJA = 1;
+
+// Version 0.6.0 - Copyright 2012 - 2016 -  Jim Riecken <jimr@jimr.ca>
 //
 // Released under the MIT License - https://github.com/jriecken/sat-js
 //
 // A simple library for determining intersections of circles and
 // polygons using the Separating Axis Theorem.
-/** @preserve SAT.js - Version 0.5.0 - Copyright 2012 - 2015 - Jim Riecken <jimr@jimr.ca> - released under the MIT License. https://github.com/jriecken/sat-js */
+/** @preserve SAT.js - Version 0.6.0 - Copyright 2012 - 2016 - Jim Riecken <jimr@jimr.ca> - released under the MIT License. https://github.com/jriecken/sat-js */
 
 /*global define: false, module: false*/
 /*jshint shadow:true, sub:true, forin:true, noarg:true, noempty:true, 
@@ -4115,11 +4224,11 @@ Phaser.Plugin.ArcadeSlopes.TileSlopeFactory.createQuarterTopRightHigh = function
    */
   var T_RESPONSE = new Response();
 
-  // Unit square polygon used for polygon hit detection.
+  // Tiny "point" polygon used for polygon hit detection.
   /**
    * @type {Polygon}
    */
-  var UNIT_SQUARE = new Box(new Vector(), 1, 1).toPolygon();
+  var TEST_POINT = new Box(new Vector(), 0.000001, 0.000001).toPolygon();
 
   // ## Helper Functions
 
@@ -4291,9 +4400,9 @@ Phaser.Plugin.ArcadeSlopes.TileSlopeFactory.createQuarterTopRightHigh = function
    * @return {boolean} true if the point is inside the polygon, false if it is not.
    */
   function pointInPolygon(p, poly) {
-    UNIT_SQUARE['pos'].copy(p);
+    TEST_POINT['pos'].copy(p);
     T_RESPONSE.clear();
-    var result = testPolygonPolygon(UNIT_SQUARE, poly, T_RESPONSE);
+    var result = testPolygonPolygon(TEST_POINT, poly, T_RESPONSE);
     if (result) {
       result = T_RESPONSE['aInB'];
     }
