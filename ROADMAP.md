@@ -12,15 +12,15 @@
   - [x] Phaser 2.4.9/2.5.0 compatibility
   - [x] Corner collision pulling
 - [ ] v0.2.0
-  - [ ] Premade Arcade Slopes tilesets
+  - [x] Premade Arcade Slopes tilesets
   - [ ] Mapping shortcuts
     - [x] Ninja Physics debug tileset
     - [ ] Arcade Slopes tileset
     - [ ] Tile properties (`tile.properties.type`)
-  - [ ] Debug rendering
-    - [ ] Collision vectors
-    - [ ] Tile face properties
-    - [ ] Tile polygons
+  - [x] Debug rendering
+    - [x] ~~Collision vectors~~
+    - [x] Tile face properties
+    - [x] Tile polygons
   - [x] Flag internal polygon edges
   - [x] Offset tilemap layer support
   - [x] Circular physics body support

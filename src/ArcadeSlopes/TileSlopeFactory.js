@@ -318,7 +318,8 @@ Phaser.Plugin.ArcadeSlopes.TileSlopeFactory.prototype.flagInternalVertices = fun
 
 /**
  * Add some extra debug settings to a tilemap layer for debug rendering.
- * 
+ *
+ * @method Phaser.Plugin.ArcadeSlopes.TileSlopeFactory#addDebugSettings
  * @param {Phaser.TilemapLayer} layer - The tilemap layer.
  */
 Phaser.Plugin.ArcadeSlopes.TileSlopeFactory.prototype.addDebugSettings = function (layer) {
@@ -331,7 +332,7 @@ Phaser.Plugin.ArcadeSlopes.TileSlopeFactory.prototype.addDebugSettings = functio
 /**
  * Resolve a tileset mapping constant from the given value.
  * 
- * @method Phaser.Plugin.Arcadeslopes.TileSlopeFactory#resolveMapping
+ * @method Phaser.Plugin.ArcadeSlopes.TileSlopeFactory#resolveMapping
  * @param  {string}  type - The value to resolve a mapping from.
  * @return {integer}
  */
