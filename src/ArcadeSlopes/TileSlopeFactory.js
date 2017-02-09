@@ -57,7 +57,8 @@ Phaser.Plugin.ArcadeSlopes.TileSlopeFactory = function () {
 	 */
 	this.mappings = {};
 	
-	this.mappings[Phaser.Plugin.ArcadeSlopes.TileSlopeFactory.NINJA] = Phaser.Plugin.ArcadeSlopes.TileSlopeFactory.mapNinjaPhysics;
+	this.mappings[Phaser.Plugin.ArcadeSlopes.TileSlopeFactory.ARCADESLOPES] = Phaser.Plugin.ArcadeSlopes.TileSlopeFactory.mapArcadeSlopes;
+	this.mappings[Phaser.Plugin.ArcadeSlopes.TileSlopeFactory.NINJA]        = Phaser.Plugin.ArcadeSlopes.TileSlopeFactory.mapNinjaPhysics;
 };
 
 Phaser.Plugin.ArcadeSlopes.TileSlopeFactory.prototype.constructor = Phaser.Plugin.ArcadeSlopes.TileSlopeFactory;
@@ -345,7 +346,9 @@ Phaser.Plugin.ArcadeSlopes.TileSlopeFactory.prototype.resolveMappingType = funct
 		type = type.toUpperCase();
 	}
 	
-	if (Phaser.Plugin.ArcadeSlopes.TileSlopeFactory.hasOwnProperty(type)) {
+	if (Phaser.Plugin.ArcadeSlopes.TileSlopeFactory.hasOwnProperty(type) &&
+	    this.mappings[Phaser.Plugin.ArcadeSlopes.TileSlopeFactory[type]]
+	) {
 		return Phaser.Plugin.ArcadeSlopes.TileSlopeFactory[type];
 	}
 	
@@ -1091,6 +1094,47 @@ Phaser.Plugin.ArcadeSlopes.TileSlopeFactory.prepareOffset = function (index) {
 };
 
 /**
+ * Create a tile slope mapping for the Arcade Slopes tileset.
+ *
+ * @static
+ * @param  {integer} index - An optional first tile index (firstgid).
+ * @return {object}
+ */
+Phaser.Plugin.ArcadeSlopes.TileSlopeFactory.mapArcadeSlopes = function (index) {
+	offset = Phaser.Plugin.ArcadeSlopes.TileSlopeFactory.prepareOffset(index);
+	
+	var mapping = {};
+	
+	mapping[offset + 1]  = 'FULL';
+	mapping[offset + 2]  = 'HALF_TOP';
+	mapping[offset + 3]  = 'HALF_BOTTOM';
+	mapping[offset + 4]  = 'HALF_LEFT';
+	mapping[offset + 5]  = 'HALF_RIGHT';
+	mapping[offset + 6]  = 'HALF_BOTTOM_LEFT';
+	mapping[offset + 7]  = 'HALF_BOTTOM_RIGHT';
+	mapping[offset + 8]  = 'HALF_TOP_LEFT';
+	mapping[offset + 9]  = 'HALF_TOP_RIGHT';
+	mapping[offset + 10] = 'QUARTER_TOP_LEFT_HIGH';
+	mapping[offset + 11] = 'QUARTER_TOP_LEFT_LOW';
+	mapping[offset + 12] = 'QUARTER_TOP_RIGHT_LOW';
+	mapping[offset + 13] = 'QUARTER_TOP_RIGHT_HIGH';
+	mapping[offset + 14] = 'QUARTER_BOTTOM_LEFT_HIGH';
+	mapping[offset + 15] = 'QUARTER_BOTTOM_LEFT_LOW';
+	mapping[offset + 16] = 'QUARTER_BOTTOM_RIGHT_LOW';
+	mapping[offset + 17] = 'QUARTER_BOTTOM_RIGHT_HIGH';
+	mapping[offset + 18] = 'QUARTER_LEFT_BOTTOM_HIGH';
+	mapping[offset + 19] = 'QUARTER_RIGHT_BOTTOM_HIGH';
+	mapping[offset + 20] = 'QUARTER_LEFT_TOP_HIGH';
+	mapping[offset + 21] = 'QUARTER_RIGHT_TOP_HIGH';
+	mapping[offset + 35] = 'QUARTER_LEFT_BOTTOM_LOW';
+	mapping[offset + 36] = 'QUARTER_RIGHT_BOTTOM_LOW';
+	mapping[offset + 37] = 'QUARTER_LEFT_TOP_LOW';
+	mapping[offset + 38] = 'QUARTER_RIGHT_TOP_LOW';
+	
+	return mapping;
+};
+
+/**
  * Create a tile slope mapping for the Ninja Physics tileset.
  *
  * @static
@@ -1137,4 +1181,12 @@ Phaser.Plugin.ArcadeSlopes.TileSlopeFactory.mapNinjaPhysics = function (index) {
  * @constant
  * @type {integer}
  */
-Phaser.Plugin.ArcadeSlopes.TileSlopeFactory.NINJA = 1;
+Phaser.Plugin.ArcadeSlopes.TileSlopeFactory.ARCADESLOPES = 1;
+
+/**
+ * The Ninja Physics tileset mapping.
+ *
+ * @constant
+ * @type {integer}
+ */
+Phaser.Plugin.ArcadeSlopes.TileSlopeFactory.NINJA = 2;
