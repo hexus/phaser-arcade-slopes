@@ -232,97 +232,86 @@ Phaser.Plugin.ArcadeSlopes.Overrides.getCollisionOffsetY = function () {
 * @private
 */
 Phaser.Plugin.ArcadeSlopes.Overrides.renderDebug = function () {
+	var scrollX = this._mc.scrollX;
+	var scrollY = this._mc.scrollY;
+	
+	var context = this.context;
+	var renderW = this.canvas.width;
+	var renderH = this.canvas.height;
+	
+	var width = this.layer.width;
+	var height = this.layer.height;
+	var tw = this._mc.tileWidth;
+	var th = this._mc.tileHeight;
+	
+	var left = Math.floor(scrollX / tw);
+	var right = Math.floor((renderW - 1 + scrollX) / tw);
+	var top = Math.floor(scrollY / th);
+	var bottom = Math.floor((renderH - 1 + scrollY) / th);
+	
+	var baseX = (left * tw) - scrollX;
+	var baseY = (top * th) - scrollY;
+	
+	var normStartX = (left + ((1 << 20) * width)) % width;
+	var normStartY = (top + ((1 << 20) * height)) % height;
+	
+	var tx, ty, x, y, xmax, ymax;
+	
+	context.strokeStyle = this.debugSettings.facingEdgeStroke;
+	
+	for (y = normStartY, ymax = bottom - top, ty = baseY; ymax >= 0; y++, ymax--, ty += th) {
+		if (y >= height) {
+			y -= height;
+		}
+		
+		var row = this.layer.data[y];
+		
+		for (x = normStartX, xmax = right - left, tx = baseX; xmax >= 0; x++, xmax--, tx += tw) {
+			if (x >= width) {
+				x -= width;
+			}
+			
+			var tile = row[x];
+			if (!tile || tile.index < 0 || !tile.collides) {
+				continue;
+			}
 
-    var scrollX = this._mc.scrollX;
-    var scrollY = this._mc.scrollY;
+			if (this.debugSettings.collidingTileOverfill) {
+				context.fillStyle = this.debugSettings.collidingTileOverfill;
+				context.fillRect(tx, ty, this._mc.cw, this._mc.ch);
+			}
 
-    var context = this.context;
-    var renderW = this.canvas.width;
-    var renderH = this.canvas.height;
-
-    var width = this.layer.width;
-    var height = this.layer.height;
-    var tw = this._mc.tileWidth;
-    var th = this._mc.tileHeight;
-
-    var left = Math.floor(scrollX / tw);
-    var right = Math.floor((renderW - 1 + scrollX) / tw);
-    var top = Math.floor(scrollY / th);
-    var bottom = Math.floor((renderH - 1 + scrollY) / th);
-
-    var baseX = (left * tw) - scrollX;
-    var baseY = (top * th) - scrollY;
-
-    var normStartX = (left + ((1 << 20) * width)) % width;
-    var normStartY = (top + ((1 << 20) * height)) % height;
-
-    var tx, ty, x, y, xmax, ymax;
-
-    context.strokeStyle = this.debugSettings.facingEdgeStroke;
-
-    for (y = normStartY, ymax = bottom - top, ty = baseY; ymax >= 0; y++, ymax--, ty += th)
-    {
-        if (y >= height)
-        {
-            y -= height;
-        }
-
-        var row = this.layer.data[y];
-
-        for (x = normStartX, xmax = right - left, tx = baseX; xmax >= 0; x++, xmax--, tx += tw)
-        {
-            if (x >= width)
-            {
-                x -= width;
-            }
-
-            var tile = row[x];
-            if (!tile || tile.index < 0 || !tile.collides)
-            {
-                continue;
-            }
-
-            if (this.debugSettings.collidingTileOverfill)
-            {
-                context.fillStyle = this.debugSettings.collidingTileOverfill;
-                context.fillRect(tx, ty, this._mc.cw, this._mc.ch);
-            }
-
-            if (this.debugSettings.facingEdgeStroke)
-            {
-                context.beginPath();
-
-                if (tile.faceTop)
-                {
-                    context.moveTo(tx, ty);
-                    context.lineTo(tx + this._mc.cw, ty);
-                }
-
-                if (tile.faceBottom)
-                {
-                    context.moveTo(tx, ty + this._mc.ch);
-                    context.lineTo(tx + this._mc.cw, ty + this._mc.ch);
-                }
-
-                if (tile.faceLeft)
-                {
-                    context.moveTo(tx, ty);
-                    context.lineTo(tx, ty + this._mc.ch);
-                }
-
-                if (tile.faceRight)
-                {
-                    context.moveTo(tx + this._mc.cw, ty);
-                    context.lineTo(tx + this._mc.cw, ty + this._mc.ch);
-                }
-
-                context.closePath();
-
-                context.stroke();
-            }
-           
-        }
-
-    }
-
+			if (this.debugSettings.facingEdgeStroke) {
+				context.beginPath();
+				
+				if (tile.slope) {
+					// TODO: Implement
+				} else {
+					if (tile.faceTop) {
+						context.moveTo(tx, ty);
+						context.lineTo(tx + this._mc.cw, ty);
+					}
+					
+					if (tile.faceBottom) {
+						context.moveTo(tx, ty + this._mc.ch);
+						context.lineTo(tx + this._mc.cw, ty + this._mc.ch);
+					}
+					
+					if (tile.faceLeft) {
+						context.moveTo(tx, ty);
+						context.lineTo(tx, ty + this._mc.ch);
+					}
+					
+					if (tile.faceRight) {
+						context.moveTo(tx + this._mc.cw, ty);
+						context.lineTo(tx + this._mc.cw, ty + this._mc.ch);
+					}
+				}
+				
+				context.closePath();
+				
+				context.stroke();
+			}
+		}
+	}
 };
