@@ -255,9 +255,7 @@ Phaser.Plugin.ArcadeSlopes.Overrides.renderDebug = function () {
 	var normStartX = (left + ((1 << 20) * width)) % width;
 	var normStartY = (top + ((1 << 20) * height)) % height;
 	
-	var tx, ty, x, y, xmax, ymax;
-	
-	context.strokeStyle = this.debugSettings.facingEdgeStroke;
+	var tx, ty, x, y, xmax, ymax, polygon, i, j;
 	
 	for (y = normStartY, ymax = bottom - top, ty = baseY; ymax >= 0; y++, ymax--, ty += th) {
 		if (y >= height) {
@@ -272,6 +270,7 @@ Phaser.Plugin.ArcadeSlopes.Overrides.renderDebug = function () {
 			}
 			
 			var tile = row[x];
+			
 			if (!tile || tile.index < 0 || !tile.collides) {
 				continue;
 			}
@@ -284,33 +283,91 @@ Phaser.Plugin.ArcadeSlopes.Overrides.renderDebug = function () {
 			if (this.debugSettings.facingEdgeStroke) {
 				context.beginPath();
 				
-				if (tile.slope) {
-					// TODO: Implement
-				} else {
-					if (tile.faceTop) {
-						context.moveTo(tx, ty);
-						context.lineTo(tx + this._mc.cw, ty);
-					}
-					
-					if (tile.faceBottom) {
-						context.moveTo(tx, ty + this._mc.ch);
-						context.lineTo(tx + this._mc.cw, ty + this._mc.ch);
-					}
-					
-					if (tile.faceLeft) {
-						context.moveTo(tx, ty);
-						context.lineTo(tx, ty + this._mc.ch);
-					}
-					
-					if (tile.faceRight) {
-						context.moveTo(tx + this._mc.cw, ty);
-						context.lineTo(tx + this._mc.cw, ty + this._mc.ch);
-					}
+				context.lineWidth = 1;
+				context.strokeStyle = this.debugSettings.facingEdgeStroke;
+				
+				if (tile.faceTop) {
+					context.moveTo(tx, ty);
+					context.lineTo(tx + this._mc.cw, ty);
+				}
+				
+				if (tile.faceBottom) {
+					context.moveTo(tx, ty + this._mc.ch);
+					context.lineTo(tx + this._mc.cw, ty + this._mc.ch);
+				}
+				
+				if (tile.faceLeft) {
+					context.moveTo(tx, ty);
+					context.lineTo(tx, ty + this._mc.ch);
+				}
+				
+				if (tile.faceRight) {
+					context.moveTo(tx + this._mc.cw, ty);
+					context.lineTo(tx + this._mc.cw, ty + this._mc.ch);
 				}
 				
 				context.closePath();
 				
 				context.stroke();
+				
+				// Render the tile slope polygons
+				if (tile.slope) {
+					// Fill polygons and stroke their edges
+					if (this.debugSettings.slopeEdgeStroke || this.debugSettings.slopeFill) {
+						context.beginPath();
+						
+						context.lineWidth = 1;
+						
+						polygon = tile.slope.polygon;
+						
+						// Move to the first vertex
+						context.moveTo(tx + polygon.points[0].x, ty + polygon.points[0].y);
+						
+						// Draw a path through all vertices
+						for (i = 0; i < polygon.points.length; i++) {
+							j = (i + 1) % polygon.points.length;
+							
+							context.lineTo(tx + polygon.points[j].x, ty + polygon.points[j].y);
+						}
+						
+						context.closePath();
+						
+						if (this.debugSettings.slopeEdgeStroke) {
+							context.strokeStyle = this.debugSettings.slopeEdgeStroke;
+							context.stroke();
+						}
+						
+						if (this.debugSettings.slopeFill) {
+							context.fillStyle = this.debugSettings.slopeFill;
+							context.fill();
+						}
+					}
+					
+					// Stroke the colliding edges
+					if (this.debugSettings.slopeCollidingEdgeStroke) {
+						context.beginPath();
+						
+						context.lineWidth = this.debugSettings.slopeCollidingEdgeStrokeWidth || 1;
+						context.strokeStyle = this.debugSettings.slopeCollidingEdgeStroke;
+						
+						polygon = tile.slope.polygon;
+						
+						for (i = 0; i < polygon.points.length; i++) {
+							j = (i + 1) % polygon.points.length;
+							
+							// Skip internal edges
+							if (polygon.points[i].internal)
+								continue;
+							
+							context.moveTo(tx + polygon.points[i].x, ty + polygon.points[i].y);
+							context.lineTo(tx + polygon.points[j].x, ty + polygon.points[j].y);
+						}
+						
+						context.closePath();
+						
+						context.stroke();
+					}
+				}
 			}
 		}
 	}

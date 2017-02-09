@@ -182,6 +182,9 @@ Phaser.Plugin.ArcadeSlopes.TileSlopeFactory.prototype.convertTilemapLayer = func
 	// Calculate the edge flags for each tile in the layer
 	this.calculateEdges(layer);
 	
+	// Add some extra properties to the layer's debug settings
+	this.addDebugSettings(layer);
+	
 	return layer;
 };
 
@@ -304,13 +307,25 @@ Phaser.Plugin.ArcadeSlopes.TileSlopeFactory.prototype.flagInternalVertices = fun
 				firstTileVertexTwo.x === secondTileVertexOne.x &&
 				firstTileVertexTwo.y === secondTileVertexOne.y;
 			
-			// Flag the vertices that begin the edge
+			// Flag the vertices that begin an internal edge
 			if (exactMatch || inverseMatch) {
 				firstPolygon.points[i].internal = true;
 				secondPolygon.points[j].internal = true;
 			}
 		}
 	}
+};
+
+/**
+ * Add some extra debug settings to a tilemap layer for debug rendering.
+ * 
+ * @param {Phaser.TilemapLayer} layer - The tilemap layer.
+ */
+Phaser.Plugin.ArcadeSlopes.TileSlopeFactory.prototype.addDebugSettings = function (layer) {
+	layer.debugSettings.slopeFill = 'rgba(255, 0, 255, 0.2)';
+	layer.debugSettings.slopeEdgeStroke = 'rgba(255, 0, 255, 0.4)';
+	layer.debugSettings.slopeCollidingEdgeStroke = 'rgba(255, 0, 255, 1)';
+	layer.debugSettings.slopeCollidingEdgeStrokeWidth = 2;
 };
 
 /**
