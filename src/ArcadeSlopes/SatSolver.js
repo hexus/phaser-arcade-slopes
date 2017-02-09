@@ -253,17 +253,20 @@ Phaser.Plugin.ArcadeSlopes.SatSolver.prototype.updateFlags = function (body, res
 /**
  * Attempt to snap the body to a given set of tiles based on its slopes options.
  *
+ * TODO: Maybe remove snapping altogether.
+ * 
  * @method Phaser.Plugin.ArcadeSlopes.SatSolver#snap
  * @param  {Phaser.Physics.Arcade.Body} body  - The physics body.
  * @param  {Phaser.Tile[]}              tiles - The tiles.
  * @return {boolean}                          - Whether the body was snapped to any tiles.
  */
 Phaser.Plugin.ArcadeSlopes.SatSolver.prototype.snap = function (body, tiles) {
-	if (!body.slopes && !body.slopes.snapUp && !body.slopes.snapDown && !body.slopes.snapLeft && !body.slopes.snapRight) {
+	if (!body.slopes || (!body.slopes.snapUp && !body.slopes.snapDown && !body.slopes.snapLeft && !body.slopes.snapRight)) {
 		return false;
 	}
 	
 	// Keep the current body position to snap from
+	// TODO: Get rid of the instantiation
 	var current = new Phaser.Point(body.position.x, body.position.y);
 	
 	// Keep track of whether the body has snapped to a tile
@@ -588,9 +591,7 @@ Phaser.Plugin.ArcadeSlopes.SatSolver.prototype.restrain = function (body, tile, 
 /**
  * Determine whether to separate a body from a tile, given an SAT response.
  *
- * Checks against the tile slope's edge flags.
- *
- * TODO: Support regular tile face flags?
+ * Checks against the tile's collision flags and slope edge flags.
  * 
  * @method Phaser.Plugin.ArcadeSlopes.SatSolver#shouldSeparate
  * @param  {integer}                    i        - The tile index.
@@ -605,29 +606,29 @@ Phaser.Plugin.ArcadeSlopes.SatSolver.prototype.shouldSeparate = function (i, bod
 		return false;
 	}
 	
-	// Ignore any internal edges identified by the slope factory
-	if (tile.slope.edges.top === Phaser.Plugin.ArcadeSlopes.TileSlope.EMPTY && response.overlapN.y < 0 && response.overlapN.x === 0) {
+	// Ignore any non-colliding or internal edges
+	if ((!tile.collideUp || tile.slope.edges.top === Phaser.Plugin.ArcadeSlopes.TileSlope.EMPTY) && response.overlapN.y < 0 && response.overlapN.x === 0) {
 		return false;
 	}
 	
-	if (tile.slope.edges.bottom === Phaser.Plugin.ArcadeSlopes.TileSlope.EMPTY && response.overlapN.y > 0 && response.overlapN.x === 0) {
+	if ((!tile.collideDown || tile.slope.edges.bottom === Phaser.Plugin.ArcadeSlopes.TileSlope.EMPTY) && response.overlapN.y > 0 && response.overlapN.x === 0) {
 		return false;
 	}
 	
-	if (tile.slope.edges.left === Phaser.Plugin.ArcadeSlopes.TileSlope.EMPTY && response.overlapN.x < 0 && response.overlapN.y === 0) {
+	if ((!tile.collideLeft || tile.slope.edges.left === Phaser.Plugin.ArcadeSlopes.TileSlope.EMPTY) && response.overlapN.x < 0 && response.overlapN.y === 0) {
 		return false;
 	}
 	
-	if (tile.slope.edges.right === Phaser.Plugin.ArcadeSlopes.TileSlope.EMPTY && response.overlapN.x > 0 && response.overlapN.y === 0) {
+	if ((!tile.collideRight || tile.slope.edges.right === Phaser.Plugin.ArcadeSlopes.TileSlope.EMPTY) && response.overlapN.x > 0 && response.overlapN.y === 0) {
 		return false;
 	}
 	
-	// Only separate when the body is moving into the tile
+	// Only separate if the body is moving into the tile
 	if (response.overlapV.clone().scale(-1).dot(body.slopes.velocity) < 0) {
 		return false;
 	}
 	
-	// Always separate if restraints are disabled or the body is circular
+	// Skip restraints if they are disabled or the body is circular
 	if (!this.options.restrain || body.isCircle) {
 		return true;
 	}
