@@ -71,7 +71,7 @@ Phaser.Plugin.ArcadeSlopes.prototype.init = function () {
 	// Give the game an Arcade Slopes facade
 	this.game.slopes = this.game.slopes || this.facade;
 	
-	// Keep a reference to the original collideSpriteVsTilemapLayer method
+	// Keep a reference to the original Arcade.collideSpriteVsTilemapLayer method
 	this.originalCollideSpriteVsTilemapLayer = Phaser.Physics.Arcade.prototype.collideSpriteVsTilemapLayer;
 	
 	// Replace the original method with the Arcade Slopes override, along with
@@ -86,9 +86,13 @@ Phaser.Plugin.ArcadeSlopes.prototype.init = function () {
 	Phaser.Tilemap.prototype.getTileBottomLeft = Phaser.Plugin.ArcadeSlopes.Overrides.getTileBottomLeft;
 	Phaser.Tilemap.prototype.getTileBottomRight = Phaser.Plugin.ArcadeSlopes.Overrides.getTileBottomRight;
 	
-	// Add some helper methods to the TilemapLayer class
+	// Keep a reference to the original TilemapLayer.renderDebug method
+	this.originalRenderDebug = Phaser.TilemapLayer.prototype.renderDebug;
+	
+	// Add some overrides and helper methods to the TilemapLayer class
 	Phaser.TilemapLayer.prototype.getCollisionOffsetX = Phaser.Plugin.ArcadeSlopes.Overrides.getCollisionOffsetX;
 	Phaser.TilemapLayer.prototype.getCollisionOffsetY = Phaser.Plugin.ArcadeSlopes.Overrides.getCollisionOffsetY;
+	Phaser.TilemapLayer.prototype.renderDebug = Phaser.Plugin.ArcadeSlopes.Overrides.renderDebug;
 };
 
 /**
@@ -111,9 +115,10 @@ Phaser.Plugin.ArcadeSlopes.prototype.destroy = function () {
 	Phaser.Tilemap.prototype.getTileBottomLeft = null;
 	Phaser.Tilemap.prototype.getTileBottomRight = null;
 	
-	// Remove the helper methods from the TilemapLayer class
+	// Remove the overrides and helper methods from the TilemapLayer class
 	Phaser.TilemapLayer.prototype.getCollisionOffsetX = null;
 	Phaser.TilemapLayer.prototype.getCollisionOffsetY = null;
+	Phaser.TilemapLayer.prototype.renderDebug = this.originalRenderDebug;
 	
 	// Call the parent destroy method
 	Phaser.Plugin.prototype.destroy.call(this);
