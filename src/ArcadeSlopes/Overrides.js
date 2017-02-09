@@ -108,12 +108,9 @@ Phaser.Plugin.ArcadeSlopes.Overrides.collideSpriteVsTilemapLayer = function (spr
 		return false;
 	}
 	
-	var tilemapLayerOffsetX = (!tilemapLayer.fixedToCamera) ? tilemapLayer.position.x : 0;
-	var tilemapLayerOffsetY = (!tilemapLayer.fixedToCamera) ? tilemapLayer.position.y : 0;
-	
 	var tiles = tilemapLayer.getTiles(
-		sprite.body.position.x - sprite.body.tilePadding.x - tilemapLayerOffsetX,
-		sprite.body.position.y - sprite.body.tilePadding.y - tilemapLayerOffsetY,
+		sprite.body.position.x - sprite.body.tilePadding.x - tilemapLayer.getCollisionOffsetX(),
+		sprite.body.position.y - sprite.body.tilePadding.y - tilemapLayer.getCollisionOffsetY(),
 		sprite.body.width      + sprite.body.tilePadding.x,
 		sprite.body.height     + sprite.body.tilePadding.y,
 		false,
@@ -200,4 +197,24 @@ Phaser.Plugin.ArcadeSlopes.Overrides.getTileBottomRight = function(layer, x, y) 
 	}
 	
 	return null;
+};
+
+/**
+ * Get the X axis collision offset for the tilemap layer.
+ *
+ * @method Phaser.Plugin.ArcadeSlopes.Overrides#getCollisionOffsetY
+ * @return {number}
+ */
+Phaser.Plugin.ArcadeSlopes.Overrides.getCollisionOffsetX = function () {
+	return !this.fixedToCamera ? this.position.x : 0;
+};
+
+/**
+ * Get the Y axis collision offset for the tilemap layer.
+ *
+ * @method Phaser.Plugin.ArcadeSlopes.Overrides#getCollisionOffsetY
+ * @return {number}
+ */
+Phaser.Plugin.ArcadeSlopes.Overrides.getCollisionOffsetY = function () {
+	return !this.fixedToCamera ? this.position.y : 0;
 };

@@ -155,11 +155,12 @@ Phaser.Plugin.ArcadeSlopes.Facade.prototype.convertTilemapLayer = function (laye
  * Collides a physics body against a tile.
  *
  * @method Phaser.Plugin.ArcadeSlopes.Facade#collide
- * @param  {integer}                    i           - The tile index.
- * @param  {Phaser.Physics.Arcade.Body} body        - The physics body.
- * @param  {Phaser.Tile}                tile        - The tile.
- * @param  {boolean}                    overlapOnly - Whether to only check for an overlap.
- * @return {boolean}                                - Whether the body was separated.
+ * @param  {integer}                    i            - The tile index.
+ * @param  {Phaser.Physics.Arcade.Body} body         - The physics body.
+ * @param  {Phaser.Tile}                tile         - The tile.
+ * @param  {Phaser.TilemapLayer}        tilemapLayer - The tilemap layer.
+ * @param  {boolean}                    overlapOnly  - Whether to only check for an overlap.
+ * @return {boolean}                                 - Whether the body was separated.
  */
 Phaser.Plugin.ArcadeSlopes.Facade.prototype.collide = function (i, body, tile, tilemapLayer, overlapOnly) {
 	if (tile.slope.solver && this.solvers.hasOwnProperty(tile.slope.solver)) {
