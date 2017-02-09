@@ -26,6 +26,7 @@
   - [x] Flag internal polygon edges
   - [x] Offset tilemap layer support
   - [x] Circular physics body support
+  - [ ] Tile collision direction flags
   - [ ] Clearer yet more in-depth readme
 - [ ] v0.3.0
   - [ ] Custom SAT.js implementation that can prevent internal edge collisions
