@@ -1,5 +1,22 @@
 # Arcade Slopes Change Log
 
+## Unreleased
+- Supported tile collision flags when determining separation (#27, #28,
+  thanks @kevinchau321).
+- Fixed collision snapping running when it shouldn't (#21, thanks
+  @michaeljcalkins).
+
+## v0.2.0-alpha2 - 8th February 2017
+- Prevented separation if a body isn't moving into a tile (#14).
+- Refactored the plugin class to attach the Facade to the Phaser game instead of
+  itself.
+- Extracted a separate roadmap file from the readme.
+- Implemented automatic slope mapping for the Ninja Physics tileset.
+- Added missing touching flags for physics bodies (thanks @IkonOne).
+- Implemented internal edge flagging (#18).
+- Updated SAT.js dependency.
+- Implemented support for offset tilemaps (#26).
+
 ## v0.2.0-alpha - 19th August 2016
 - Initial circular physics body support.
 - Typescript definitions (thanks @IkonOne).
