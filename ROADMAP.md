@@ -12,14 +12,13 @@
   - [x] Phaser 2.4.9/2.5.0 compatibility
   - [x] Corner collision pulling
 - [ ] v0.2.0
-  - [ ] Arcade Slopes tilesheet
-    - [ ] Premade tilesheets
-    - [ ] Tilesheet generator
+  - [ ] Arcade Slopes tileset
+    - [ ] Premade tilesets
   - [ ] Mapping shortcuts
-    - [x] Ninja Physics debug tilesheet
-    - [ ] Arcade Slopes tilesheet
+    - [x] Ninja Physics debug tileset
+    - [ ] Arcade Slopes tileset
     - [ ] Tile properties (`tile.properties.type`)
-  - [ ] Graphical debug output
+  - [ ] Debug rendering
     - [ ] Collision vectors
     - [ ] Tile face properties
     - [ ] Tile polygons
