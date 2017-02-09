@@ -26,6 +26,8 @@ var ArcadeSlopesDemo = (function(Phaser) {
 			particleSelfCollide: 0,
 			slowMotion: 1,
 			debug: 0,
+			tilemapOffsetX: 0,
+			tilemapOffsetY: 0
 		};
 	};
 	
@@ -63,44 +65,18 @@ var ArcadeSlopesDemo = (function(Phaser) {
 			this.ground = this.map.createLayer('collision');
 			this.ground.resizeWorld();
 			
-			// Map Arcade Slopes tile types to Ninja Physics debug tilesheets,
-			// preparing slope data for each of tile in the layer
-			this.game.slopes.convertTilemapLayer(this.ground, {
-				2:  'FULL',
-				3:  'HALF_BOTTOM_LEFT',
-				4:  'HALF_BOTTOM_RIGHT',
-				6:  'HALF_TOP_LEFT',
-				5:  'HALF_TOP_RIGHT',
-				15: 'QUARTER_BOTTOM_LEFT_LOW',
-				16: 'QUARTER_BOTTOM_RIGHT_LOW',
-				17: 'QUARTER_TOP_RIGHT_LOW',
-				18: 'QUARTER_TOP_LEFT_LOW',
-				19: 'QUARTER_BOTTOM_LEFT_HIGH',
-				20: 'QUARTER_BOTTOM_RIGHT_HIGH',
-				21: 'QUARTER_TOP_RIGHT_HIGH',
-				22: 'QUARTER_TOP_LEFT_HIGH',
-				23: 'QUARTER_LEFT_BOTTOM_HIGH',
-				24: 'QUARTER_RIGHT_BOTTOM_HIGH',
-				25: 'QUARTER_RIGHT_TOP_LOW',
-				26: 'QUARTER_LEFT_TOP_LOW',
-				27: 'QUARTER_LEFT_BOTTOM_LOW',
-				28: 'QUARTER_RIGHT_BOTTOM_LOW',
-				29: 'QUARTER_RIGHT_TOP_HIGH',
-				30: 'QUARTER_LEFT_TOP_HIGH',
-				31: 'HALF_BOTTOM',
-				32: 'HALF_RIGHT',
-				33: 'HALF_TOP',
-				34: 'HALF_LEFT'
-			});
-			
 			// Enable collision between tile indexes 2 and 34
 			this.map.setCollisionBetween(2, 34, true, 'collision');
+			
+			// Map Arcade Slopes tile types to Ninja Physics debug tilesheets,
+			// preparing slope data for each tile in the layer
+			this.game.slopes.convertTilemapLayer(this.ground, 'ninja', 1);
 			
 			// Player graphics
 			var playerGraphics = new Phaser.Graphics(this)
 				.beginFill(Phaser.Color.hexToRGB('#e3cce9'), 1)
 				.drawRect(0, 0, 48, 96);
-				//.drawCircle(0, 0, 50); // Soon...
+				//.drawCircle(0, 0, 50); // Getting there...
 				//.drawRect(0, 0, 20, 20); // Be small
 				//.drawRect(0, 0, 100, 200); // Be huge!
 			
@@ -110,10 +86,12 @@ var ArcadeSlopesDemo = (function(Phaser) {
 			// Create a player sprite from the texture
 			this.player = this.add.sprite(768, 2800, playerGraphicsTexture);
 			
+			// Set the gravity
 			this.physics.arcade.gravity.y = 1000;
 			
 			// Enable physics for the player
 			this.physics.arcade.enable(this.player);
+			//this.player.body.setCircle(25);
 			this.game.slopes.enable(this.player);
 			
 			// Add a touch of tile padding for the collision detection
@@ -251,6 +229,16 @@ var ArcadeSlopesDemo = (function(Phaser) {
 			body.slopes.snapLeft   = this.features.snapLeft;
 			body.slopes.snapRight  = this.features.snapRight;
 			
+			// Offset the tilemap
+			// if (this.features.tilemapOffsetX || this.features.tilemapOffsetY) {
+			// 	this.ground.fixedToCamera = false;
+			// 	
+			// 	this.ground.x = (this.game.camera.view.x + this.ground.cameraOffset.x + this.features.tilemapOffsetX) / this.game.camera.scale.x;
+			// 	this.ground.y = (this.game.camera.view.y + this.ground.cameraOffset.y + this.features.tilemapOffsetY) / this.game.camera.scale.y;
+			// } else if (!this.ground.fixedToCamera) {
+			// 	this.ground.fixedToCamera = true;
+			// }
+			
 			// Keep the particle emitter attached to the player (though there's
 			// probably a better way than this)
 			this.emitter.x = this.player.x + body.halfWidth;
@@ -274,7 +262,7 @@ var ArcadeSlopesDemo = (function(Phaser) {
 			// Toggle the Arcade Slopes plugin itself
 			if (controls.toggle.justDown) {
 				if (this.game.slopes) {
-					this.game.plugins.remove(this.game.slopes);
+					this.game.plugins.removeAll();
 				} else {
 					this.game.plugins.add(Phaser.Plugin.ArcadeSlopes);
 				}
@@ -383,6 +371,15 @@ var ArcadeSlopesDemo = (function(Phaser) {
 				this.game.debug.bodyInfo(this.player, 32, 32);
 				this.game.debug.cameraInfo(this.camera, 32, 628);
 			}
+			
+			//this.game.debug.body(this.player);
+			/*this.game.debug.geom(
+				new Phaser.Circle(
+					this.player.body.polygon.pos.x,
+					this.player.body.polygon.pos.y,
+					this.player.body.radius * 2
+				)
+			);*/
 			
 			//if (this.features.debug > 1) {
 				// Soon... collision polygons and vectors drawn before your eyes

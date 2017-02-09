@@ -4,8 +4,8 @@
 		<meta charset="utf-8"/>
 		<title>Phaser Arcade Slopes Demo</title>
 		<link rel="stylesheet" href="assets/css/style.css"/>
-		<script src="https://cdn.rawgit.com/photonstorm/phaser/v2.5.0/build/phaser.js"></script>
-		<script src="https://cdn.rawgit.com/hexus/phaser-arcade-slopes/v0.1.1/dist/phaser-arcade-slopes.min.js"></script>
+		<script src="https://cdn.rawgit.com/photonstorm/phaser/v2.6.2/build/phaser.js"></script>
+		<script src="https://cdn.rawgit.com/hexus/phaser-arcade-slopes/v0.2.0-alpha2/dist/phaser-arcade-slopes.min.js"></script>
 		<script src="src/ArcadeSlopesDemo.js"></script>
 		<script>
 			var state = new ArcadeSlopesDemo;
@@ -116,6 +116,12 @@
 					Debug: <span class="debug"></span>
 					<input type="range" class="control" data-feature="debug" value="0" min="0" max="1"/>
 				</label>
+				<!-- Uncomment when you implement this properly in Phaser CE -->
+				<!--<label>
+					Tilemap offset: <span class="tilemapOffsetX"></span>/<span class="tilemapOffsetY"></span>
+					<input type="range" class="control" data-feature="tilemapOffsetX" value="0" min="0" max="200"/>
+					<input type="range" class="control" data-feature="tilemapOffsetY" value="0" min="0" max="200"/>
+				</label>-->
 			</div>
 		</div>
 	</body>
