@@ -12,8 +12,7 @@
   - [x] Phaser 2.4.9/2.5.0 compatibility
   - [x] Corner collision pulling
 - [ ] v0.2.0
-  - [ ] Arcade Slopes tileset
-    - [ ] Premade tilesets
+  - [ ] Premade Arcade Slopes tilesets
   - [ ] Mapping shortcuts
     - [x] Ninja Physics debug tileset
     - [ ] Arcade Slopes tileset
