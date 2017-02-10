@@ -24,7 +24,7 @@ Check out the **[demo](http://hexus.github.io/phaser-arcade-slopes)**!
 | Phaser Version  | Arcade Slopes Version                                                        |
 |-----------------|------------------------------------------------------------------------------|
 | v2.4.1 - v2.4.8 | [v0.1.0](https://github.com/hexus/phaser-arcade-slopes/tree/v0.1.0)          |
-| v2.5.0 - v2.6.1 | [v0.1.1](https://github.com/hexus/phaser-arcade-slopes/tree/v0.1.1) - v0.2.0 |
+| v2.5.0 - v2.7.3 | [v0.1.1](https://github.com/hexus/phaser-arcade-slopes/tree/v0.1.1) - v0.2.0 |
 
 ## Installation
 
@@ -38,6 +38,16 @@ and include it after Phaser.
 
 ## Usage
 
+- [Enabling the plugin](#enabling-the-plugin)
+- [Mapping tiles](#mapping-tiles)
+- [Enabling physics bodies](#enabling-physics-bodies)
+- [Collision](#collision)
+- [Extras](#extras)
+  - [Minimum Y Offset](#minimum-y-offset)
+  - [Collision pulling](#collision-pulling)
+
+### Enabling the plugin
+
 Enable the plugin in the `create()` method of your Phaser state.
 
 ```js
@@ -46,23 +56,33 @@ game.plugins.add(Phaser.Plugin.ArcadeSlopes);
 
 ### Mapping tiles
 
-After you've created your tilemap, and have a collision layer that you want
-to enable slopes for, you'll need run it through the Arcade Slopes converter.
+The plugin provides a couple of built in tile slope mappings:
 
-The plugin provides a built in mapping for the
-[Ninja Physics debug tilesheets](https://github.com/photonstorm/phaser/tree/v2.4.7/resources/Ninja%20Physics%20Debug%20Tiles) ([32px](https://raw.githubusercontent.com/photonstorm/phaser/v2.4.7/resources/Ninja%20Physics%20Debug%20Tiles/32px/ninja-tiles32.png), [64px](https://raw.githubusercontent.com/photonstorm/phaser/v2.4.7/resources/Ninja%20Physics%20Debug%20Tiles/64px/ninja-tiles64.png)).
+- [Arcade Slopes tileset](assets)
+  (`arcadeslopes`)
+  ([16px](assets/arcade-slopes-16.png),
+  [32px](assets/arcade-slopes-32.png),
+  [64px](assets/arcade-slopes-64.png),
+  [128px](assets/arcade-slopes-128.png))
+- [Ninja Physics debug tileset](https://github.com/photonstorm/phaser/tree/v2.4.7/resources/Ninja%20Physics%20Debug%20Tiles)
+  (`ninja`)
+  ([32px](https://raw.githubusercontent.com/photonstorm/phaser/v2.4.7/resources/Ninja%20Physics%20Debug%20Tiles/32px/ninja-tiles32.png), [64px](https://raw.githubusercontent.com/photonstorm/phaser/v2.4.7/resources/Ninja%20Physics%20Debug%20Tiles/64px/ninja-tiles64.png))
+
+After you've created a tilemap with a collision layer, you'll need to convert
+that layer to work with Arcade Slopes.
 
 ```js
 map = game.add.tilemap('tilemap');
-map.addTilesetImage('collision', 'ninja-tiles32');
+map.addTilesetImage('collision', 'arcade-slopes-32');
 
 ground = map.createLayer('collision');
 
-game.slopes.convertTilemapLayer(ground, 'ninja');
+// Convert the collision layer to work with Arcade Slopes
+game.slopes.convertTilemapLayer(ground, 'arcadeslopes');
 ```
 
-In the case that your first tile ID is not 1, you can provide a third argument
-to specify the first tile ID of the collision tileset in your tilemap.
+In the case that the first tile ID of the collision tileset in your tilemap is
+not `1` (the default), you can provide a third argument to specify it.
 
 ```js
 game.slopes.convertTilemapLayer(ground, 'ninja', 16);
@@ -71,18 +91,20 @@ game.slopes.convertTilemapLayer(ground, 'ninja', 16);
 ### Enabling physics bodies
 
 Now you need to enable slopes for any game entities you want to collide against
-the tilemap. _For sprites, make sure you call `game.slopes.enable(object)` after
-any changes to the **size** or **shape** of the physics body._
+the tilemap.
 
 ```js
 game.physics.arcade.enable(player);
 
-game.slopes.enable(player);  // Call this after any changes to the body's size
-game.slopes.enable(emitter); // Call this after emitter.makeParticles()
+game.slopes.enable(player);
+game.slopes.enable(emitter);
 ```
 
 You don't need to do anything special for circular physics bodies, just the
 usual `sprite.body.setCircle(radius)`.
+
+_Make sure you call `game.slopes.enable(object)` **after** making any changes to
+the **size** or **shape** of the physics body._
 
 ### Collision
 
@@ -90,15 +112,20 @@ Now you can collide your sprite against the tilemap in the `update()` method of
 your Phaser state, as you normally would, using Arcade Physics. Voila!
 
 ```js
+// Collide the player with the collision layer
 game.physics.arcade.collide(player, ground);
+
+// Collide the particles with the collision layer
 game.physics.arcade.collide(emitter, ground);
 ```
 
-### Minimum Y Offset
+### Extra features
 
 If you're making a platformer, your player has drag on the X axis, and you don't
-want it to slide down slopes, try enabling either of these options in your
-`create()` method.
+want it to slide down slopes, try using these features in your `create()`
+method.
+
+#### Minimum Y offset
 
 ```js
 // Prefer the minimum Y offset for this physics body
@@ -106,6 +133,36 @@ player.body.slopes.preferY = true;
 
 // Prefer the minimum Y offset globally
 game.slopes.solvers.sat.options.preferY = true;
+```
+
+This separates rectangular physics bodies on the Y axis only, in the right
+situations.
+
+Currently, it doesn't work very well for circular tile bodies.
+
+#### Collision pulling
+
+```js
+// Pull the player into downwards collisions with a velocity of 50
+player.body.slopes.pullDown = 50;
+```
+
+To attempt to keep objects on a surface, you can use collision pulling.
+
+This will pull physics bodies into a collision by a set velocity, if it matches
+the set direction.
+
+Here are the available properties for collision pulling:
+
+```
+body.slopes.pullUp
+body.slopes.pullDown
+body.slopes.pullLeft
+body.slopes.pullRight
+body.slopes.pullTopLeft
+body.slopes.pullTopRight
+body.slopes.pullBottomLeft
+body.slopes.pullBottomRight
 ```
 
 ## Building
@@ -144,3 +201,9 @@ My thanks go out to those who made this Plugin possible.
   in Phaser that gave me the idea to write this plugin
 - Bethany - for listening to me blabber on about slopes for well over a month
   :full_moon_with_face:
+
+And to contributors who were generous with their time, talents and support:
+
+- [@IkonOne](https://github.com/IkonOne)
+- [@michaeljcalkins](https://github.com/michaeljcalkins)
+- [@kevinchau321](https://github.com/kevinchau321)

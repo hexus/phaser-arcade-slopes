@@ -1,6 +1,6 @@
 # Arcade Slopes Change Log
 
-## Unreleased (v0.2.0-beta)
+## v0.2.0-beta - 10th February 2017
 - Supported tile collision flags when determining separation (#27, #28,
   thanks @kevinchau321).
 - Fixed collision snapping running when it shouldn't (#21, thanks
