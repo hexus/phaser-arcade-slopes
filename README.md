@@ -29,7 +29,7 @@ Check out the **[demo](http://hexus.github.io/phaser-arcade-slopes)**!
 ## Installation
 
 Grab a copy of the
-[latest release]((https://raw.githubusercontent.com/hexus/phaser-arcade-slopes/v0.1.1/dist/phaser-arcade-slopes.min.js)
+[latest release](https://raw.githubusercontent.com/hexus/phaser-arcade-slopes/v0.1.1/dist/phaser-arcade-slopes.min.js)
 from the [**dist**](dist) directory in this repository and include it after
 Phaser.
 
@@ -123,10 +123,6 @@ game.physics.arcade.collide(emitter, ground);
 
 ### Extras
 
-If you're making a platformer, your player has drag on the X axis, and you don't
-want it to slide down slopes, try using these features in your `create()`
-method.
-
 #### Minimum Y offset
 
 This feature separates rectangular physics bodies on the Y axis only, in the
@@ -139,6 +135,9 @@ player.body.slopes.preferY = true;
 // Prefer the minimum Y offset globally
 game.slopes.solvers.sat.options.preferY = true;
 ```
+
+If you're making a platformer, your player has drag on the X axis, and you don't
+want it to slide down slopes, this should solve your problem.
 
 #### Collision pulling
 
