@@ -1,10 +1,14 @@
 # Arcade Slopes Change Log
 
-## Unreleased
+## Unreleased (v0.2.0-beta)
 - Supported tile collision flags when determining separation (#27, #28,
   thanks @kevinchau321).
 - Fixed collision snapping running when it shouldn't (#21, thanks
   @michaeljcalkins).
+- Implemented tile slope polygon debug rendering (#4).
+- Added premade Arcade Slopes tilesets (#29).
+- Implemented Arcade Slopes tileset mapping shortcut (#9).
+- Implemented support for tile property type mapping (#9).
 
 ## v0.2.0-alpha2 - 8th February 2017
 - Prevented separation if a body isn't moving into a tile (#14).
