@@ -16,14 +16,14 @@
   itself.
 - Extracted a separate roadmap file from the readme.
 - Implemented automatic slope mapping for the Ninja Physics tileset.
-- Added missing touching flags for physics bodies (thanks @IkonOne).
+- Added missing touching flags for physics bodies (#19, thanks @IkonOne).
 - Implemented internal edge flagging (#18).
 - Updated SAT.js dependency.
 - Implemented support for offset tilemaps (#26).
 
 ## v0.2.0-alpha - 19th August 2016
 - Initial circular physics body support.
-- Typescript definitions (thanks @IkonOne).
+- Typescript definitions (#12, #15, thanks @IkonOne).
 
 ## v0.1.1 - 26th June 2016
 - Implemented corner collision pulling (#3).
