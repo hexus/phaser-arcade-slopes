@@ -126,7 +126,7 @@ var ArcadeSlopesDemo = (function(Phaser) {
 			this.game.slopes.enable(this.emitter);
 			
 			// Set some particle behaviours and properties
-			this.emitter.gravity = -this.physics.arcade.gravity.y;
+			this.emitter.gravity.y = -this.physics.arcade.gravity.y;
 			this.emitter.bounce.set(1, 1);
 			this.emitter.width = this.player.width;
 			this.emitter.height = this.player.height;
@@ -304,7 +304,7 @@ var ArcadeSlopesDemo = (function(Phaser) {
 			this.emitter.lifespan = 3000 / this.time.slowMotion;
 			
 			// Ensure that all new particles defy gravity
-			this.emitter.gravity = -this.physics.arcade.gravity.y;
+			this.emitter.gravity.y = -this.physics.arcade.gravity.y;
 			
 			// Toggle particle flow
 			if (controls.particles.justDown) {
