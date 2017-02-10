@@ -44,6 +44,7 @@ Phaser.
 - [Mapping tiles](#mapping-tiles)
 - [Enabling physics bodies](#enabling-physics-bodies)
 - [Collision](#collision)
+- [Debug rendering](#debug-rendering)
 - [Extras](#extras)
   - [Minimum Y Offset](#minimum-y-offset)
   - [Collision pulling](#collision-pulling)
@@ -62,10 +63,10 @@ The plugin provides a couple of built in tile slope mappings:
 
 - [Arcade Slopes tileset](assets)
   (`arcadeslopes`)
-  ([16px](assets/arcade-slopes-16.png),
-  [32px](assets/arcade-slopes-32.png),
-  [64px](assets/arcade-slopes-64.png),
-  [128px](assets/arcade-slopes-128.png))
+  ([16px](https://raw.githubusercontent.com/hexus/phaser-arcade-slopes/master/assets/arcade-slopes-16.png),
+  [32px](https://raw.githubusercontent.com/hexus/phaser-arcade-slopes/master/assets/arcade-slopes-32.png),
+  [64px](https://raw.githubusercontent.com/hexus/phaser-arcade-slopes/master/assets/arcade-slopes-64.png),
+  [128px](https://raw.githubusercontent.com/hexus/phaser-arcade-slopes/master/assets/arcade-slopes-128.png))
 - [Ninja Physics debug tileset](https://github.com/photonstorm/phaser/tree/v2.4.7/resources/Ninja%20Physics%20Debug%20Tiles)
   (`ninja`)
   ([32px](https://raw.githubusercontent.com/photonstorm/phaser/v2.4.7/resources/Ninja%20Physics%20Debug%20Tiles/32px/ninja-tiles32.png), [64px](https://raw.githubusercontent.com/photonstorm/phaser/v2.4.7/resources/Ninja%20Physics%20Debug%20Tiles/64px/ninja-tiles64.png))
@@ -119,6 +120,16 @@ game.physics.arcade.collide(player, ground);
 
 // Collide the particles with the collision layer
 game.physics.arcade.collide(emitter, ground);
+```
+
+### Debug rendering
+
+To debug your collision layer, set its debug property to `true`.
+
+This will overlay the collision shapes of each tile when the layer is rendered.
+
+```js
+ground.debug = true;
 ```
 
 ### Extras

@@ -50,7 +50,7 @@ Phaser.Plugin.ArcadeSlopes.prototype.constructor = Phaser.Plugin.ArcadeSlopes;
  * @constant
  * @type {string}
  */
-Phaser.Plugin.ArcadeSlopes.VERSION = '0.2.0-alpha2';
+Phaser.Plugin.ArcadeSlopes.VERSION = '0.2.0-beta';
 
 /**
  * The Separating Axis Theorem collision solver type.
@@ -71,7 +71,7 @@ Phaser.Plugin.ArcadeSlopes.prototype.init = function () {
 	// Give the game an Arcade Slopes facade
 	this.game.slopes = this.game.slopes || this.facade;
 	
-	// Keep a reference to the original collideSpriteVsTilemapLayer method
+	// Keep a reference to the original Arcade.collideSpriteVsTilemapLayer method
 	this.originalCollideSpriteVsTilemapLayer = Phaser.Physics.Arcade.prototype.collideSpriteVsTilemapLayer;
 	
 	// Replace the original method with the Arcade Slopes override, along with
@@ -85,6 +85,14 @@ Phaser.Plugin.ArcadeSlopes.prototype.init = function () {
 	Phaser.Tilemap.prototype.getTileTopRight = Phaser.Plugin.ArcadeSlopes.Overrides.getTileTopRight;
 	Phaser.Tilemap.prototype.getTileBottomLeft = Phaser.Plugin.ArcadeSlopes.Overrides.getTileBottomLeft;
 	Phaser.Tilemap.prototype.getTileBottomRight = Phaser.Plugin.ArcadeSlopes.Overrides.getTileBottomRight;
+	
+	// Keep a reference to the original TilemapLayer.renderDebug method
+	this.originalRenderDebug = Phaser.TilemapLayer.prototype.renderDebug;
+	
+	// Add some overrides and helper methods to the TilemapLayer class
+	Phaser.TilemapLayer.prototype.getCollisionOffsetX = Phaser.Plugin.ArcadeSlopes.Overrides.getCollisionOffsetX;
+	Phaser.TilemapLayer.prototype.getCollisionOffsetY = Phaser.Plugin.ArcadeSlopes.Overrides.getCollisionOffsetY;
+	Phaser.TilemapLayer.prototype.renderDebug = Phaser.Plugin.ArcadeSlopes.Overrides.renderDebug;
 };
 
 /**
@@ -106,6 +114,11 @@ Phaser.Plugin.ArcadeSlopes.prototype.destroy = function () {
 	Phaser.Tilemap.prototype.getTileTopRight = null;
 	Phaser.Tilemap.prototype.getTileBottomLeft = null;
 	Phaser.Tilemap.prototype.getTileBottomRight = null;
+	
+	// Remove the overrides and helper methods from the TilemapLayer class
+	Phaser.TilemapLayer.prototype.getCollisionOffsetX = null;
+	Phaser.TilemapLayer.prototype.getCollisionOffsetY = null;
+	Phaser.TilemapLayer.prototype.renderDebug = this.originalRenderDebug;
 	
 	// Call the parent destroy method
 	Phaser.Plugin.prototype.destroy.call(this);
@@ -268,11 +281,12 @@ Phaser.Plugin.ArcadeSlopes.Facade.prototype.convertTilemapLayer = function (laye
  * Collides a physics body against a tile.
  *
  * @method Phaser.Plugin.ArcadeSlopes.Facade#collide
- * @param  {integer}                    i           - The tile index.
- * @param  {Phaser.Physics.Arcade.Body} body        - The physics body.
- * @param  {Phaser.Tile}                tile        - The tile.
- * @param  {boolean}                    overlapOnly - Whether to only check for an overlap.
- * @return {boolean}                                - Whether the body was separated.
+ * @param  {integer}                    i            - The tile index.
+ * @param  {Phaser.Physics.Arcade.Body} body         - The physics body.
+ * @param  {Phaser.Tile}                tile         - The tile.
+ * @param  {Phaser.TilemapLayer}        tilemapLayer - The tilemap layer.
+ * @param  {boolean}                    overlapOnly  - Whether to only check for an overlap.
+ * @return {boolean}                                 - Whether the body was separated.
  */
 Phaser.Plugin.ArcadeSlopes.Facade.prototype.collide = function (i, body, tile, tilemapLayer, overlapOnly) {
 	if (tile.slope.solver && this.solvers.hasOwnProperty(tile.slope.solver)) {
@@ -392,12 +406,9 @@ Phaser.Plugin.ArcadeSlopes.Overrides.collideSpriteVsTilemapLayer = function (spr
 		return false;
 	}
 	
-	var tilemapLayerOffsetX = (!tilemapLayer.fixedToCamera) ? tilemapLayer.position.x : 0;
-	var tilemapLayerOffsetY = (!tilemapLayer.fixedToCamera) ? tilemapLayer.position.y : 0;
-	
 	var tiles = tilemapLayer.getTiles(
-		sprite.body.position.x - sprite.body.tilePadding.x - tilemapLayerOffsetX,
-		sprite.body.position.y - sprite.body.tilePadding.y - tilemapLayerOffsetY,
+		sprite.body.position.x - sprite.body.tilePadding.x - tilemapLayer.getCollisionOffsetX(),
+		sprite.body.position.y - sprite.body.tilePadding.y - tilemapLayer.getCollisionOffsetY(),
 		sprite.body.width      + sprite.body.tilePadding.x,
 		sprite.body.height     + sprite.body.tilePadding.y,
 		false,
@@ -484,6 +495,180 @@ Phaser.Plugin.ArcadeSlopes.Overrides.getTileBottomRight = function(layer, x, y) 
 	}
 	
 	return null;
+};
+
+/**
+ * Get the X axis collision offset for the tilemap layer.
+ *
+ * @method Phaser.Plugin.ArcadeSlopes.Overrides#getCollisionOffsetY
+ * @return {number}
+ */
+Phaser.Plugin.ArcadeSlopes.Overrides.getCollisionOffsetX = function () {
+	return !this.fixedToCamera ? this.position.x : 0;
+};
+
+/**
+ * Get the Y axis collision offset for the tilemap layer.
+ *
+ * @method Phaser.Plugin.ArcadeSlopes.Overrides#getCollisionOffsetY
+ * @return {number}
+ */
+Phaser.Plugin.ArcadeSlopes.Overrides.getCollisionOffsetY = function () {
+	return !this.fixedToCamera ? this.position.y : 0;
+};
+
+/**
+* Renders a tilemap debug overlay on-top of the canvas.
+*
+* Called automatically by render when `debug` is true.
+*
+* See `debugSettings` for assorted configuration options.
+*
+* This override renders extra information regarding Arcade Slopes collisions.
+*
+* @method Phaser.Plugin.ArcadeSlopes.Overrides#renderDebug
+* @private
+*/
+Phaser.Plugin.ArcadeSlopes.Overrides.renderDebug = function () {
+	var scrollX = this._mc.scrollX;
+	var scrollY = this._mc.scrollY;
+	
+	var context = this.context;
+	var renderW = this.canvas.width;
+	var renderH = this.canvas.height;
+	
+	var width = this.layer.width;
+	var height = this.layer.height;
+	var tw = this._mc.tileWidth;
+	var th = this._mc.tileHeight;
+	
+	var left = Math.floor(scrollX / tw);
+	var right = Math.floor((renderW - 1 + scrollX) / tw);
+	var top = Math.floor(scrollY / th);
+	var bottom = Math.floor((renderH - 1 + scrollY) / th);
+	
+	var baseX = (left * tw) - scrollX;
+	var baseY = (top * th) - scrollY;
+	
+	var normStartX = (left + ((1 << 20) * width)) % width;
+	var normStartY = (top + ((1 << 20) * height)) % height;
+	
+	var tx, ty, x, y, xmax, ymax, polygon, i, j;
+	
+	for (y = normStartY, ymax = bottom - top, ty = baseY; ymax >= 0; y++, ymax--, ty += th) {
+		if (y >= height) {
+			y -= height;
+		}
+		
+		var row = this.layer.data[y];
+		
+		for (x = normStartX, xmax = right - left, tx = baseX; xmax >= 0; x++, xmax--, tx += tw) {
+			if (x >= width) {
+				x -= width;
+			}
+			
+			var tile = row[x];
+			
+			if (!tile || tile.index < 0 || !tile.collides) {
+				continue;
+			}
+
+			if (this.debugSettings.collidingTileOverfill) {
+				context.fillStyle = this.debugSettings.collidingTileOverfill;
+				context.fillRect(tx, ty, this._mc.cw, this._mc.ch);
+			}
+
+			if (this.debugSettings.facingEdgeStroke) {
+				context.beginPath();
+				
+				context.lineWidth = 1;
+				context.strokeStyle = this.debugSettings.facingEdgeStroke;
+				
+				if (tile.faceTop) {
+					context.moveTo(tx, ty);
+					context.lineTo(tx + this._mc.cw, ty);
+				}
+				
+				if (tile.faceBottom) {
+					context.moveTo(tx, ty + this._mc.ch);
+					context.lineTo(tx + this._mc.cw, ty + this._mc.ch);
+				}
+				
+				if (tile.faceLeft) {
+					context.moveTo(tx, ty);
+					context.lineTo(tx, ty + this._mc.ch);
+				}
+				
+				if (tile.faceRight) {
+					context.moveTo(tx + this._mc.cw, ty);
+					context.lineTo(tx + this._mc.cw, ty + this._mc.ch);
+				}
+				
+				context.closePath();
+				
+				context.stroke();
+				
+				// Render the tile slope polygons
+				if (tile.slope) {
+					// Fill polygons and stroke their edges
+					if (this.debugSettings.slopeEdgeStroke || this.debugSettings.slopeFill) {
+						context.beginPath();
+						
+						context.lineWidth = 1;
+						
+						polygon = tile.slope.polygon;
+						
+						// Move to the first vertex
+						context.moveTo(tx + polygon.points[0].x, ty + polygon.points[0].y);
+						
+						// Draw a path through all vertices
+						for (i = 0; i < polygon.points.length; i++) {
+							j = (i + 1) % polygon.points.length;
+							
+							context.lineTo(tx + polygon.points[j].x, ty + polygon.points[j].y);
+						}
+						
+						context.closePath();
+						
+						if (this.debugSettings.slopeEdgeStroke) {
+							context.strokeStyle = this.debugSettings.slopeEdgeStroke;
+							context.stroke();
+						}
+						
+						if (this.debugSettings.slopeFill) {
+							context.fillStyle = this.debugSettings.slopeFill;
+							context.fill();
+						}
+					}
+					
+					// Stroke the colliding edges
+					if (this.debugSettings.slopeCollidingEdgeStroke) {
+						context.beginPath();
+						
+						context.lineWidth = this.debugSettings.slopeCollidingEdgeStrokeWidth || 1;
+						context.strokeStyle = this.debugSettings.slopeCollidingEdgeStroke;
+						
+						polygon = tile.slope.polygon;
+						
+						for (i = 0; i < polygon.points.length; i++) {
+							j = (i + 1) % polygon.points.length;
+							
+							// Skip internal edges
+							if (polygon.points[i].internal)
+								continue;
+							
+							context.moveTo(tx + polygon.points[i].x, ty + polygon.points[i].y);
+							context.lineTo(tx + polygon.points[j].x, ty + polygon.points[j].y);
+						}
+						
+						context.closePath();
+						
+						context.stroke();
+					}
+				}
+			}
+		}
+	}
 };
 
 /**
@@ -1619,17 +1804,20 @@ Phaser.Plugin.ArcadeSlopes.SatSolver.prototype.updateFlags = function (body, res
 /**
  * Attempt to snap the body to a given set of tiles based on its slopes options.
  *
+ * TODO: Maybe remove snapping altogether.
+ * 
  * @method Phaser.Plugin.ArcadeSlopes.SatSolver#snap
  * @param  {Phaser.Physics.Arcade.Body} body  - The physics body.
  * @param  {Phaser.Tile[]}              tiles - The tiles.
  * @return {boolean}                          - Whether the body was snapped to any tiles.
  */
 Phaser.Plugin.ArcadeSlopes.SatSolver.prototype.snap = function (body, tiles) {
-	if (!body.slopes && !body.slopes.snapUp && !body.slopes.snapDown && !body.slopes.snapLeft && !body.slopes.snapRight) {
+	if (!body.slopes || (!body.slopes.snapUp && !body.slopes.snapDown && !body.slopes.snapLeft && !body.slopes.snapRight)) {
 		return false;
 	}
 	
 	// Keep the current body position to snap from
+	// TODO: Get rid of the instantiation
 	var current = new Phaser.Point(body.position.x, body.position.y);
 	
 	// Keep track of whether the body has snapped to a tile
@@ -1823,11 +2011,12 @@ Phaser.Plugin.ArcadeSlopes.SatSolver.prototype.shouldCollide = function (body, t
  * TODO: Accept a process callback into this method
  * 
  * @method Phaser.Plugin.ArcadeSlopes.SatSolver#collide
- * @param  {integer}                    i           - The tile index.
- * @param  {Phaser.Physics.Arcade.Body} body        - The physics body.
- * @param  {Phaser.Tile}                tile        - The tile.
- * @param  {boolean}                    overlapOnly - Whether to only check for an overlap.
- * @return {boolean}                                - Whether the body was separated.
+ * @param  {integer}                    i            - The tile index.
+ * @param  {Phaser.Physics.Arcade.Body} body         - The physics body.
+ * @param  {Phaser.Tile}                tile         - The tile.
+ * @param  {Phaser.TilemapLayer}        tilemapLayer - The tilemap layer.
+ * @param  {boolean}                    overlapOnly  - Whether to only check for an overlap.
+ * @return {boolean}                                 - Whether the body was separated.
  */
 Phaser.Plugin.ArcadeSlopes.SatSolver.prototype.collide = function (i, body, tile, tilemapLayer, overlapOnly) {
 	// Update the body's polygon position and velocity vector
@@ -1844,13 +2033,9 @@ Phaser.Plugin.ArcadeSlopes.SatSolver.prototype.collide = function (i, body, tile
 		body.polygon.pos.y += body.halfHeight;
 	}
 	
-	// Determine the offset of the tilemap layer
-	var tilemapLayerOffsetX = (!tilemapLayer.fixedToCamera) ? tilemapLayer.position.x : 0;
-	var tilemapLayerOffsetY = (!tilemapLayer.fixedToCamera) ? tilemapLayer.position.y : 0;
-	
 	// Update the tile polygon position
-	tile.slope.polygon.pos.x = tile.worldX + tilemapLayerOffsetX;
-	tile.slope.polygon.pos.y = tile.worldY + tilemapLayerOffsetY;
+	tile.slope.polygon.pos.x = tile.worldX + tilemapLayer.getCollisionOffsetX();
+	tile.slope.polygon.pos.y = tile.worldY + tilemapLayer.getCollisionOffsetY();
 	
 	var response = new SAT.Response();
 	
@@ -1957,9 +2142,7 @@ Phaser.Plugin.ArcadeSlopes.SatSolver.prototype.restrain = function (body, tile, 
 /**
  * Determine whether to separate a body from a tile, given an SAT response.
  *
- * Checks against the tile slope's edge flags.
- *
- * TODO: Support regular tile face flags?
+ * Checks against the tile's collision flags and slope edge flags.
  * 
  * @method Phaser.Plugin.ArcadeSlopes.SatSolver#shouldSeparate
  * @param  {integer}                    i        - The tile index.
@@ -1974,29 +2157,29 @@ Phaser.Plugin.ArcadeSlopes.SatSolver.prototype.shouldSeparate = function (i, bod
 		return false;
 	}
 	
-	// Ignore any internal edges identified by the slope factory
-	if (tile.slope.edges.top === Phaser.Plugin.ArcadeSlopes.TileSlope.EMPTY && response.overlapN.y < 0 && response.overlapN.x === 0) {
+	// Ignore any non-colliding or internal edges
+	if ((!tile.collideUp || tile.slope.edges.top === Phaser.Plugin.ArcadeSlopes.TileSlope.EMPTY) && response.overlapN.y < 0 && response.overlapN.x === 0) {
 		return false;
 	}
 	
-	if (tile.slope.edges.bottom === Phaser.Plugin.ArcadeSlopes.TileSlope.EMPTY && response.overlapN.y > 0 && response.overlapN.x === 0) {
+	if ((!tile.collideDown || tile.slope.edges.bottom === Phaser.Plugin.ArcadeSlopes.TileSlope.EMPTY) && response.overlapN.y > 0 && response.overlapN.x === 0) {
 		return false;
 	}
 	
-	if (tile.slope.edges.left === Phaser.Plugin.ArcadeSlopes.TileSlope.EMPTY && response.overlapN.x < 0 && response.overlapN.y === 0) {
+	if ((!tile.collideLeft || tile.slope.edges.left === Phaser.Plugin.ArcadeSlopes.TileSlope.EMPTY) && response.overlapN.x < 0 && response.overlapN.y === 0) {
 		return false;
 	}
 	
-	if (tile.slope.edges.right === Phaser.Plugin.ArcadeSlopes.TileSlope.EMPTY && response.overlapN.x > 0 && response.overlapN.y === 0) {
+	if ((!tile.collideRight || tile.slope.edges.right === Phaser.Plugin.ArcadeSlopes.TileSlope.EMPTY) && response.overlapN.x > 0 && response.overlapN.y === 0) {
 		return false;
 	}
 	
-	// Only separate when the body is moving into the tile
+	// Only separate if the body is moving into the tile
 	if (response.overlapV.clone().scale(-1).dot(body.slopes.velocity) < 0) {
 		return false;
 	}
 	
-	// Always separate if restraints are disabled or the body is circular
+	// Skip restraints if they are disabled or the body is circular
 	if (!this.options.restrain || body.isCircle) {
 		return true;
 	}
@@ -2596,7 +2779,8 @@ Phaser.Plugin.ArcadeSlopes.TileSlopeFactory = function () {
 	 */
 	this.mappings = {};
 	
-	this.mappings[Phaser.Plugin.ArcadeSlopes.TileSlopeFactory.NINJA] = Phaser.Plugin.ArcadeSlopes.TileSlopeFactory.mapNinjaPhysics;
+	this.mappings[Phaser.Plugin.ArcadeSlopes.TileSlopeFactory.ARCADESLOPES] = Phaser.Plugin.ArcadeSlopes.TileSlopeFactory.mapArcadeSlopes;
+	this.mappings[Phaser.Plugin.ArcadeSlopes.TileSlopeFactory.NINJA]        = Phaser.Plugin.ArcadeSlopes.TileSlopeFactory.mapNinjaPhysics;
 };
 
 Phaser.Plugin.ArcadeSlopes.TileSlopeFactory.prototype.constructor = Phaser.Plugin.ArcadeSlopes.TileSlopeFactory;
@@ -2693,12 +2877,20 @@ Phaser.Plugin.ArcadeSlopes.TileSlopeFactory.prototype.convertTilemapLayer = func
 	// Create the TileSlope objects for each relevant tile in the layer
 	layer.layer.data.forEach(function (row) {
 		row.forEach(function (tile) {
-			if (slopeMap.hasOwnProperty(tile.index)) {
-				var slope = that.create(slopeMap[tile.index], tile);
-				
-				if (slope) {
-					tile.slope = slope;
-				}
+			var slope;
+			
+			// Try to resolve a slope from the tile's type property
+			if (tile.properties.type) {
+				slope = that.create(tile.properties.type, tile);
+			}
+			
+			// Otherwise resolve a type from its index
+			if (!slope && slopeMap.hasOwnProperty(tile.index)) {
+				slope = that.create(slopeMap[tile.index], tile);
+			}
+			
+			if (slope) {
+				tile.slope = slope;
 			}
 			
 			var x = tile.x;
@@ -2707,19 +2899,22 @@ Phaser.Plugin.ArcadeSlopes.TileSlopeFactory.prototype.convertTilemapLayer = func
 			tile.neighbours = tile.neighbours || {};
 			
 			// Give each tile references to their eight neighbours
-			tile.neighbours.above = layer.map.getTileAbove(layer.index, x, y);
-			tile.neighbours.below = layer.map.getTileBelow(layer.index, x, y);
-			tile.neighbours.left = layer.map.getTileLeft(layer.index, x, y);
-			tile.neighbours.right = layer.map.getTileRight(layer.index, x, y);
-			tile.neighbours.topLeft = layer.map.getTileTopLeft(layer.index, x, y);
-			tile.neighbours.topRight = layer.map.getTileTopRight(layer.index, x, y);
-			tile.neighbours.bottomLeft = layer.map.getTileBottomLeft(layer.index, x, y);
+			tile.neighbours.above       = layer.map.getTileAbove(layer.index, x, y);
+			tile.neighbours.below       = layer.map.getTileBelow(layer.index, x, y);
+			tile.neighbours.left        = layer.map.getTileLeft(layer.index, x, y);
+			tile.neighbours.right       = layer.map.getTileRight(layer.index, x, y);
+			tile.neighbours.topLeft     = layer.map.getTileTopLeft(layer.index, x, y);
+			tile.neighbours.topRight    = layer.map.getTileTopRight(layer.index, x, y);
+			tile.neighbours.bottomLeft  = layer.map.getTileBottomLeft(layer.index, x, y);
 			tile.neighbours.bottomRight = layer.map.getTileBottomRight(layer.index, x, y);
 		});
 	});
 	
 	// Calculate the edge flags for each tile in the layer
 	this.calculateEdges(layer);
+	
+	// Add some extra properties to the layer's debug settings
+	this.addDebugSettings(layer);
 	
 	return layer;
 };
@@ -2843,7 +3038,7 @@ Phaser.Plugin.ArcadeSlopes.TileSlopeFactory.prototype.flagInternalVertices = fun
 				firstTileVertexTwo.x === secondTileVertexOne.x &&
 				firstTileVertexTwo.y === secondTileVertexOne.y;
 			
-			// Flag the vertices that begin the edge
+			// Flag the vertices that begin an internal edge
 			if (exactMatch || inverseMatch) {
 				firstPolygon.points[i].internal = true;
 				secondPolygon.points[j].internal = true;
@@ -2853,9 +3048,22 @@ Phaser.Plugin.ArcadeSlopes.TileSlopeFactory.prototype.flagInternalVertices = fun
 };
 
 /**
+ * Add some extra debug settings to a tilemap layer for debug rendering.
+ *
+ * @method Phaser.Plugin.ArcadeSlopes.TileSlopeFactory#addDebugSettings
+ * @param {Phaser.TilemapLayer} layer - The tilemap layer.
+ */
+Phaser.Plugin.ArcadeSlopes.TileSlopeFactory.prototype.addDebugSettings = function (layer) {
+	layer.debugSettings.slopeFill = 'rgba(255, 0, 255, 0.2)';
+	layer.debugSettings.slopeEdgeStroke = 'rgba(255, 0, 255, 0.4)';
+	layer.debugSettings.slopeCollidingEdgeStroke = 'rgba(255, 0, 255, 1)';
+	layer.debugSettings.slopeCollidingEdgeStrokeWidth = 2;
+};
+
+/**
  * Resolve a tileset mapping constant from the given value.
  * 
- * @method Phaser.Plugin.Arcadeslopes.TileSlopeFactory#resolveMapping
+ * @method Phaser.Plugin.ArcadeSlopes.TileSlopeFactory#resolveMapping
  * @param  {string}  type - The value to resolve a mapping from.
  * @return {integer}
  */
@@ -2868,7 +3076,9 @@ Phaser.Plugin.ArcadeSlopes.TileSlopeFactory.prototype.resolveMappingType = funct
 		type = type.toUpperCase();
 	}
 	
-	if (Phaser.Plugin.ArcadeSlopes.TileSlopeFactory.hasOwnProperty(type)) {
+	if (Phaser.Plugin.ArcadeSlopes.TileSlopeFactory.hasOwnProperty(type) &&
+	    this.mappings[Phaser.Plugin.ArcadeSlopes.TileSlopeFactory[type]]
+	) {
 		return Phaser.Plugin.ArcadeSlopes.TileSlopeFactory[type];
 	}
 	
@@ -3614,6 +3824,47 @@ Phaser.Plugin.ArcadeSlopes.TileSlopeFactory.prepareOffset = function (index) {
 };
 
 /**
+ * Create a tile slope mapping for the Arcade Slopes tileset.
+ *
+ * @static
+ * @param  {integer} index - An optional first tile index (firstgid).
+ * @return {object}
+ */
+Phaser.Plugin.ArcadeSlopes.TileSlopeFactory.mapArcadeSlopes = function (index) {
+	offset = Phaser.Plugin.ArcadeSlopes.TileSlopeFactory.prepareOffset(index);
+	
+	var mapping = {};
+	
+	mapping[offset + 1]  = 'FULL';
+	mapping[offset + 2]  = 'HALF_TOP';
+	mapping[offset + 3]  = 'HALF_BOTTOM';
+	mapping[offset + 4]  = 'HALF_LEFT';
+	mapping[offset + 5]  = 'HALF_RIGHT';
+	mapping[offset + 6]  = 'HALF_BOTTOM_LEFT';
+	mapping[offset + 7]  = 'HALF_BOTTOM_RIGHT';
+	mapping[offset + 8]  = 'HALF_TOP_LEFT';
+	mapping[offset + 9]  = 'HALF_TOP_RIGHT';
+	mapping[offset + 10] = 'QUARTER_TOP_LEFT_HIGH';
+	mapping[offset + 11] = 'QUARTER_TOP_LEFT_LOW';
+	mapping[offset + 12] = 'QUARTER_TOP_RIGHT_LOW';
+	mapping[offset + 13] = 'QUARTER_TOP_RIGHT_HIGH';
+	mapping[offset + 14] = 'QUARTER_BOTTOM_LEFT_HIGH';
+	mapping[offset + 15] = 'QUARTER_BOTTOM_LEFT_LOW';
+	mapping[offset + 16] = 'QUARTER_BOTTOM_RIGHT_LOW';
+	mapping[offset + 17] = 'QUARTER_BOTTOM_RIGHT_HIGH';
+	mapping[offset + 18] = 'QUARTER_LEFT_BOTTOM_HIGH';
+	mapping[offset + 19] = 'QUARTER_RIGHT_BOTTOM_HIGH';
+	mapping[offset + 20] = 'QUARTER_LEFT_TOP_HIGH';
+	mapping[offset + 21] = 'QUARTER_RIGHT_TOP_HIGH';
+	mapping[offset + 35] = 'QUARTER_LEFT_BOTTOM_LOW';
+	mapping[offset + 36] = 'QUARTER_RIGHT_BOTTOM_LOW';
+	mapping[offset + 37] = 'QUARTER_LEFT_TOP_LOW';
+	mapping[offset + 38] = 'QUARTER_RIGHT_TOP_LOW';
+	
+	return mapping;
+};
+
+/**
  * Create a tile slope mapping for the Ninja Physics tileset.
  *
  * @static
@@ -3660,7 +3911,15 @@ Phaser.Plugin.ArcadeSlopes.TileSlopeFactory.mapNinjaPhysics = function (index) {
  * @constant
  * @type {integer}
  */
-Phaser.Plugin.ArcadeSlopes.TileSlopeFactory.NINJA = 1;
+Phaser.Plugin.ArcadeSlopes.TileSlopeFactory.ARCADESLOPES = 1;
+
+/**
+ * The Ninja Physics tileset mapping.
+ *
+ * @constant
+ * @type {integer}
+ */
+Phaser.Plugin.ArcadeSlopes.TileSlopeFactory.NINJA = 2;
 
 // Version 0.6.0 - Copyright 2012 - 2016 -  Jim Riecken <jimr@jimr.ca>
 //
