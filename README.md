@@ -28,8 +28,10 @@ Check out the **[demo](http://hexus.github.io/phaser-arcade-slopes)**!
 
 ## Installation
 
-Grab a copy of the latest release from the **dist** directory in this repository
-and include it after Phaser.
+Grab a copy of the
+[latest release]((https://raw.githubusercontent.com/hexus/phaser-arcade-slopes/v0.1.1/dist/phaser-arcade-slopes.min.js)
+from the [**dist**](dist) directory in this repository and include it after
+Phaser.
 
 ```html
 <script src="phaser.min.js"></script>
@@ -119,13 +121,16 @@ game.physics.arcade.collide(player, ground);
 game.physics.arcade.collide(emitter, ground);
 ```
 
-### Extra features
+### Extras
 
 If you're making a platformer, your player has drag on the X axis, and you don't
 want it to slide down slopes, try using these features in your `create()`
 method.
 
 #### Minimum Y offset
+
+This feature separates rectangular physics bodies on the Y axis only, in the
+right situations.
 
 ```js
 // Prefer the minimum Y offset for this physics body
@@ -135,26 +140,21 @@ player.body.slopes.preferY = true;
 game.slopes.solvers.sat.options.preferY = true;
 ```
 
-This separates rectangular physics bodies on the Y axis only, in the right
-situations.
-
-Currently, it doesn't work very well for circular tile bodies.
-
 #### Collision pulling
-
-```js
-// Pull the player into downwards collisions with a velocity of 50
-player.body.slopes.pullDown = 50;
-```
 
 To attempt to keep objects on a surface, you can use collision pulling.
 
 This will pull physics bodies into a collision by a set velocity, if it matches
 the set direction.
 
+```js
+// Pull the player into downwards collisions with a velocity of 50
+player.body.slopes.pullDown = 50;
+```
+
 Here are the available properties for collision pulling:
 
-```
+```js
 body.slopes.pullUp
 body.slopes.pullDown
 body.slopes.pullLeft
