@@ -13,10 +13,10 @@
   - [x] Corner collision pulling
 - [ ] v0.2.0
   - [x] Premade Arcade Slopes tilesets
-  - [ ] Mapping shortcuts
+  - [x] Mapping shortcuts
     - [x] Ninja Physics debug tileset
-    - [ ] Arcade Slopes tileset
-    - [ ] Tile properties (`tile.properties.type`)
+    - [x] Arcade Slopes tileset
+    - [x] Tile properties (`tile.properties.type`)
   - [x] Debug rendering
     - [x] ~~Collision vectors~~
     - [x] Tile face properties

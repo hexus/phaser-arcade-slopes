@@ -155,12 +155,20 @@ Phaser.Plugin.ArcadeSlopes.TileSlopeFactory.prototype.convertTilemapLayer = func
 	// Create the TileSlope objects for each relevant tile in the layer
 	layer.layer.data.forEach(function (row) {
 		row.forEach(function (tile) {
-			if (slopeMap.hasOwnProperty(tile.index)) {
-				var slope = that.create(slopeMap[tile.index], tile);
-				
-				if (slope) {
-					tile.slope = slope;
-				}
+			var slope;
+			
+			// Try to resolve a slope from the tile's type property
+			if (tile.properties.type) {
+				slope = that.create(tile.properties.type, tile);
+			}
+			
+			// Otherwise resolve a type from its index
+			if (!slope && slopeMap.hasOwnProperty(tile.index)) {
+				slope = that.create(slopeMap[tile.index], tile);
+			}
+			
+			if (slope) {
+				tile.slope = slope;
 			}
 			
 			var x = tile.x;
@@ -169,13 +177,13 @@ Phaser.Plugin.ArcadeSlopes.TileSlopeFactory.prototype.convertTilemapLayer = func
 			tile.neighbours = tile.neighbours || {};
 			
 			// Give each tile references to their eight neighbours
-			tile.neighbours.above = layer.map.getTileAbove(layer.index, x, y);
-			tile.neighbours.below = layer.map.getTileBelow(layer.index, x, y);
-			tile.neighbours.left = layer.map.getTileLeft(layer.index, x, y);
-			tile.neighbours.right = layer.map.getTileRight(layer.index, x, y);
-			tile.neighbours.topLeft = layer.map.getTileTopLeft(layer.index, x, y);
-			tile.neighbours.topRight = layer.map.getTileTopRight(layer.index, x, y);
-			tile.neighbours.bottomLeft = layer.map.getTileBottomLeft(layer.index, x, y);
+			tile.neighbours.above       = layer.map.getTileAbove(layer.index, x, y);
+			tile.neighbours.below       = layer.map.getTileBelow(layer.index, x, y);
+			tile.neighbours.left        = layer.map.getTileLeft(layer.index, x, y);
+			tile.neighbours.right       = layer.map.getTileRight(layer.index, x, y);
+			tile.neighbours.topLeft     = layer.map.getTileTopLeft(layer.index, x, y);
+			tile.neighbours.topRight    = layer.map.getTileTopRight(layer.index, x, y);
+			tile.neighbours.bottomLeft  = layer.map.getTileBottomLeft(layer.index, x, y);
 			tile.neighbours.bottomRight = layer.map.getTileBottomRight(layer.index, x, y);
 		});
 	});
