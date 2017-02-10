@@ -25,6 +25,8 @@ var ArcadeSlopesDemo = (function(Phaser) {
 			snapRight: 0,
 			particleSelfCollide: 0,
 			slowMotion: 1,
+			shape: 0,
+			size: 96,
 			debug: 0,
 			tilemapOffsetX: 0,
 			tilemapOffsetY: 0
@@ -70,29 +72,19 @@ var ArcadeSlopesDemo = (function(Phaser) {
 			
 			// Map Arcade Slopes tile types to Ninja Physics debug tilesheets,
 			// preparing slope data for each tile in the layer
-			this.game.slopes.convertTilemapLayer(this.ground, 'ninja', 1);
+			this.game.slopes.convertTilemapLayer(this.ground, 'ninja');
 			
-			// Player graphics
-			var playerGraphics = new Phaser.Graphics(this)
-				.beginFill(Phaser.Color.hexToRGB('#e3cce9'), 1)
-				.drawRect(0, 0, 48, 96);
-				//.drawCircle(0, 0, 50); // Getting there...
-				//.drawRect(0, 0, 20, 20); // Be small
-				//.drawRect(0, 0, 100, 200); // Be huge!
+			// Create a player sprite
+			this.player = this.add.sprite(768, 2800);
 			
-			// Create a Pixi texture from the graphics
-			var playerGraphicsTexture = playerGraphics.generateTexture();
+			// Create a graphics object for the player
+			this.playerGraphics = new Phaser.Graphics(this);
 			
-			// Create a player sprite from the texture
-			this.player = this.add.sprite(768, 2800, playerGraphicsTexture);
+			// Generate a texture for the player and give it a physics body
+			this.updatePlayer(this.player);
 			
 			// Set the gravity
 			this.physics.arcade.gravity.y = 1000;
-			
-			// Enable physics for the player
-			this.physics.arcade.enable(this.player);
-			//this.player.body.setCircle(25);
-			this.game.slopes.enable(this.player);
 			
 			// Add a touch of tile padding for the collision detection
 			this.player.body.tilePadding.x = 1;
@@ -125,6 +117,11 @@ var ArcadeSlopesDemo = (function(Phaser) {
 			// Create 2000 particles using our newly cached image
 			this.emitter.makeParticles('particle', 0, 2000, true, true);
 			
+			// Give each particle a circular collision body
+			this.emitter.forEach(function (particle) {
+				particle.body.setCircle(8);
+			});
+			
 			// Attach Arcade Physics polygon data to the particle bodies
 			this.game.slopes.enable(this.emitter);
 			
@@ -151,7 +148,7 @@ var ArcadeSlopesDemo = (function(Phaser) {
 			});
 			
 			// Follow the player with the camera
-			this.camera.follow(this.player);
+			this.camera.follow(this.player, Phaser.Camera.FOLLOW_PLATFORMER);
 			
 			// Words cannot describe how much I love having this built in
 			this.camera.lerp.setTo(0.2, 0.2);
@@ -171,7 +168,62 @@ var ArcadeSlopesDemo = (function(Phaser) {
 			this.game.debug.renderShadow = false;
 		},
 		
+		updatePlayer: function (player) {
+			var features = this.features;
+			var graphics = this.playerGraphics;
+			var size = features.size;
+			var halfSize = Math.floor(features.size * 0.5);
+			
+			// Determine whether we need to update the player
+			if (player.body && player.body.height === features.size && player.body.isCircle == features.shape) {
+				// If the player has a body, and the body's height hasn't
+				// changed, we don't need to update it
+				return;
+			}
+			
+			// Enable physics for the player (give it a physics body)
+			this.physics.arcade.enable(player);
+			
+			// Start the graphics instructions
+			graphics.clear();
+			graphics._currentBounds = null; // Get Phaser to behave
+			graphics.beginFill(Phaser.Color.hexToRGB('#e3cce9'), 1);
+			
+			// Set an AABB physics body
+			if (features.shape === 0) {
+				player.body.setSize(halfSize, size);
+				graphics.drawRect(0, 0, halfSize, size);
+			}
+			
+			// Set a circular physics body
+			if (features.shape === 1) {
+				player.body.setCircle(halfSize);
+				graphics.drawCircle(0, 0, features.size);
+			}
+			
+			// Create a Pixi texture from the graphics and give it to the player
+			player.setTexture(graphics.generateTexture(), true);
+			
+			// We don't have to update the player sprite size, but it's good to
+			if (features.shape === 0) {
+				player.width = halfSize;
+				player.height = size;
+			}
+			
+			if (features.shape === 1) {
+				player.width = size;
+				player.height = size;
+			}
+			
+			// Enable Arcade Slopes physics
+			player.body.slopes = null; // TODO: Fix Phaser.Util.Mixin or use something else
+			this.game.slopes.enable(player);
+		},
+		
 		update: function () {
+			// Update the player
+			this.updatePlayer(this.player);
+			
 			// Define some shortcuts to some useful objects
 			var body = this.player.body;
 			var camera = this.camera;
@@ -219,15 +271,15 @@ var ArcadeSlopesDemo = (function(Phaser) {
 			// Update player body Arcade Slopes properties
 			body.slopes.friction.x = features.frictionX;
 			body.slopes.friction.y = features.frictionY;
-			body.slopes.preferY    = this.features.minimumOffsetY;
-			body.slopes.pullUp     = this.features.pullUp;
-			body.slopes.pullDown   = this.features.pullDown;
-			body.slopes.pullLeft   = this.features.pullLeft;
-			body.slopes.pullRight  = this.features.pullRight;
-			body.slopes.snapUp     = this.features.snapUp;
-			body.slopes.snapDown   = this.features.snapDown;
-			body.slopes.snapLeft   = this.features.snapLeft;
-			body.slopes.snapRight  = this.features.snapRight;
+			body.slopes.preferY    = features.minimumOffsetY;
+			body.slopes.pullUp     = features.pullUp;
+			body.slopes.pullDown   = features.pullDown;
+			body.slopes.pullLeft   = features.pullLeft;
+			body.slopes.pullRight  = features.pullRight;
+			body.slopes.snapUp     = features.snapUp;
+			body.slopes.snapDown   = features.snapDown;
+			body.slopes.snapLeft   = features.snapLeft;
+			body.slopes.snapRight  = features.snapRight;
 			
 			// Offset the tilemap
 			// if (this.features.tilemapOffsetX || this.features.tilemapOffsetY) {
@@ -238,6 +290,10 @@ var ArcadeSlopesDemo = (function(Phaser) {
 			// } else if (!this.ground.fixedToCamera) {
 			// 	this.ground.fixedToCamera = true;
 			// }
+			
+			// Debug output for the tilemap
+			this.ground.debug = features.debug >= 2;
+			this.ground.debugSettings.forceFullRedraw = this.ground.debug;
 			
 			// Keep the particle emitter attached to the player (though there's
 			// probably a better way than this)
@@ -356,6 +412,7 @@ var ArcadeSlopesDemo = (function(Phaser) {
 			// Render the keyboard controls
 			if(this.controls.controls.isDown) {
 				this.game.debug.start(32, 196, '#fff', 64);
+				this.game.debug.line('Click:', 'Teleport');
 				this.game.debug.line('WASD:', 'Move/jump');
 				this.game.debug.line('F:', 'Toggle camera follow');
 				this.game.debug.line('G:', 'Toggle gravity');
