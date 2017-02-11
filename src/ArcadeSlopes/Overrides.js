@@ -206,6 +206,10 @@ Phaser.Plugin.ArcadeSlopes.Overrides.getTileBottomRight = function(layer, x, y) 
  * @return {number}
  */
 Phaser.Plugin.ArcadeSlopes.Overrides.getCollisionOffsetX = function () {
+	if (this.getLayerOffsetX) {
+		return this.getLayerOffsetX();
+	}
+	
 	return !this.fixedToCamera ? this.position.x : 0;
 };
 
@@ -216,6 +220,10 @@ Phaser.Plugin.ArcadeSlopes.Overrides.getCollisionOffsetX = function () {
  * @return {number}
  */
 Phaser.Plugin.ArcadeSlopes.Overrides.getCollisionOffsetY = function () {
+	if (this.getLayerOffsetY) {
+		return this.getLayerOffsetY();
+	}
+	
 	return !this.fixedToCamera ? this.position.y : 0;
 };
 
