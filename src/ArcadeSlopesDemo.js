@@ -148,7 +148,7 @@ var ArcadeSlopesDemo = (function(Phaser) {
 			});
 			
 			// Follow the player with the camera
-			this.camera.follow(this.player, Phaser.Camera.FOLLOW_PLATFORMER);
+			this.camera.follow(this.player);
 			
 			// Words cannot describe how much I love having this built in
 			this.camera.lerp.setTo(0.2, 0.2);
@@ -216,8 +216,10 @@ var ArcadeSlopesDemo = (function(Phaser) {
 			}
 			
 			// Enable Arcade Slopes physics
-			player.body.slopes = null; // TODO: Fix Phaser.Util.Mixin or use something else
-			this.game.slopes.enable(player);
+			if (this.game.slopes) {
+				player.body.slopes = null; // TODO: Fix Phaser.Util.Mixin or use something else
+				this.game.slopes.enable(player);
+			}
 		},
 		
 		update: function () {
