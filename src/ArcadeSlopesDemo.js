@@ -299,6 +299,8 @@ var ArcadeSlopesDemo = (function(Phaser) {
 			// probably a better way than this)
 			this.emitter.x = this.player.x + body.halfWidth;
 			this.emitter.y = this.player.y + body.halfHeight;
+			this.emitter.width = this.player.width;
+			this.emitter.height = this.player.height;
 			
 			// Update particle lifespan
 			this.emitter.lifespan = 3000 / this.time.slowMotion;
