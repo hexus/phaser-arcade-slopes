@@ -305,6 +305,13 @@ var ArcadeSlopesDemo = (function(Phaser) {
 			// Update particle lifespan
 			this.emitter.lifespan = 3000 / this.time.slowMotion;
 			
+			// This provides a much better slow motion effect for particles, but
+			// because this only affects newly spawned particles, old particles
+			// can take ages to die after returning to normal timing
+			//this.emitter.lifespan = 3000 * this.time.slowMotion;
+			//this.emitter.frequency = 1 * this.time.slowMotion;
+			//this.emitter.setAlpha(1, 0, 3000 * this.time.slowMotion);
+			
 			// Ensure that all new particles defy gravity
 			this.emitter.gravity.y = -this.physics.arcade.gravity.y;
 			
