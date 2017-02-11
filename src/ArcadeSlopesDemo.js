@@ -284,15 +284,9 @@ var ArcadeSlopesDemo = (function(Phaser) {
 			body.slopes.snapLeft   = features.snapLeft;
 			body.slopes.snapRight  = features.snapRight;
 			
-			// Offset the tilemap
-			// if (this.features.tilemapOffsetX || this.features.tilemapOffsetY) {
-			// 	this.ground.fixedToCamera = false;
-			// 	
-			// 	this.ground.x = (this.game.camera.view.x + this.ground.cameraOffset.x + this.features.tilemapOffsetX) / this.game.camera.scale.x;
-			// 	this.ground.y = (this.game.camera.view.y + this.ground.cameraOffset.y + this.features.tilemapOffsetY) / this.game.camera.scale.y;
-			// } else if (!this.ground.fixedToCamera) {
-			// 	this.ground.fixedToCamera = true;
-			// }
+			// Offset the second tilemap collision layer
+			this.ground2.layerOffsetX = features.tilemapOffsetX;
+			this.ground2.layerOffsetY = features.tilemapOffsetY;
 			
 			// Debug output for the tilemap
 			this.ground.debug = features.debug >= 2;
