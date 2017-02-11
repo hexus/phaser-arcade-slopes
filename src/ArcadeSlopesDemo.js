@@ -40,6 +40,7 @@ var ArcadeSlopesDemo = (function(Phaser) {
 			this.load.tilemap('demo-tilemap', 'assets/maps/demo.json', null, Phaser.Tilemap.TILED_JSON);
 			this.load.spritesheet('pink-collision-spritesheet', 'assets/tilesheets/ninja-tiles32-pink.png', 32, 32);
 			this.load.spritesheet('purple-collision-spritesheet', 'assets/tilesheets/ninja-tiles32-purple.png', 32, 32);
+			this.load.spritesheet('arcade-slopes-spritesheet', 'assets/tilesheets/arcade-slopes-32.png', 32, 32);
 		},
 		
 		create: function () {
@@ -55,27 +56,30 @@ var ArcadeSlopesDemo = (function(Phaser) {
 			// Set the stage background colour
 			this.stage.backgroundColor = '#8d549b';
 			
-			// Add the demo tilemap and attach a tilesheet for its collision layer
+			// Create the tilemap object from the map JSON data
 			this.map = this.add.tilemap('demo-tilemap');
+			
+			// Attach the tileset images to the tilesets defined in the tilemap
 			this.map.addTilesetImage('collision', 'pink-collision-spritesheet');
+			this.map.addTilesetImage('arcade-slopes-32', 'arcade-slopes-spritesheet');
 			
-			// Uncomment these lines for a lighter background and darker tiles
-			//this.stage.backgroundColor = '#ae7bb8';
-			//this.map.addTilesetImage('collision', 'purple-collision-spritesheet');
-			
-			// Create a TilemapLayer object from the collision layer of the map
+			// Create TilemapLayer objects from the collision layers of the map
 			this.ground = this.map.createLayer('collision');
+			this.ground2 = this.map.createLayer('collision2');
 			this.ground.resizeWorld();
 			
-			// Enable collision between tile indexes 2 and 34
+			// Enable collision between the appropriate tile indices for each
+			// layer in the map
 			this.map.setCollisionBetween(2, 34, true, 'collision');
+			this.map.setCollisionBetween(49, 73, true, 'collision2');
 			
-			// Map Arcade Slopes tile types to Ninja Physics debug tilesheets,
-			// preparing slope data for each tile in the layer
+			// Map Arcade Slopes tile types to the correct tilesets, preparing
+			// slope data for each tile in the layers
 			this.game.slopes.convertTilemapLayer(this.ground, 'ninja');
+			this.game.slopes.convertTilemapLayer(this.ground2, 'arcadeslopes', 49);
 			
 			// Create a player sprite
-			this.player = this.add.sprite(768, 2800);
+			this.player = this.add.sprite(595, 384);
 			
 			// Create a graphics object for the player
 			this.playerGraphics = new Phaser.Graphics(this);
@@ -99,9 +103,6 @@ var ArcadeSlopesDemo = (function(Phaser) {
 			this.player.body.maxVelocity.x = 500;
 			this.player.body.maxVelocity.y = 1000;
 			this.player.body.collideWorldBounds = true;
-			
-			// Position the player
-			this.player.position.set(240, 2464);
 			
 			// Create a particle emitter and position it on the player
 			this.emitter = this.add.emitter(this.player.x, this.player.y, 2000);
@@ -296,6 +297,8 @@ var ArcadeSlopesDemo = (function(Phaser) {
 			// Debug output for the tilemap
 			this.ground.debug = features.debug >= 2;
 			this.ground.debugSettings.forceFullRedraw = this.ground.debug;
+			this.ground2.debug = this.ground.debug;
+			this.ground.debugSettings.forceFullRedraw = this.ground.debug;
 			
 			// Keep the particle emitter attached to the player (though there's
 			// probably a better way than this)
@@ -342,6 +345,7 @@ var ArcadeSlopesDemo = (function(Phaser) {
 			
 			// Collide the player against the collision layer
 			this.physics.arcade.collide(this.player, this.ground);
+			this.physics.arcade.collide(this.player, this.ground2);
 			
 			// Collide the player against the particles
 			//this.physics.arcade.collide(this.emitter, this.player);
