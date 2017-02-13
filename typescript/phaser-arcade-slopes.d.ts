@@ -13,10 +13,11 @@ declare module Phaser {
 		class ArcadeSlopes extends Phaser.Plugin {
 			constructor(game:Phaser.Game, parent:any, defaultSolver:number);
 
+			solvers:Object;
 			facade:Phaser.Plugin.ArcadeSlopes.Facade;
 
+			static VERSOIN:string;
 			static SAT:string;
-			static METROID:string;
 		}
 
 		module ArcadeSlopes {
@@ -26,35 +27,30 @@ declare module Phaser {
 
 				factory:Phaser.Plugin.ArcadeSlopes.TileSlopeFactory;
 				solvers:Object;
-				defaultSover:number;
+				defaultSover:string;
 
 				enable(obj:Phaser.Sprite | Phaser.Group):void;
 				enableBody(body:Phaser.Physics.Arcade.Body):void;
 				convertTilemap(map:Phaser.Tilemap, layer:number | string | Phaser.TilemapLayer, slopeMap:string | Object, index:number):Phaser.Tilemap;
 				convertTilemapLayer(layer:Phaser.TilemapLayer, slopeMap:string | Object, index:number):Phaser.TilemapLayer;
-				collide(i:number, body:Phaser.Physics.Arcade.Body, tile:Phaser.Tile, overlapOnly:boolean):boolean;
+				collide(i:number, body:Phaser.Physics.Arcade.Body, tile:Phaser.Tile, tilemapLayer:Phaser.TilemapLayer, overlapOnly:boolean):boolean;
 			}
 
 			class Overrides {
-				collideSpriteVsTile(i:number, sprite:Phaser.Sprite, tile:Phaser.Tile, tilemapLayer:Phaser.TilemapLayer, collideCallback:any, processCallback:any, callbackContext:Object, overlapOnly:boolean):boolean;
-				collideSpriteVsTiles(i:number, sprite:Phaser.Sprite, tiles:Phaser.Tile[], tilemapLayer:Phaser.TilemapLayer, collideCallback:any, processCallback:any, callbackContext:Object, overlapOnly:boolean):boolean;
-				collideSpriteVsTilemaplayer(sprite:Phaser.Sprite, tilemapLayer:Phaser.TilemapLayer, collideCallback:any, processCallback:any, callbackContext:Object, overlapOnly:boolean):boolean;
-				getTileTopLeft(layer:number, x:number, y:number):Phaser.Tile;
-				getTileTopRight(layer:number, x:number, y:number):Phaser.Tile;
-				getTileBottomLeft(layer:number, x:number, y:number):Phaser.Tile;
-				getTileBottomRight(layer:number, x:number, y:number):Phaser.Tile;
+				static collideSpriteVsTile(i:number, sprite:Phaser.Sprite, tile:Phaser.Tile, tilemapLayer:Phaser.TilemapLayer, collideCallback:any, processCallback:any, callbackContext:Object, overlapOnly:boolean):boolean;
+				static collideSpriteVsTiles(sprite:Phaser.Sprite, tiles:Phaser.Tile[], tilemapLayer:Phaser.TilemapLayer, collideCallback:any, processCallback:any, callbackContext:Object, overlapOnly:boolean):boolean;
+				static collideSpriteVsTilemaplayer(sprite:Phaser.Sprite, tilemapLayer:Phaser.TilemapLayer, collideCallback:any, processCallback:any, callbackContext:Object, overlapOnly:boolean):boolean;
+				static getTileTopLeft(layer:number, x:number, y:number):Phaser.Tile;
+				static getTileTopRight(layer:number, x:number, y:number):Phaser.Tile;
+				static getTileBottomLeft(layer:number, x:number, y:number):Phaser.Tile;
+				static getTileBottomRight(layer:number, x:number, y:number):Phaser.Tile;
+				static getCollisionOffsetX():number;
+				static getCollisionOffsetY():number;
+				static renderDebug():void;
 			}
 
 			class SatRestainer {
 				restraints:Object;
-				topVerticies:string[];
-				bottomVerticies:string[];
-				leftVerticies:string[];
-				rightVerticies:string[];
-				topLeftVerticies:string[];
-				topRightVerticies:string[];
-				bottomLeftVerticies:string[];
-				bottomRightVerticies:string[];
 
 				restrain(solver:Phaser.Plugin.ArcadeSlopes.SatSolver, body:Phaser.Physics.Arcade.Body, tile:Phaser.Tile, response:SAT.Response):boolean;
 				resolveOverlaps(direction:string):Object;
@@ -62,6 +58,15 @@ declare module Phaser {
 				setDefaultRestraints():void;
 				intersectArrays(a:any[], b:any[]):any[];
 				resolve();
+
+				static topVerticies:string[];
+				static bottomVerticies:string[];
+				static leftVerticies:string[];
+				static rightVerticies:string[];
+				static topLeftVerticies:string[];
+				static topRightVerticies:string[];
+				static bottomLeftVerticies:string[];
+				static bottomRightVerticies:string[];
 			}
 
 			class SatSolver {
@@ -70,12 +75,12 @@ declare module Phaser {
 				options:Phaser.Plugin.ArcadeSlopes.SatSolverOptions;
 				restrainers:Phaser.Plugin.ArcadeSlopes.SatRestainer;
 
-				prepareResponse(response:SAT.Response):SAT.Response;
-				minimumOffsetX(vector:SAT.Vector):number;
-				minimumOffsetY(vector:SAT.Vector):number;
-				movingAgainstY(body:Phaser.Physics.Arcade.Body, response:SAT.Response):boolean;
-				shouldPreferY(body:Phaser.Physics.Arcade.Body, response:SAT.Response):boolean;
-				isSeparatingAxis(a:SAT.Polygon, b:SAT.Polygon, axis:SAT.Vector, response:SAT.Response):boolean;
+				static prepareResponse(response:SAT.Response):SAT.Response;
+				static minimumOffsetX(vector:SAT.Vector):number;
+				static minimumOffsetY(vector:SAT.Vector):number;
+				static movingAgainstY(body:Phaser.Physics.Arcade.Body, response:SAT.Response):boolean;
+				static shouldPreferY(body:Phaser.Physics.Arcade.Body, response:SAT.Response):boolean;
+				static isSeparatingAxis(a:SAT.Polygon, b:SAT.Polygon, axis:SAT.Vector, response:SAT.Response):boolean;
 				separate(body:Phaser.Physics.Arcade.Body, tile:Phaser.Tile, response:SAT.Response, force:boolean):boolean;
 				applyVelocity(body:Phaser.Physics.Arcade.Body, tile:Phaser.Tile, response:SAT.Response):void;
 				updateValues(body:Phaser.Physics.Arcade.Body):void;
@@ -84,7 +89,7 @@ declare module Phaser {
 				pull(body:Phaser.Physics.Arcade.Body, response:SAT.Response):boolean;
 				snapCollide(body:Phaser.Physics.Arcade.Body, tile:Phaser.Tile, current:Phaser.Point):boolean;
 				shouldCollide(body:Phaser.Physics.Arcade.Body, tile:Phaser.Tile):boolean;
-				collide(i:number, body:Phaser.Physics.Arcade.Body, tile:Phaser.Tile, overlapOnly:boolean):boolean;
+				collide(i:number, body:Phaser.Physics.Arcade.Body, tile:Phaser.Tile, tilemapLayer:Phaser.TilemapLayer, overlapOnly:boolean):boolean;
 				collideOnAxis(body:Phaser.Physics.Arcade.Body, tile:Phaser.Tile, axis:SAT.Vector, response:SAT.Response):boolean;
 				restrain(body:Phaser.Physics.Arcade.Body, tile:Phaser.Tile, response:SAT.Response):boolean;
 				shouldSeparate(i:number, body:Phaser.Physics.Arcade.Body, tile:Phaser.Tile, response:SAT.Response):boolean;
@@ -146,12 +151,17 @@ declare module Phaser {
 			}
 
 			class TileSlopeFactory {
+				definitions:object;
+				mappings:object;
+
 				define(type:number, definition:any):void;
 				create(type:number, tile:Phaser.Tile):Phaser.Plugin.ArcadeSlopes.TileSlope;
 				convertTilemap(tilemap:Phaser.Tilemap, layer:number | string | Phaser.TilemapLayer, slopeMap:string | Object, index:number):Phaser.Tilemap;
 				convertTilemapLayer(layer:Phaser.TilemapLayer, slopeMap:string | Object, index:number):Phaser.TilemapLayer;
 				calculateEdges(layer:Phaser.TilemapLayer):void;
 				compareEdges(firstEdge:number, secondEdge:number):number;
+				flagInternalVerticies(firstTile:Phaser.Tile, secondTile:Phaser.Tile):void;
+				addDebugSettings(layer:Phaser.TilemapLayer):void;
 				resolveMappingType(type:string):number;
 				
 				static createFull(type:number, tile:Phaser.Tile):Phaser.Plugin.ArcadeSlopes.TileSlope;
@@ -181,8 +191,10 @@ declare module Phaser {
 				static createQuarterTopRightHigh(type:number, tile:Phaser.Tile):Phaser.Plugin.ArcadeSlopes.TileSlope;
 				
 				static prepareOffset(index:number):number;
+				static mapArcadeSlopes(index:number):Object;
 				static mapNinjaPhysics(offset:number):Object;
 				
+				static ARCADESLOPES:number;
 				static NINJA:number;
 			}
 
