@@ -16,7 +16,7 @@ declare module Phaser {
 			solvers:Object;
 			facade:Phaser.Plugin.ArcadeSlopes.Facade;
 
-			static VERSOIN:string;
+			static VERSION:string;
 			static SAT:string;
 		}
 
