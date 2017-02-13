@@ -69,7 +69,8 @@ The plugin provides a couple of built in tile slope mappings:
   [128px](https://raw.githubusercontent.com/hexus/phaser-arcade-slopes/master/assets/arcade-slopes-128.png))
 - [Ninja Physics debug tileset](https://github.com/photonstorm/phaser/tree/v2.4.7/resources/Ninja%20Physics%20Debug%20Tiles)
   (`ninja`)
-  ([32px](https://raw.githubusercontent.com/photonstorm/phaser/v2.4.7/resources/Ninja%20Physics%20Debug%20Tiles/32px/ninja-tiles32.png), [64px](https://raw.githubusercontent.com/photonstorm/phaser/v2.4.7/resources/Ninja%20Physics%20Debug%20Tiles/64px/ninja-tiles64.png))
+  ([32px](https://raw.githubusercontent.com/photonstorm/phaser/v2.4.7/resources/Ninja%20Physics%20Debug%20Tiles/32px/ninja-tiles32.png), [64px](https://raw.githubusercontent.com/photonstorm/phaser/v2.4.7/resources/Ninja%20Physics%20Debug%20Tiles/64px/ninja-tiles64.png),
+  [128px](https://raw.githubusercontent.com/photonstorm/phaser/v2.4.7/resources/Ninja%20Physics%20Debug%20Tiles/128px/ninja-tiles128.png))
 
 After you've created a tilemap with a collision layer, you'll need to convert
 that layer to work with Arcade Slopes.
