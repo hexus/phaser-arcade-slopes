@@ -285,8 +285,8 @@ var ArcadeSlopesDemo = (function(Phaser) {
 			body.slopes.snapRight  = features.snapRight;
 			
 			// Offset the second tilemap collision layer
-			this.ground2.layerOffsetX = features.tilemapOffsetX;
-			this.ground2.layerOffsetY = features.tilemapOffsetY;
+			this.ground2.tileOffset.x = features.tilemapOffsetX;
+			this.ground2.tileOffset.y = features.tilemapOffsetY;
 			
 			// Debug output for the tilemap
 			this.ground.debug = features.debug >= 2;
