@@ -21,10 +21,10 @@ Check out the **[demo](http://hexus.github.io/phaser-arcade-slopes)**!
 
 ## Compatibility
 
-| Phaser Version  | Arcade Slopes Version                                                        |
-|-----------------|------------------------------------------------------------------------------|
-| v2.4.1 - v2.4.8 | [v0.1.0](https://github.com/hexus/phaser-arcade-slopes/tree/v0.1.0)          |
-| v2.5.0 - v2.7.3 | [v0.1.1](https://github.com/hexus/phaser-arcade-slopes/tree/v0.1.1) - v0.2.0 |
+| Phaser Version  | Arcade Slopes Version                                               |
+|-----------------|---------------------------------------------------------------------|
+| v2.4.1 - v2.4.8 | [v0.1.0](https://github.com/hexus/phaser-arcade-slopes/tree/v0.1.0) |
+| v2.5.0 - v2.7.3 | [v0.1.1](https://github.com/hexus/phaser-arcade-slopes/tree/v0.1.1) - [v0.2.0-beta](https://github.com/hexus/phaser-arcade-slopes/tree/v0.2.0-beta) |
 
 ## Installation
 
