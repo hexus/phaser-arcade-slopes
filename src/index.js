@@ -1,24 +1,10 @@
 (function (Phaser, DemoState) {
 	// Arcade Slopes Demo
 	var state = new DemoState();
-	var game = new Phaser.Game(1280, 720, Phaser.AUTO, 'phaser', state);
+	var game = new Phaser.Game(1280, 720, Phaser.CANVAS, 'phaser', state);
 
+	// Open up the state globally so we can access it at run time for debugging
 	window.state = state;
-
-	// Old controls
-	var $ = document.querySelectorAll.bind(document);
-
-	var updateValue = function (control) {
-		var feature = control.getAttribute('data-feature');
-		var value = parseFloat(control.value);
-		var span = $('.' + feature)[0];
-		
-		state.features[feature] = value;
-		
-		if (span) {
-			span.innerText = value;
-		}
-	};
 
 	document.addEventListener('DOMContentLoaded', function () {
 		// Dat gui tho
