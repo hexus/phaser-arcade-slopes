@@ -247,10 +247,15 @@ Phaser.Plugin.ArcadeSlopes.Overrides.renderDebug = function () {
 	var renderW = this.canvas.width;
 	var renderH = this.canvas.height;
 	
+	var scaleX = this.tileScale ? this.tileScale.x : 1.0 / this.scale.x;
+	var scaleY = this.tileScale ? this.tileScale.y : 1.0 / this.scale.y;
+	
 	var width = this.layer.width;
 	var height = this.layer.height;
-	var tw = this._mc.tileWidth;
-	var th = this._mc.tileHeight;
+	var tw = this._mc.tileWidth * scaleX;
+	var th = this._mc.tileHeight * scaleY;
+	var cw = this._mc.cw * scaleX;
+	var ch = this._mc.ch * scaleY;
 	
 	var left = Math.floor(scrollX / tw);
 	var right = Math.floor((renderW - 1 + scrollX) / tw);
@@ -285,7 +290,7 @@ Phaser.Plugin.ArcadeSlopes.Overrides.renderDebug = function () {
 
 			if (this.debugSettings.collidingTileOverfill) {
 				context.fillStyle = this.debugSettings.collidingTileOverfill;
-				context.fillRect(tx, ty, this._mc.cw, this._mc.ch);
+				context.fillRect(tx, ty, cw, ch);
 			}
 
 			if (this.debugSettings.facingEdgeStroke) {
@@ -296,22 +301,22 @@ Phaser.Plugin.ArcadeSlopes.Overrides.renderDebug = function () {
 				
 				if (tile.faceTop) {
 					context.moveTo(tx, ty);
-					context.lineTo(tx + this._mc.cw, ty);
+					context.lineTo(tx + cw, ty);
 				}
 				
 				if (tile.faceBottom) {
-					context.moveTo(tx, ty + this._mc.ch);
-					context.lineTo(tx + this._mc.cw, ty + this._mc.ch);
+					context.moveTo(tx, ty + ch);
+					context.lineTo(tx + cw, ty + ch);
 				}
 				
 				if (tile.faceLeft) {
 					context.moveTo(tx, ty);
-					context.lineTo(tx, ty + this._mc.ch);
+					context.lineTo(tx, ty + ch);
 				}
 				
 				if (tile.faceRight) {
-					context.moveTo(tx + this._mc.cw, ty);
-					context.lineTo(tx + this._mc.cw, ty + this._mc.ch);
+					context.moveTo(tx + cw, ty);
+					context.lineTo(tx + cw, ty + ch);
 				}
 				
 				context.closePath();
@@ -329,13 +334,13 @@ Phaser.Plugin.ArcadeSlopes.Overrides.renderDebug = function () {
 						polygon = tile.slope.polygon;
 						
 						// Move to the first vertex
-						context.moveTo(tx + polygon.points[0].x, ty + polygon.points[0].y);
+						context.moveTo(tx + polygon.points[0].x * scaleX, ty + polygon.points[0].y * scaleY);
 						
 						// Draw a path through all vertices
 						for (i = 0; i < polygon.points.length; i++) {
 							j = (i + 1) % polygon.points.length;
 							
-							context.lineTo(tx + polygon.points[j].x, ty + polygon.points[j].y);
+							context.lineTo(tx + polygon.points[j].x * scaleX, ty + polygon.points[j].y * scaleY);
 						}
 						
 						context.closePath();
@@ -367,8 +372,8 @@ Phaser.Plugin.ArcadeSlopes.Overrides.renderDebug = function () {
 							if (polygon.points[i].internal)
 								continue;
 							
-							context.moveTo(tx + polygon.points[i].x, ty + polygon.points[i].y);
-							context.lineTo(tx + polygon.points[j].x, ty + polygon.points[j].y);
+							context.moveTo(tx + polygon.points[i].x * scaleX, ty + polygon.points[i].y * scaleY);
+							context.lineTo(tx + polygon.points[j].x * scaleX, ty + polygon.points[j].y * scaleY);
 						}
 						
 						context.closePath();
