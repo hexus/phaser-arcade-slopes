@@ -1,6 +1,27 @@
 body {
-	background: #eee;
-	font-family: sans-serif;
+	background: #d59ce3;
+	/*font-family: sans-serif;*/
+	padding-top: 70px;
+}
+
+.navbar-inverse {
+	background-image: none;
+	background-color: #8d549b;
+	border: none;
+}
+
+.navbar-inverse .navbar-brand {
+	color: #fff;
+}
+
+.navbar-inverse .navbar-nav > li > a {
+	color: #d59ce3;
+}
+
+.navbar-inverse .navbar-nav > .active > a,
+.navbar-inverse .navbar-nav > .active > a:focus,
+.navbar-inverse .navbar-nav > .active > a:hover {
+	background-color: #d59ce3;
 }
 
 .container {
@@ -23,4 +44,8 @@ body {
 	width: 128px;
 	display: block;
 	margin-top: 8px;
+}
+
+.dg.ac {
+	z-index: 9001; /* It's over nine thousand /*
 }

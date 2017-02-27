@@ -3,137 +3,83 @@
 	<head>
 		<meta charset="utf-8"/>
 		<title>Phaser Arcade Slopes Demo</title>
-		<link rel="stylesheet" href="assets/css/style.css"/>
+		
+		<script src="https://cdnjs.cloudflare.com/ajax/libs/dat-gui/0.6.2/dat.gui.min.js"></script>
+		<link rel="stylesheet" href="/assets/vendor/dat.gui/dat.gui.light.css"/>
+		<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css"/>
+		
+		<link rel="stylesheet" href="/assets/css/style.css"/>
+		
 		<!-- <script src="https://cdn.rawgit.com/photonstorm/phaser-ce/v2.7.3/build/phaser.js"></script> -->
-		<!-- <script src="https://cdn.rawgit.com/hexus/phaser-arcade-slopes/v0.2.0-beta/dist/phaser-arcade-slopes.min.js"></script> -->
+		<script src="https://cdn.rawgit.com/hexus/phaser-ce/952c6f28f78851499d7da5c30be0dffc15ad61ca/build/phaser.js"></script>
+		<script src="https://cdn.rawgit.com/hexus/phaser-arcade-slopes/v0.2.0-beta/dist/phaser-arcade-slopes.min.js"></script>
 		
 		<!-- <script src="//phaser.dev/dist/phaser.js"></script> -->
-		<script src="//phaser-ce.dev/dist/phaser.js"></script>
-		<script src="//phaser-arcade-slopes.dev/dist/phaser-arcade-slopes.js"></script>
+		<!-- <script src="//phaser-ce.dev/dist/phaser.js"></script> -->
+		<!-- <script src="//phaser-arcade-slopes.dev/dist/phaser-arcade-slopes.js"></script> -->
 		
-		<script src="src/ArcadeSlopesDemo.js"></script>
-		<script>
-			var state = new ArcadeSlopesDemo;
-			var game = new Phaser.Game(1280, 720, Phaser.AUTO, 'phaser', state);
-			
-			var $ = document.querySelectorAll.bind(document);
-			
-			var updateValue = function (control) {
-				var feature = control.getAttribute('data-feature');
-				var value = parseFloat(control.value);
-				var span = $('.' + feature)[0];
-				
-				state.features[feature] = value;
-				
-				if (span) {
-					span.innerText = value;
-				}
-			}
-
-			document.addEventListener('DOMContentLoaded', function () {
-				Array.prototype.forEach.call($('.control'), function (control) {
-					// Initial update
-					updateValue(control);
-					
-					// Update on change
-					control.addEventListener('input', function (event) {
-						updateValue(event.target);
-					});
-					
-					// Update span and control titles with min/max values
-					var feature = control.getAttribute('data-feature');
-					var span = $('.' + feature)[0];
-					
-					var title = control.getAttribute('min') + ' - ' + control.getAttribute('max');
-					
-					control.setAttribute('title', title);
-					
-					if (span) {
-						span.setAttribute('title', title);
-					}
-				});
-			});
-		</script>
+		<script src="src/DemoState.js"></script>
+		<script src="src/index.js"></script>
 	</head>
 	<body>
+		<nav class="navbar navbar-inverse navbar-fixed-top">
+			<div class="container">
+				<div class="navbar-header">
+					<button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
+						<span class="sr-only">Toggle navigation</span>
+						<span class="icon-bar"></span>
+						<span class="icon-bar"></span>
+						<span class="icon-bar"></span>
+					</button>
+					<a class="navbar-brand" href="/">Phaser Arcade Slopes</a>
+				</div>
+				<div id="navbar" class="navbar-collapse collapse">
+					<ul class="nav navbar-nav">
+						<li class="active"><a href="/">Demo</a></li>
+						<li><a href="/generator.html">Tileset Generator</a></li>
+					</ul>
+				</div>
+			</div>
+		</nav>
+		
 		<div class="container">
-			<h1>Phaser Arcade Slopes Plugin</h1>
-			<h2>Demo</h2>
-			<p>A demonstration of the <a target="_blank" href="https://github.com/hexus/phaser-arcade-slopes">Arcade Slopes</a> plugin for <a target="_blank" href="http://phaser.io">Phaser</a>.</p>
-			<p>Hold <strong>C</strong> for a list of keyboard controls. Use the sliders below to alter the values used in the game state.</p>
-			<div id="phaser"></div>
-			<div class="controls">
-				<label>
-					Acceleration: <span class="acceleration"></span>
-					<input type="range" class="control" data-feature="acceleration" value="2500" min="100" max="5000"/>
-				</label>
-				<label>
-					Gravity: <span class="gravity"></span>
-					<input type="range" class="control" data-feature="gravity" value="1000" min="-2000" max="2000" step="50"/>
-				</label>
-				<label>
-					Jump/Wall-jump: <span class="jump"></span>/<span class="wallJump"></span>
-					<input type="range" class="control" data-feature="jump" value="500" min="0" max="1000" step="50"/>
-					<input type="range" class="control" data-feature="wallJump" value="350" min="0" max="500" step="50"/>
-				</label>
-				<label>
-					Drag X/Y: <span class="dragX"></span>/<span class="dragY"></span>
-					<input type="range" class="control" data-feature="dragX" value="1200" min="0" max="2000" step="50"/>
-					<input type="range" class="control" data-feature="dragY" value="0" min="0" max="2000" step="50"/>
-				</label>
-				<label>
-					Bounce X/Y: <span class="bounceX"></span>/<span class="bounceY"></span>
-					<input type="range" class="control" data-feature="bounceX" value="0" min="0" max="1" step="0.05"/>
-					<input type="range" class="control" data-feature="bounceY" value="0" min="0" max="1" step="0.05"/>
-				</label>
-				<label>
-					Friction X/Y: <span class="frictionX"></span>/<span class="frictionY"></span>
-					<input type="range" class="control" data-feature="frictionX" value="0" min="0" max="0.5" step="0.01"/>
-					<input type="range" class="control" data-feature="frictionY" value="0" min="0" max="0.5" step="0.01"/>
-				</label>
-				<label>
-					Minimum Y Offset: <span class="minimumOffsetY"></span>
-					<input type="range" class="control" data-feature="minimumOffsetY" value="1" min="0" max="1" />
-				</label>
-				<label>
-					Pull &uarr;/&darr;/&larr;/&rarr;: <span class="pullUp"></span>/<span class="pullDown"></span>/<span class="pullLeft"></span>/<span class="pullRight"></span>
-					<input type="range" class="control" data-feature="pullUp" value="0" min="0" max="200" step="5"/>
-					<input type="range" class="control" data-feature="pullDown" value="0" min="0" max="200" step="5"/>
-					<input type="range" class="control" data-feature="pullLeft" value="0" min="0" max="200" step="5"/>
-					<input type="range" class="control" data-feature="pullRight" value="0" min="0" max="200" step="5"/>
-				</label>
-				<label>
-					Snap &uarr;/&darr;/&larr;/&rarr;: <span class="snapUp"></span>/<span class="snapDown"></span>/<span class="snapLeft"></span>/<span class="snapRight"></span>
-					<input type="range" class="control" data-feature="snapUp" value="0" min="0" max="2" step="0.1"/>
-					<input type="range" class="control" data-feature="snapDown" value="0" min="0" max="2" step="0.1"/>
-					<input type="range" class="control" data-feature="snapLeft" value="0" min="0" max="2" step="0.1"/>
-					<input type="range" class="control" data-feature="snapRight" value="0" min="0" max="2" step="0.1"/>
-				</label>
-				<label>
-					Particle vs Particle: <span class="particleSelfCollide"></span>
-					<input type="range" class="control" data-feature="particleSelfCollide" value="0" min="0" max="1"/>
-				</label>
-				<label>
-					Slow motion: <span class="slowMotion"></span>
-					<input type="range" class="control" data-feature="slowMotion" value="0" min="1" max="16" step="0.5"/>
-				</label>
-				<label>
-					Debug: <span class="debug"></span>
-					<input type="range" class="control" data-feature="debug" value="0" min="0" max="2"/>
-				</label>
-				<label>
-					Player shape (AABB/Circle): <span class="shape"></span>
-					<input type="range" class="control" data-feature="shape" value="0" min="0" max="1"/>
-				</label>
-				<label>
-					Player size: <span class="size"></span>
-					<input type="range" class="control" data-feature="size" value="96" min="16" max="256"/>
-				</label>
-				<label>
-					Tilemap offset: <span class="tilemapOffsetX"></span>/<span class="tilemapOffsetY"></span>
-					<input type="range" class="control" data-feature="tilemapOffsetX" value="0" min="0" max="200"/>
-					<input type="range" class="control" data-feature="tilemapOffsetY" value="0" min="0" max="200"/>
-				</label>
+			<div class="row">
+				<p>
+					<div id="phaser"></div>
+				</p>
+			</div>
+			<div class="row">
+				<p>A demonstration of the <a target="_blank" href="https://github.com/hexus/phaser-arcade-slopes">Arcade Slopes</a> plugin for <a target="_blank" href="http://phaser.io">Phaser</a>.</p>
+				<p>Hold <strong>C</strong> for a list of keyboard controls.</p>
+				<p>Use the <strong>menu</strong> to the right to alter the values used in the game state.</p>
+				<!--<div class="controls">
+					<label>
+						Pull &uarr;/&darr;/&larr;/&rarr;: <span class="pullUp"></span>/<span class="pullDown"></span>/<span class="pullLeft"></span>/<span class="pullRight"></span>
+						<input type="range" class="control" data-feature="pullUp" value="0" min="0" max="200" step="5"/>
+						<input type="range" class="control" data-feature="pullDown" value="0" min="0" max="200" step="5"/>
+						<input type="range" class="control" data-feature="pullLeft" value="0" min="0" max="200" step="5"/>
+						<input type="range" class="control" data-feature="pullRight" value="0" min="0" max="200" step="5"/>
+					</label>
+					<label>
+						Snap &uarr;/&darr;/&larr;/&rarr;: <span class="snapUp"></span>/<span class="snapDown"></span>/<span class="snapLeft"></span>/<span class="snapRight"></span>
+						<input type="range" class="control" data-feature="snapUp" value="0" min="0" max="2" step="0.1"/>
+						<input type="range" class="control" data-feature="snapDown" value="0" min="0" max="2" step="0.1"/>
+						<input type="range" class="control" data-feature="snapLeft" value="0" min="0" max="2" step="0.1"/>
+						<input type="range" class="control" data-feature="snapRight" value="0" min="0" max="2" step="0.1"/>
+					</label>
+					<label>
+						Particle vs Particle: <span class="particleSelfCollide"></span>
+						<input type="range" class="control" data-feature="particleSelfCollide" value="0" min="0" max="1"/>
+					</label>
+					<label>
+						Slow motion: <span class="slowMotion"></span>
+						<input type="range" class="control" data-feature="slowMotion" value="0" min="1" max="16" step="0.5"/>
+					</label>
+					<label>
+						Debug: <span class="debug"></span>
+						<input type="range" class="control" data-feature="debug" value="0" min="0" max="2"/>
+					</label>
+				</div>-->
 			</div>
 		</div>
 	</body>

@@ -3,6 +3,7 @@
 	<head>
 		<meta charset="utf-8"/>
 		<title>Phaser Arcade Slopes Tilesheet Generator</title>
+		<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css"/>
 		<link rel="stylesheet" href="assets/css/style.css"/>
 		<style>
 			.phaser-container {
@@ -200,9 +201,28 @@
 		</script>
 	</head>
 	<body>
+		<nav class="navbar navbar-inverse navbar-fixed-top">
+			<div class="container">
+				<div class="navbar-header">
+					<button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
+						<span class="sr-only">Toggle navigation</span>
+						<span class="icon-bar"></span>
+						<span class="icon-bar"></span>
+						<span class="icon-bar"></span>
+					</button>
+					<a class="navbar-brand" href="/">Phaser Arcade Slopes</a>
+				</div>
+				<div id="navbar" class="navbar-collapse collapse">
+					<ul class="nav navbar-nav">
+						<li><a href="/">Demo</a></li>
+						<li class="active"><a href="#generator">Tileset Generator</a></li>
+					</ul>
+				</div>
+			</div>
+		</nav>
+		
 		<div class="container">
 			<h1>Phaser Arcade Slopes Plugin</h1>
-			<h2><a href="index.html">Demo</a> | Tilesheet Generator</h2>
 			<p>This little tool makes it easy to generate a simple tilesheet for the Arcade Slopes plugin.</p>
 			<p><strong>Right click &rarr; Save image as</strong> to save your tilesheet.</p>
 			<div class="controls">
@@ -214,7 +234,7 @@
 				</label>
 				<label>
 					Fill: <span class="fillColour"></span>
-					<input type="color" class="control" data-feature="fillColour" value="#999999"/>
+					<input type="color" class="control" data-feature="fillColour" value="#8d549b"/>
 				</label>
 				<label>
 					Fill alpha: <span class="fillAlpha"></span>
@@ -222,7 +242,7 @@
 				</label>
 				<label>
 					Border: <span class="borderColour"></span>
-					<input type="color" class="control" data-feature="borderColour" value="#666666"/>
+					<input type="color" class="control" data-feature="borderColour" value="#444444"/>
 				</label>
 				<label>
 					Border alpha: <span class="borderAlpha"></span>
