@@ -145,7 +145,11 @@ var ArcadeSlopesDemo = (function(Phaser) {
 				'gravity': Phaser.KeyCode.G,
 				'controls': Phaser.KeyCode.C,
 				'particles': Phaser.KeyCode.J,
-				'toggle': Phaser.KeyCode.K
+				'toggle': Phaser.KeyCode.K,
+				'cameraUp': Phaser.KeyCode.UP,
+				'cameraDown': Phaser.KeyCode.DOWN,
+				'cameraLeft': Phaser.KeyCode.LEFT,
+				'cameraRight': Phaser.KeyCode.RIGHT
 			});
 			
 			// Follow the player with the camera
@@ -351,7 +355,24 @@ var ArcadeSlopesDemo = (function(Phaser) {
 			
 			// Collide the particles against the collision layer
 			this.physics.arcade.collide(this.emitter, this.ground);
-
+			
+			// Move the camera
+			if (controls.cameraUp.isDown) {
+				camera.y -= 20;
+			}
+			
+			if (controls.cameraDown.isDown) {
+				camera.y += 20;
+			}
+			
+			if (controls.cameraLeft.isDown) {
+				camera.x -= 20;
+			}
+			
+			if (controls.cameraRight.isDown) {
+				camera.x += 20;
+			}
+			
 			// Reset the player acceleration
 			body.acceleration.x = 0;
 			body.acceleration.y = 0;
@@ -423,6 +444,7 @@ var ArcadeSlopesDemo = (function(Phaser) {
 				this.game.debug.start(32, 196, '#fff', 64);
 				this.game.debug.line('Click:', 'Teleport');
 				this.game.debug.line('WASD:', 'Move/jump');
+				this.game.debug.line('Arrow keys:', 'Move the camera');
 				this.game.debug.line('F:', 'Toggle camera follow');
 				this.game.debug.line('G:', 'Toggle gravity');
 				this.game.debug.line('J:', 'Toggle particles');
