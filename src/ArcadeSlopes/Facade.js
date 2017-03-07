@@ -40,6 +40,13 @@ Phaser.Plugin.ArcadeSlopes.Facade = function (factory, solvers, defaultSolver) {
 	 * @default
 	 */
 	this.defaultSolver = defaultSolver || Phaser.Plugin.ArcadeSlopes.SAT;
+	
+	/**
+	 * The plugin this facade belongs to.
+	 *
+	 * @property {Phaser.Plugin.ArcadeSlopes} plugin
+	 */
+	this.plugin = null;
 };
 
 /**
@@ -69,15 +76,13 @@ Phaser.Plugin.ArcadeSlopes.Facade.prototype.enable = function (object) {
 };
 
 /**
- * Enable the given physics body for sloped tile interaction.
- * 
- * TODO: Circle body support, when it's released.
+ * Enable the given physics body for sloped tile collisions.
  *
  * @method Phaser.Plugin.ArcadeSlopes.Facade#enableBody
  * @param {Phaser.Physics.Arcade.Body} body - The physics body to enable.
  */
 Phaser.Plugin.ArcadeSlopes.Facade.prototype.enableBody = function (body) {
-	// Create an SAT polygon from the body's bounding box
+	// Create an SAT shape for the body
 	// TODO: Rename body.polygon to body.shape or body.slopes.shape
 	if  (body.isCircle) {
 		body.polygon = new SAT.Circle(
@@ -90,14 +95,14 @@ Phaser.Plugin.ArcadeSlopes.Facade.prototype.enableBody = function (body) {
 	} else {
 		body.polygon = new SAT.Box(
 			new SAT.Vector(body.x, body.y),
-			body.width,
-			body.height
+			body.width * body.sprite.scale.x,
+			body.height * body.sprite.scale.y
 		).toPolygon();
 	}
 	
 	// Attach a new set of properties that configure the body's interaction
-	// with sloped tiles (TODO: Formalize as a class?)
-	body.slopes = Phaser.Utils.mixin(body.slopes || {}, {
+	// with sloped tiles, if they don't exist (TODO: Formalize as a class)
+	body.slopes = body.slopes || {
 		debug: false,
 		friction: new Phaser.Point(),
 		preferY: false,
@@ -118,7 +123,7 @@ Phaser.Plugin.ArcadeSlopes.Facade.prototype.enableBody = function (body) {
 		snapLeft: 0,
 		snapRight: 0,
 		velocity: new SAT.Vector()
-	});
+	};
 };
 
 /**
@@ -163,9 +168,5 @@ Phaser.Plugin.ArcadeSlopes.Facade.prototype.convertTilemapLayer = function (laye
  * @return {boolean}                                 - Whether the body was separated.
  */
 Phaser.Plugin.ArcadeSlopes.Facade.prototype.collide = function (i, body, tile, tilemapLayer, overlapOnly) {
-	if (tile.slope.solver && this.solvers.hasOwnProperty(tile.slope.solver)) {
-		return this.solvers[tile.slope.solver].collide(i, body, tile, tilemapLayer, overlapOnly);
-	}
-	
 	return this.solvers[this.defaultSolver].collide(i, body, tile, tilemapLayer, overlapOnly);
 };

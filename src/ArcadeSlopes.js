@@ -39,6 +39,10 @@ Phaser.Plugin.ArcadeSlopes = function (game, parent, defaultSolver) {
 		solvers,
 		defaultSolver || Phaser.Plugin.ArcadeSlopes.SAT
 	);
+	
+	// Give the facade a reference to the plugin; this makes it easier to remove
+	// it at runtime
+	this.facade.plugin = this;
 };
 
 Phaser.Plugin.ArcadeSlopes.prototype = Object.create(Phaser.Plugin.prototype);

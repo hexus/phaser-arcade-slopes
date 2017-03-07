@@ -101,6 +101,9 @@ Phaser.Plugin.ArcadeSlopes.SatSolver.movingAgainstY = function (body, response) 
  * Returns true if options.preferY is true, the overlap vector is non-zero
  * for each axis and the body is moving against the overlap vector.
  *
+ * TODO: Adapt for circle bodies, somehow. Disable for now?
+ * TODO: Would be amazing to check to ensure that there are no other surrounding collisions.
+ *
  * @method Phaser.Plugin.ArcadeSlopes.SatSolver#shouldPreferY
  * @param  {Phaser.Physics.Arcade.Body} body     - The physics body.
  * @param  {SAT.Response}               response - The SAT response.

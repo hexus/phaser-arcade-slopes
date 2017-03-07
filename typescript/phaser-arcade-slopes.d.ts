@@ -28,6 +28,7 @@ declare module Phaser {
 				factory:Phaser.Plugin.ArcadeSlopes.TileSlopeFactory;
 				solvers:Object;
 				defaultSover:string;
+				plugin:Phaser.Plugin.ArcadeSlopes;
 
 				enable(obj:Phaser.Sprite | Phaser.Group):void;
 				enableBody(body:Phaser.Physics.Arcade.Body):void;
@@ -206,6 +207,10 @@ declare module Phaser {
 				pullDown:number;
 				pullLeft:number;
 				pullRight:number;
+				pullTopLeft:number;
+				pullTopRight:number;
+				pullBottomLeft:number;
+				pullBottomRight:number;
 				sat:Phaser.Plugin.ArcadeSlopes.BodySlopesSat;
 				skipFriction:boolean;
 				snapUp:number;
