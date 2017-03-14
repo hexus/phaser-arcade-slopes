@@ -125,7 +125,7 @@ Phaser.Plugin.ArcadeSlopes.Overrides.collideSpriteVsTilemapLayer = function (spr
 	
 	if (!collided && !overlapOnly) {
 		// TODO: This call is too hacky and solver-specific
-		this.game.slopes.solvers.sat.snap(sprite.body, tiles);
+		this.game.slopes.solvers.sat.snap(sprite.body, tiles, tilemapLayer);
 	}
 	
 	return collided;

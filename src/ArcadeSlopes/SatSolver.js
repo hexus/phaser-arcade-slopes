@@ -259,11 +259,12 @@ Phaser.Plugin.ArcadeSlopes.SatSolver.prototype.updateFlags = function (body, res
  * TODO: Maybe remove snapping altogether.
  * 
  * @method Phaser.Plugin.ArcadeSlopes.SatSolver#snap
- * @param  {Phaser.Physics.Arcade.Body} body  - The physics body.
- * @param  {Phaser.Tile[]}              tiles - The tiles.
- * @return {boolean}                          - Whether the body was snapped to any tiles.
+ * @param  {Phaser.Physics.Arcade.Body} body         - The physics body.
+ * @param  {Phaser.Tile[]}              tiles        - The tiles.
+ * @param  {Phaser.TilemapLayer}        tilemapLayer - The tilemap layer.
+ * @return {boolean}                                 - Whether the body was snapped to any tiles.
  */
-Phaser.Plugin.ArcadeSlopes.SatSolver.prototype.snap = function (body, tiles) {
+Phaser.Plugin.ArcadeSlopes.SatSolver.prototype.snap = function (body, tiles, tilemapLayer) {
 	if (!body.slopes || (!body.slopes.snapUp && !body.slopes.snapDown && !body.slopes.snapLeft && !body.slopes.snapRight)) {
 		return false;
 	}
@@ -289,7 +290,7 @@ Phaser.Plugin.ArcadeSlopes.SatSolver.prototype.snap = function (body, tiles) {
 			body.position.x = current.x;
 			body.position.y = current.y - body.slopes.snapUp;
 			
-			if (this.snapCollide(body, tile, current)) {
+			if (this.snapCollide(body, tile, tilemapLayer, current)) {
 				return true;
 			}
 		}
@@ -298,7 +299,7 @@ Phaser.Plugin.ArcadeSlopes.SatSolver.prototype.snap = function (body, tiles) {
 			body.position.x = current.x;
 			body.position.y = current.y + body.slopes.snapDown;
 			
-			if (this.snapCollide(body, tile, current)) {
+			if (this.snapCollide(body, tile, tilemapLayer, current)) {
 				return true;
 			}
 		}
@@ -307,7 +308,7 @@ Phaser.Plugin.ArcadeSlopes.SatSolver.prototype.snap = function (body, tiles) {
 			body.position.x = current.x - body.slopes.snapLeft;
 			body.position.y = current.y;
 			
-			if (this.snapCollide(body, tile, current)) {
+			if (this.snapCollide(body, tile, tilemapLayer, current)) {
 				return true;
 			}
 		}
@@ -316,7 +317,7 @@ Phaser.Plugin.ArcadeSlopes.SatSolver.prototype.snap = function (body, tiles) {
 			body.position.x = current.x + body.slopes.snapRight;
 			body.position.y = current.y;
 			
-			if (this.snapCollide(body, tile, current)) {
+			if (this.snapCollide(body, tile, tilemapLayer, current)) {
 				return true;
 			}
 		}
@@ -427,13 +428,14 @@ Phaser.Plugin.ArcadeSlopes.SatSolver.prototype.pull = function (body, response) 
  * back to the given current position if it fails.
  *
  * @method Phaser.Plugin.ArcadeSlopes.SatSolver#snapCollide
- * @param  {Phaser.Physics.Arcade.Body} body    - The translated physics body.
- * @param  {Phaser.Tile}                tile    - The tile.
- * @param  {Phaser.Point}               current - The original position of the body.
- * @return {boolean}                            - Whether the body snapped to the tile.
+ * @param  {Phaser.Physics.Arcade.Body} body         - The translated physics body.
+ * @param  {Phaser.Tile}                tile         - The tile.
+ * @param  {Phaser.TilemapLayer}        tilemapLayer - The tilemap layer.
+ * @param  {Phaser.Point}               current      - The original position of the body.
+ * @return {boolean}                                 - Whether the body snapped to the tile.
  */
-Phaser.Plugin.ArcadeSlopes.SatSolver.prototype.snapCollide = function (body, tile, current) {
-	if (this.collide(0, body, tile)) {
+Phaser.Plugin.ArcadeSlopes.SatSolver.prototype.snapCollide = function (body, tile, tilemapLayer, current) {
+	if (this.collide(0, body, tile, tilemapLayer)) {
 		return true;
 	}
 	
