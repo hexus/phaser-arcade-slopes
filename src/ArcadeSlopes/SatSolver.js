@@ -232,13 +232,6 @@ Phaser.Plugin.ArcadeSlopes.SatSolver.prototype.updateValues = function (body) {
  * @param  {SAT.Response}               response - The SAT response.
  */
 Phaser.Plugin.ArcadeSlopes.SatSolver.prototype.updateFlags = function (body, response) {
-	// Set the wasTouching values
-	body.wasTouching.up    = body.touching.up;
-	body.wasTouching.down  = body.touching.down;
-	body.wasTouching.left  = body.touching.left;
-	body.wasTouching.right = body.touching.right;
-	body.wasTouching.none  = body.touching.none;
-
 	// Set the touching values
 	body.touching.up    = body.touching.up    || response.overlapV.y > 0;
 	body.touching.down  = body.touching.down  || response.overlapV.y < 0;
