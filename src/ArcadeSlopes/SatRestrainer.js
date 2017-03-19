@@ -1,6 +1,6 @@
 /**
  * @author Chris Andrew <chris@hexus.io>
- * @copyright 2016 Chris Andrew
+ * @copyright 2016-2017 Chris Andrew
  * @license MIT
  */
 

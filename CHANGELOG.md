@@ -1,5 +1,16 @@
 # Arcade Slopes Change Log
 
+## Unreleased
+- Added sprite scale support for AABB physics bodies.
+- Included a reference to the plugin with the facade. This makes it easier to
+  remove the plugin at runtime
+  (`this.game.plugins.remove(this.game.slopes.plugin)`).
+- Fixed multiple calls to `slopes.body.enable(sprite)` causing an error.
+- Ensured that tilemap debug rendering only wraps if the layer has its `wrap`
+  property set to `true`.
+- Fixed wasTouching flags (#35).
+
+
 ## v0.2.0-beta - 10th February 2017
 - Supported tile collision flags when determining separation (#27, #28,
   thanks @kevinchau321).

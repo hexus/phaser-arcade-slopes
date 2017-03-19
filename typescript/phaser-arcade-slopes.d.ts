@@ -86,9 +86,9 @@ declare module Phaser {
 				applyVelocity(body:Phaser.Physics.Arcade.Body, tile:Phaser.Tile, response:SAT.Response):void;
 				updateValues(body:Phaser.Physics.Arcade.Body):void;
 				updateFlags(body:Phaser.Physics.Arcade.Body, response:SAT.Response):void;
-				snap(body:Phaser.Physics.Arcade.Body, tiles:Phaser.Tile[]):boolean;
+				snap(body:Phaser.Physics.Arcade.Body, tiles:Phaser.Tile[], tilemapLayer:Phaser.TilemapLayer):boolean;
 				pull(body:Phaser.Physics.Arcade.Body, response:SAT.Response):boolean;
-				snapCollide(body:Phaser.Physics.Arcade.Body, tile:Phaser.Tile, current:Phaser.Point):boolean;
+				snapCollide(body:Phaser.Physics.Arcade.Body, tile:Phaser.Tile, tilemapLayer:Phaser.TilemapLayer, current:Phaser.Point):boolean;
 				shouldCollide(body:Phaser.Physics.Arcade.Body, tile:Phaser.Tile):boolean;
 				collide(i:number, body:Phaser.Physics.Arcade.Body, tile:Phaser.Tile, tilemapLayer:Phaser.TilemapLayer, overlapOnly:boolean):boolean;
 				collideOnAxis(body:Phaser.Physics.Arcade.Body, tile:Phaser.Tile, axis:SAT.Vector, response:SAT.Response):boolean;

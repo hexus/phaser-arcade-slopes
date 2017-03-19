@@ -1,14 +1,11 @@
 /**
  * @author Chris Andrew <chris@hexus.io>
- * @copyright 2016 Chris Andrew
+ * @copyright 2016-2017 Chris Andrew
  * @license MIT
  */
 
 /**
  * A facade class to attach to a Phaser game.
- *
- * TODO: Extract a CollisionHandler/CollisionResolver class that stores solvers
- *       and defaultSolver that the facade can just forward calls to.
  * 
  * @class Phaser.Plugin.ArcadeSlopes.Facade
  * @constructor
