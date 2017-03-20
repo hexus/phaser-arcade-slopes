@@ -17,7 +17,7 @@
  * Thanks to some painstaking heuristics, it allows a set of touching tiles to
  * behave more like a single shape.
  * 
- * TODO: Change all of these rules to work with the built in edge restraints.
+ * TODO: Change all of these rules to work with Phaser's own edge restraints.
  *       Will require checking all of these rules during tilemap convert.
  *       TileSlope specific edge flags would need to be set for this.
  *       See SatSolver.shouldSeparate(). That should deal with it.
@@ -439,7 +439,7 @@ Phaser.Plugin.ArcadeSlopes.SatRestrainer.prototype.setDefaultRestraints = functi
 		{
 			direction: 'up',
 			neighbour: 'above',
-			types: this.resolve('topLeft', 'left'),
+			types: this.resolve('bottomLeft', 'bottom'),
 			separate: function (body, tile) {
 				return body.left > tile.left;
 			}

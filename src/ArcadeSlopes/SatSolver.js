@@ -454,8 +454,6 @@ Phaser.Plugin.ArcadeSlopes.SatSolver.prototype.shouldCollide = function (body, t
 /**
  * Separate the given body and tile from each other and apply any relevant
  * changes to the body's velocity.
- *
- * TODO: Accept a process callback into this method
  * 
  * @method Phaser.Plugin.ArcadeSlopes.SatSolver#collide
  * @param  {integer}                    i            - The tile index.
@@ -496,20 +494,21 @@ Phaser.Plugin.ArcadeSlopes.SatSolver.prototype.collide = function (i, body, tile
 		return true;
 	}
 	
+	// Invert our overlap vectors so that we have them facing outwards
+	Phaser.Plugin.ArcadeSlopes.SatSolver.prepareResponse(response);
+	
 	// Update the overlap properties of the body
 	body.overlapX = response.overlapV.x;
 	body.overlapY = response.overlapV.y;
 	body.slopes.sat.response = response;
 	
-	// TODO: Invoke a process callback here
-	
-	// Invert our overlap vectors so that we have them facing outwards
-	Phaser.Plugin.ArcadeSlopes.SatSolver.prepareResponse(response);
-	
 	// Bail out if no separation occurred
 	if (!this.separate(body, tile, response)) {
 		return false;
 	}
+	
+	// Set the tile that the body separated from
+	body.slopes.tile = tile;
 	
 	// Apply any velocity changes as a result of the collision
 	this.applyVelocity(body, tile, response);

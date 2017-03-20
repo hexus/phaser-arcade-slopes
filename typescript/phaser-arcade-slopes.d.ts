@@ -217,6 +217,7 @@ declare module Phaser {
 				snapDown:number;
 				snapLeft:number;
 				snapRight:number;
+				tile:Phaser.Tile;
 				velocity:SAT.Vector;
 			}
 
