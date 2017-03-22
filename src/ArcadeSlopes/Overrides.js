@@ -262,6 +262,19 @@ Phaser.Plugin.ArcadeSlopes.Overrides.renderDebug = function () {
 	var top = Math.floor(scrollY / th);
 	var bottom = Math.floor((renderH - 1 + scrollY) / th);
 	
+	if (!this._wrap)
+	{
+		if (left <= right) {
+			left = Math.max(0, left);
+			right = Math.min(width - 1, right);
+		}
+		
+		if (top <= bottom) {
+			top = Math.max(0, top);
+			bottom = Math.min(height - 1, bottom);
+		}
+	}
+	
 	var baseX = (left * tw) - scrollX;
 	var baseY = (top * th) - scrollY;
 	
@@ -272,22 +285,14 @@ Phaser.Plugin.ArcadeSlopes.Overrides.renderDebug = function () {
 	
 	for (y = normStartY, ymax = bottom - top, ty = baseY; ymax >= 0; y++, ymax--, ty += th) {
 		if (y >= height) {
-			if (this.wrap) {
-				y -= height;
-			} else {
-				continue;
-			}
+			y -= height;
 		}
 		
 		var row = this.layer.data[y];
 		
 		for (x = normStartX, xmax = right - left, tx = baseX; xmax >= 0; x++, xmax--, tx += tw) {
 			if (x >= width) {
-				if (this.wrap) {
-					x -= width;
-				} else {
-					continue;
-				}
+				x -= width;
 			}
 			
 			var tile = row[x];

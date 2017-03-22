@@ -9,7 +9,10 @@
 - Ensured that tilemap debug rendering only wraps if the layer has its `wrap`
   property set to `true`.
 - Fixed wasTouching flags (#35).
-
+- Added the last collided tile to `body.slopes.tile`.
+- Fixed a heuristics mistake that's been around since May 2016 (4ee0d23c)! There
+  are probably more...
+- Fixed a wrapping issue with tilemap layer debug rendering.
 
 ## v0.2.0-beta - 10th February 2017
 - Supported tile collision flags when determining separation (#27, #28,
