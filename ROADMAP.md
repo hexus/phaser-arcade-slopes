@@ -32,5 +32,12 @@
   - [ ] More consistent naming
     - [ ] Tile slope type constants
     - [ ] Direction/neighbour names
-  - [ ] Swept intersection tests
+  - [ ] Tunnelling solutions
+    - [ ] Swept intersection tests
+    - [ ] Raycasting
+  - [ ] Raycasting for sticky slopes
+  - [ ] Automatic sprite rotation
+    - [ ] Omni-directional
+    - [ ] Selective
+  - [ ] AABB collision margins
   - [ ] Memory consumption improvements
