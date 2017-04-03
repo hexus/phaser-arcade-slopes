@@ -145,11 +145,23 @@ right situations.
 player.body.slopes.preferY = true;
 
 // Prefer the minimum Y offset globally
-game.slopes.solvers.sat.options.preferY = true;
+game.slopes.preferY = true;
 ```
 
 If you're making a platformer, your player has drag on the X axis, and you don't
 want it to slide down slopes, this should solve your problem.
+
+#### Heuristics
+
+The plugin uses heuristics to prevent physics bodies from catching on
+undesirable tile edges; the faces of two tiles placed next to each other.
+
+**This is enabled by default.** If you don't need this feature, you can disable
+it.
+
+```
+game.slopes.heuristics = false;
+```
 
 #### Collision pulling
 

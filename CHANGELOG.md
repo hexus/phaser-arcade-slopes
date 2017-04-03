@@ -13,6 +13,9 @@
 - Fixed a heuristics mistake that's been around since May 2016 (4ee0d23c)! There
   are probably more...
 - Fixed a wrapping issue with tilemap layer debug rendering.
+- Added dynamic `heuristics` and `preferY` properties to the Facade, making it
+  simpler to toggle these features globally (`game.slopes.heuristics`,
+  `game.slopes.preferY`).
 
 ## v0.2.0-beta - 10th February 2017
 - Supported tile collision flags when determining separation (#27, #28,

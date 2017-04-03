@@ -168,3 +168,39 @@ Phaser.Plugin.ArcadeSlopes.Facade.prototype.convertTilemapLayer = function (laye
 Phaser.Plugin.ArcadeSlopes.Facade.prototype.collide = function (i, body, tile, tilemapLayer, overlapOnly) {
 	return this.solvers[this.defaultSolver].collide(i, body, tile, tilemapLayer, overlapOnly);
 };
+
+/**
+ * Whether to prefer Y axis separation in an attempt to prevent physics bodies
+ * from sliding down slopes when they are separated.
+ *
+ * Disabled by default. Only relevant in a game that uses gravity.
+ *
+ * @name Phaser.Plugin.ArcadeSlopes.Facade#preferY
+ * @property {boolean} preferY
+ */
+Object.defineProperty(Phaser.Plugin.ArcadeSlopes.Facade.prototype, 'preferY', {
+	get: function () {
+		return this.solvers.sat.options.preferY;
+	},
+	set: function (enabled) {
+		this.solvers.sat.options.preferY = !!enabled;
+	}
+});
+
+/**
+ * Whether to use heuristics to avoid collisions with the internal edges between
+ * connected tiles.
+ *
+ * Enabled by default. Relevant to platformers.
+ *
+ * @name Phaser.Plugin.ArcadeSlopes.Facade#heuristics
+ * @property {boolean} heuristics
+ */
+Object.defineProperty(Phaser.Plugin.ArcadeSlopes.Facade.prototype, 'heuristics', {
+	get: function () {
+		return this.solvers.sat.options.restrain;
+	},
+	set: function (enabled) {
+		this.solvers.sat.options.restrain = !!enabled;
+	}
+});
