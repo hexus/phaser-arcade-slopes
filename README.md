@@ -159,7 +159,7 @@ undesirable tile edges; the faces of two tiles placed next to each other.
 **This is enabled by default.** If you don't need this feature, you can disable
 it.
 
-```
+```js
 game.slopes.heuristics = false;
 ```
 
@@ -225,7 +225,7 @@ My thanks go out to those who made this Plugin possible.
 - Bethany - for listening to me blabber on about slopes for well over a month
   :full_moon_with_face:
 
-And to contributors who were generous with their time, talents and support:
+And to contributors who have been generous with their time, talents and support:
 
 - [@IkonOne](https://github.com/IkonOne)
 - [@michaeljcalkins](https://github.com/michaeljcalkins)
