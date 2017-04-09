@@ -46,6 +46,7 @@ Phaser.
 - [Collision](#collision)
 - [Debug rendering](#debug-rendering)
 - [Extras](#extras)
+  - [Heuristics](#heuristics)
   - [Minimum Y Offset](#minimum-y-offset)
   - [Collision pulling](#collision-pulling)
 
@@ -135,6 +136,18 @@ ground.debug = true;
 
 ### Extras
 
+#### Heuristics
+
+The plugin uses heuristics to prevent physics bodies from catching on
+undesirable tile edges; the touching edges of two adjacent tiles.
+
+**This is enabled by default.** If you don't need this feature, you can disable
+it.
+
+```js
+game.slopes.heuristics = false;
+```
+
 #### Minimum Y offset
 
 This feature separates rectangular physics bodies on the Y axis only, in the
@@ -150,18 +163,6 @@ game.slopes.preferY = true;
 
 If you're making a platformer, your player has drag on the X axis, and you don't
 want it to slide down slopes, this should solve your problem.
-
-#### Heuristics
-
-The plugin uses heuristics to prevent physics bodies from catching on
-undesirable tile edges; the faces of two tiles placed next to each other.
-
-**This is enabled by default.** If you don't need this feature, you can disable
-it.
-
-```js
-game.slopes.heuristics = false;
-```
 
 #### Collision pulling
 
