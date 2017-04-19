@@ -11,7 +11,7 @@
 				overflow-x: auto;
 			}
 		</style>
-		<script src="https://cdn.rawgit.com/photonstorm/phaser/v2.4.8/build/phaser.min.js"></script>
+		<script src="https://cdn.rawgit.com/photonstorm/phaser-ce/v2.7.3/build/phaser.min.js"></script>
 		<script src="https://cdn.rawgit.com/hexus/phaser-arcade-slopes/v0.1.0-beta/dist/phaser-arcade-slopes.min.js"></script>
 		<script type="text/javascript">
 			var state = {
@@ -20,6 +20,9 @@
 				options: {
 					width: 32,
 					height: 32,
+					margin: 0,
+					spacing: 0,
+					padding: 0,
 					fillAlpha: 1,
 					fillColour: '#999',
 					borderWidth: 0,
@@ -68,15 +71,29 @@
 				sheetHeight: 0,
 				
 				createTiles: function () {
+					var width = this.options.width;
+					var height = this.options.height;
+					var halfWidth = width / 2;
+					var halfHeight = height / 2;
+					var margin = this.options.margin;
+					var spacing = this.options.spacing;
+					var padding = this.options.padding;
+					var spadding = spacing + padding; // What? ( ͡° ͜ʖ ͡°)
+					
+					// var margin = this.options.margin + padding;
+					// TODO: Include a margin for edges of the sheet, add
+					// padding to said margin
+					
 					this.tiles = [];
 					
 					this.sheetWidth = 0;
-					this.sheetHeight = this.types.length * this.options.height;
+					this.sheetHeight = this.types.length * this.options.height + margin * 2 + spadding * this.types.length - spadding;
 					
 					// For every tile type in the map
 					for (var y in this.types) {
-						if (this.sheetWidth < this.types[y].length * this.options.width) {
-							this.sheetWidth = this.types[y].length * this.options.width;
+						// Update the width if we've indexed wider than before
+						if (this.sheetWidth < this.types[y].length * this.options.width + margin * 2 + spadding * this.types[y].length - spadding) {
+							this.sheetWidth = this.types[y].length * this.options.width + margin * 2 + spadding * this.types[y].length - spadding;
 						}
 						
 						for (var x in this.types[y]) {
@@ -89,6 +106,11 @@
 							// Create a tile
 							var tile = new Phaser.Tile({}, 0, x, y, this.options.width, this.options.height);
 							
+							// Set its position
+							tile.worldX = margin + x * this.options.width + spadding * x;
+							tile.worldY = margin + y * this.options.height + spadding * y;
+							//console.log(tile);
+							
 							// Create its slope
 							tile.slope = this.game.slopes.factory.create(type, tile);
 							
@@ -99,6 +121,8 @@
 				},
 				
 				drawTiles: function () {
+					var spadding = this.options.spacing + this.options.padding * 2; // What? ( ͡° ͜ʖ ͡°)
+					
 					for (var g in this.graphics) {
 						this.graphics[g].destroy();
 					}
@@ -113,6 +137,19 @@
 						polygon.y = tile.worldY;
 						
 						var graphics = game.add.graphics(polygon.x, polygon.y);
+						
+						// Use the polygon's centroid as the pivot
+						graphics.pivot = Phaser.Point.centroid(tile.slope.polygon.points);
+						
+						// Move the tiles by their pivot so they still line up
+						graphics.x += graphics.pivot.x + this.options.padding;
+						graphics.y += graphics.pivot.y + this.options.padding;
+						
+						//console.log(graphics);
+						graphics.scale.set(
+							1.0 + this.options.padding / tile.width,
+							1.0 + this.options.padding / tile.height
+						);
 						graphics.beginFill(Phaser.Color.hexToRGB(this.options.fillColour), this.options.fillAlpha);
 						graphics.lineStyle(this.options.borderWidth, Phaser.Color.hexToRGB(this.options.borderColour), this.options.borderAlpha);
 						graphics.drawPolygon(polygon);
@@ -124,24 +161,35 @@
 					this.scale.setGameSize(this.sheetWidth, this.sheetHeight);
 				},
 				
+				optionsChanged: function () {
+					return JSON.stringify(this.lastOptions) !== JSON.stringify(this.options);
+				},
+				
 				create: function () {
 					this.game.plugins.add(Phaser.Plugin.ArcadeSlopes);
 				},
 				
 				update: function () {
 					// Rebuild the tiles if the options have changed
-					if (JSON.stringify(this.lastOptions) !== JSON.stringify(this.options)) {
+					if (this.optionsChanged()) {
+						var antialias = !!this.options.antialias;
+						
+						this.stage.dirty = true;
+						this.stage.smoothed = antialias;
+						this.game.antialias = antialias;
+						this.game.renderer.renderSession.roundPixels = antialias;
+						this.game.renderer.context.imageSmoothingEnabled = antialias;
+						
 						this.createTiles();
 						this.drawTiles();
-						this.stage.dirty = true;
 					}
 					
 					// Update the last options
 					this.lastOptions = JSON.parse(JSON.stringify(this.options));
-				}
+				},
 			};
 		
-			var game = new Phaser.Game(544, 96, Phaser.CANVAS, 'phaser', state, true, true);
+			var game = new Phaser.Game(544, 96, Phaser.CANVAS, 'phaser', state, true, false);
 			
 			var $ = document.querySelectorAll.bind(document);
 			
@@ -233,6 +281,18 @@
 					<input type="range" class="control" data-feature="height" value="32" min="16" max="128" step="8"/>
 				</label>
 				<label>
+					Margin: <span class="margin"></span>
+					<input type="range" class="control" data-feature="margin" value="0" min="0" max="8" step="1"/>
+				</label>
+				<label>
+					Spacing: <span class="spacing"></span>
+					<input type="range" class="control" data-feature="spacing" value="0" min="0" max="8" step="1"/>
+				</label>
+				<!-- <label>
+					Padding: <span class="padding"></span>
+					<input type="range" class="control" data-feature="padding" value="0" min="0" max="8" step="2"/>
+				</label> -->
+				<label>
 					Fill: <span class="fillColour"></span>
 					<input type="color" class="control" data-feature="fillColour" value="#8d549b"/>
 				</label>
@@ -242,7 +302,7 @@
 				</label>
 				<label>
 					Border: <span class="borderColour"></span>
-					<input type="color" class="control" data-feature="borderColour" value="#444444"/>
+					<input type="color" class="control" data-feature="borderColour" value="#8d549b"/>
 				</label>
 				<label>
 					Border alpha: <span class="borderAlpha"></span>
@@ -252,6 +312,10 @@
 					Border width: <span class="borderWidth"></span>
 					<input type="range" class="control" data-feature="borderWidth" value="0" min="0" max="2" step="0.05"/>
 				</label>
+				<!-- <label>
+					Antialiased: <span class="antialias"></span>
+					<input type="range" class="control" data-feature="antialias" value="0" min="0" max="1" step="1"/>
+				</label> -->
 			</div>
 			<div class="phaser-container">
 				<div id="phaser"></div>
