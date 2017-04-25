@@ -20,8 +20,10 @@ Phaser.Plugin.ArcadeSlopes.SatSolver = function (options) {
 	this.options = Phaser.Utils.mixin(options || {}, {
 		// Whether to store debug data with all encountered physics bodies
 		debug: false,
+		
 		// Whether to prefer the minimum Y offset over the smallest separation
 		preferY: false,
+		
 		// Whether to restrain SAT collisions
 		restrain: true
 	});
@@ -31,7 +33,7 @@ Phaser.Plugin.ArcadeSlopes.SatSolver = function (options) {
 	 *
 	 * They should expose a restrain() function.
 	 *
-	 * @property {object[]} restrainters
+	 * @property {object[]} restrainers
 	 */
 	this.restrainers = [
 		new Phaser.Plugin.ArcadeSlopes.SatRestrainer()
