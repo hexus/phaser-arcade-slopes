@@ -504,6 +504,8 @@ Phaser.Plugin.ArcadeSlopes.SatSolver.prototype.collide = function (i, body, tile
 	
 	var response = body.slopes.sat.response || new SAT.Response();
 	
+	Phaser.Plugin.ArcadeSlopes.SatSolver.resetResponse(response);
+	
 	// Test for an overlap and bail if there isn't one
 	if ((body.isCircle && !SAT.testCirclePolygon(body.polygon, tile.slope.polygon, response)) || (!body.isCircle && !SAT.testPolygonPolygon(body.polygon, tile.slope.polygon, response))) {
 		return false;
@@ -519,8 +521,6 @@ Phaser.Plugin.ArcadeSlopes.SatSolver.prototype.collide = function (i, body, tile
 	
 	// Bail out if no separation occurred, resetting the response
 	if (!this.separate(body, tile, response)) {
-		Phaser.Plugin.ArcadeSlopes.SatSolver.resetResponse(response);
-		
 		return false;
 	}
 	
@@ -573,8 +573,6 @@ Phaser.Plugin.ArcadeSlopes.SatSolver.prototype.collideOnAxis = function (body, t
 	
 	// Bail out if no separation occurred, resetting the response
 	if (!this.separate(body, tile, response, true)) {
-		Phaser.Plugin.ArcadeSlopes.SatSolver.resetResponse(response);
-		
 		return false;
 	}
 	
