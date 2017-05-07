@@ -1,6 +1,6 @@
 /**
  * @author Chris Andrew <chris@hexus.io>
- * @copyright 2016 Chris Andrew
+ * @copyright 2016-2017 Chris Andrew
  * @license MIT
  */
 
@@ -39,6 +39,10 @@ Phaser.Plugin.ArcadeSlopes = function (game, parent, defaultSolver) {
 		solvers,
 		defaultSolver || Phaser.Plugin.ArcadeSlopes.SAT
 	);
+	
+	// Give the facade a reference to the plugin; this makes it easier to remove
+	// it at runtime
+	this.facade.plugin = this;
 };
 
 Phaser.Plugin.ArcadeSlopes.prototype = Object.create(Phaser.Plugin.prototype);
@@ -126,15 +130,12 @@ Phaser.Plugin.ArcadeSlopes.prototype.destroy = function () {
 
 /**
  * @author Chris Andrew <chris@hexus.io>
- * @copyright 2016 Chris Andrew
+ * @copyright 2016-2017 Chris Andrew
  * @license MIT
  */
 
 /**
  * A facade class to attach to a Phaser game.
- *
- * TODO: Extract a CollisionHandler/CollisionResolver class that stores solvers
- *       and defaultSolver that the facade can just forward calls to.
  * 
  * @class Phaser.Plugin.ArcadeSlopes.Facade
  * @constructor
@@ -166,6 +167,13 @@ Phaser.Plugin.ArcadeSlopes.Facade = function (factory, solvers, defaultSolver) {
 	 * @default
 	 */
 	this.defaultSolver = defaultSolver || Phaser.Plugin.ArcadeSlopes.SAT;
+	
+	/**
+	 * The plugin this facade belongs to.
+	 *
+	 * @property {Phaser.Plugin.ArcadeSlopes} plugin
+	 */
+	this.plugin = null;
 };
 
 /**
@@ -195,15 +203,13 @@ Phaser.Plugin.ArcadeSlopes.Facade.prototype.enable = function (object) {
 };
 
 /**
- * Enable the given physics body for sloped tile interaction.
- * 
- * TODO: Circle body support, when it's released.
+ * Enable the given physics body for sloped tile collisions.
  *
  * @method Phaser.Plugin.ArcadeSlopes.Facade#enableBody
  * @param {Phaser.Physics.Arcade.Body} body - The physics body to enable.
  */
 Phaser.Plugin.ArcadeSlopes.Facade.prototype.enableBody = function (body) {
-	// Create an SAT polygon from the body's bounding box
+	// Create an SAT shape for the body
 	// TODO: Rename body.polygon to body.shape or body.slopes.shape
 	if  (body.isCircle) {
 		body.polygon = new SAT.Circle(
@@ -216,14 +222,14 @@ Phaser.Plugin.ArcadeSlopes.Facade.prototype.enableBody = function (body) {
 	} else {
 		body.polygon = new SAT.Box(
 			new SAT.Vector(body.x, body.y),
-			body.width,
-			body.height
+			body.width * body.sprite.scale.x,
+			body.height * body.sprite.scale.y
 		).toPolygon();
 	}
 	
 	// Attach a new set of properties that configure the body's interaction
-	// with sloped tiles (TODO: Formalize as a class?)
-	body.slopes = Phaser.Utils.mixin(body.slopes || {}, {
+	// with sloped tiles, if they don't exist (TODO: Formalize as a class)
+	body.slopes = body.slopes || {
 		debug: false,
 		friction: new Phaser.Point(),
 		preferY: false,
@@ -243,8 +249,9 @@ Phaser.Plugin.ArcadeSlopes.Facade.prototype.enableBody = function (body) {
 		snapDown: 0,
 		snapLeft: 0,
 		snapRight: 0,
+		tile: null,
 		velocity: new SAT.Vector()
-	});
+	};
 };
 
 /**
@@ -289,16 +296,48 @@ Phaser.Plugin.ArcadeSlopes.Facade.prototype.convertTilemapLayer = function (laye
  * @return {boolean}                                 - Whether the body was separated.
  */
 Phaser.Plugin.ArcadeSlopes.Facade.prototype.collide = function (i, body, tile, tilemapLayer, overlapOnly) {
-	if (tile.slope.solver && this.solvers.hasOwnProperty(tile.slope.solver)) {
-		return this.solvers[tile.slope.solver].collide(i, body, tile, tilemapLayer, overlapOnly);
-	}
-	
 	return this.solvers[this.defaultSolver].collide(i, body, tile, tilemapLayer, overlapOnly);
 };
 
 /**
+ * Whether to prefer Y axis separation in an attempt to prevent physics bodies
+ * from sliding down slopes when they are separated.
+ *
+ * Disabled by default. Only relevant in a game that uses gravity.
+ *
+ * @name Phaser.Plugin.ArcadeSlopes.Facade#preferY
+ * @property {boolean} preferY
+ */
+Object.defineProperty(Phaser.Plugin.ArcadeSlopes.Facade.prototype, 'preferY', {
+	get: function () {
+		return this.solvers.sat.options.preferY;
+	},
+	set: function (enabled) {
+		this.solvers.sat.options.preferY = !!enabled;
+	}
+});
+
+/**
+ * Whether to use heuristics to avoid collisions with the internal edges between
+ * connected tiles.
+ *
+ * Enabled by default. Relevant to platformers.
+ *
+ * @name Phaser.Plugin.ArcadeSlopes.Facade#heuristics
+ * @property {boolean} heuristics
+ */
+Object.defineProperty(Phaser.Plugin.ArcadeSlopes.Facade.prototype, 'heuristics', {
+	get: function () {
+		return this.solvers.sat.options.restrain;
+	},
+	set: function (enabled) {
+		this.solvers.sat.options.restrain = !!enabled;
+	}
+});
+
+/**
  * @author Chris Andrew <chris@hexus.io>
- * @copyright 2016 Chris Andrew
+ * @copyright 2016-2017 Chris Andrew
  * @license MIT
  */
 
@@ -315,15 +354,15 @@ Phaser.Plugin.ArcadeSlopes.Overrides = {};
  * Collide a sprite against a single tile.
  *
  * @method Phaser.Plugin.ArcadeSlopes.Overrides#collideSpriteVsTile
- * @param  {integer}             i                - The tile index.
- * @param  {Phaser.Sprite}       sprite           - The sprite to check.
- * @param  {Phaser.Tile}         tile             - The tile to check.
- * @param  {Phaser.TilemapLayer} tilemapLayer     - The tilemap layer the tile belongs to.
- * @param  {function}            collideCallback  - An optional collision callback.
- * @param  {function}            processCallback  - An optional overlap processing callback.
- * @param  {object}              callbackContext  - The context in which to run the callbacks.
- * @param  {boolean}             overlapOnly      - Whether to only check for an overlap.
- * @return {boolean}                              - Whether a collision occurred.
+ * @param  {integer}             i               - The tile index.
+ * @param  {Phaser.Sprite}       sprite          - The sprite to check.
+ * @param  {Phaser.Tile}         tile            - The tile to check.
+ * @param  {Phaser.TilemapLayer} tilemapLayer    - The tilemap layer the tile belongs to.
+ * @param  {function}            collideCallback - An optional collision callback.
+ * @param  {function}            processCallback - An optional overlap processing callback.
+ * @param  {object}              callbackContext - The context in which to run the callbacks.
+ * @param  {boolean}             overlapOnly     - Whether to only check for an overlap.
+ * @return {boolean}                             - Whether a collision occurred.
  */
 Phaser.Plugin.ArcadeSlopes.Overrides.collideSpriteVsTile = function (i, sprite, tile, tilemapLayer, collideCallback, processCallback, callbackContext, overlapOnly) {
 	if (!sprite.body) {
@@ -357,14 +396,14 @@ Phaser.Plugin.ArcadeSlopes.Overrides.collideSpriteVsTile = function (i, sprite, 
  * Collide a sprite against a set of tiles.
  *
  * @method Phaser.Plugin.ArcadeSlopes.Overrides#collideSpriteVsTiles
- * @param  {Phaser.Sprite}       sprite           - The sprite to check.
- * @param  {Phaser.Tile[]}       tiles            - The tiles to check.
- * @param  {Phaser.TilemapLayer} tilemapLayer     - The tilemap layer the tiles belong to.
- * @param  {function}            collideCallback  - An optional collision callback.
- * @param  {function}            processCallback  - An optional overlap processing callback.
- * @param  {object}              callbackContext  - The context in which to run the callbacks.
- * @param  {boolean}             overlapOnly      - Whether to only check for an overlap.
- * @return {boolean}                              - Whether a collision occurred.
+ * @param  {Phaser.Sprite}       sprite          - The sprite to check.
+ * @param  {Phaser.Tile[]}       tiles           - The tiles to check.
+ * @param  {Phaser.TilemapLayer} tilemapLayer    - The tilemap layer the tiles belong to.
+ * @param  {function}            collideCallback - An optional collision callback.
+ * @param  {function}            processCallback - An optional overlap processing callback.
+ * @param  {object}              callbackContext - The context in which to run the callbacks.
+ * @param  {boolean}             overlapOnly     - Whether to only check for an overlap.
+ * @return {boolean}                             - Whether a collision occurred.
  */
 Phaser.Plugin.ArcadeSlopes.Overrides.collideSpriteVsTiles = function (sprite, tiles, tilemapLayer, collideCallback, processCallback, callbackContext, overlapOnly) {
 	var collided = false;
@@ -393,13 +432,13 @@ Phaser.Plugin.ArcadeSlopes.Overrides.collideSpriteVsTiles = function (sprite, ti
  * 
  * @override Phaser.Physics.Arcade#collideSpriteVsTilemapLayer
  * @method Phaser.Plugin.ArcadeSlopes.Overrides#collideSpriteVsTilemapLayer
- * @param  {Phaser.Sprite}       sprite           - The sprite to check.
- * @param  {Phaser.TilemapLayer} tilemapLayer     - The tilemap layer to check.
- * @param  {function}            collideCallback  - An optional collision callback.
- * @param  {function}            processCallback  - An optional overlap processing callback.
- * @param  {object}              callbackContext  - The context in which to run the callbacks.
- * @param  {boolean}             overlapOnly      - Whether to only check for an overlap.
- * @return {boolean}                              - Whether a collision occurred.
+ * @param  {Phaser.Sprite}       sprite          - The sprite to check.
+ * @param  {Phaser.TilemapLayer} tilemapLayer    - The tilemap layer to check.
+ * @param  {function}            collideCallback - An optional collision callback.
+ * @param  {function}            processCallback - An optional overlap processing callback.
+ * @param  {object}              callbackContext - The context in which to run the callbacks.
+ * @param  {boolean}             overlapOnly     - Whether to only check for an overlap.
+ * @return {boolean}                             - Whether a collision occurred.
  */
 Phaser.Plugin.ArcadeSlopes.Overrides.collideSpriteVsTilemapLayer = function (sprite, tilemapLayer, collideCallback, processCallback, callbackContext, overlapOnly) {
 	if (!sprite.body) {
@@ -423,7 +462,7 @@ Phaser.Plugin.ArcadeSlopes.Overrides.collideSpriteVsTilemapLayer = function (spr
 	
 	if (!collided && !overlapOnly) {
 		// TODO: This call is too hacky and solver-specific
-		this.game.slopes.solvers.sat.snap(sprite.body, tiles);
+		this.game.slopes.solvers.sat.snap(sprite.body, tiles, tilemapLayer);
 	}
 	
 	return collided;
@@ -560,6 +599,19 @@ Phaser.Plugin.ArcadeSlopes.Overrides.renderDebug = function () {
 	var top = Math.floor(scrollY / th);
 	var bottom = Math.floor((renderH - 1 + scrollY) / th);
 	
+	if (!this._wrap)
+	{
+		if (left <= right) {
+			left = Math.max(0, left);
+			right = Math.min(width - 1, right);
+		}
+		
+		if (top <= bottom) {
+			top = Math.max(0, top);
+			bottom = Math.min(height - 1, bottom);
+		}
+	}
+	
 	var baseX = (left * tw) - scrollX;
 	var baseY = (top * th) - scrollY;
 	
@@ -686,7 +738,7 @@ Phaser.Plugin.ArcadeSlopes.Overrides.renderDebug = function () {
 
 /**
  * @author Chris Andrew <chris@hexus.io>
- * @copyright 2016 Chris Andrew
+ * @copyright 2016-2017 Chris Andrew
  * @license MIT
  */
 
@@ -703,7 +755,7 @@ Phaser.Plugin.ArcadeSlopes.Overrides.renderDebug = function () {
  * Thanks to some painstaking heuristics, it allows a set of touching tiles to
  * behave more like a single shape.
  * 
- * TODO: Change all of these rules to work with the built in edge restraints.
+ * TODO: Change all of these rules to work with Phaser's own edge restraints.
  *       Will require checking all of these rules during tilemap convert.
  *       TileSlope specific edge flags would need to be set for this.
  *       See SatSolver.shouldSeparate(). That should deal with it.
@@ -1125,7 +1177,7 @@ Phaser.Plugin.ArcadeSlopes.SatRestrainer.prototype.setDefaultRestraints = functi
 		{
 			direction: 'up',
 			neighbour: 'above',
-			types: this.resolve('topLeft', 'left'),
+			types: this.resolve('bottomLeft', 'bottom'),
 			separate: function (body, tile) {
 				return body.left > tile.left;
 			}
@@ -1564,7 +1616,7 @@ Phaser.Plugin.ArcadeSlopes.SatRestrainer.bottomRightVertices = [
 
 /**
  * @author Chris Andrew <chris@hexus.io>
- * @copyright 2016 Chris Andrew
+ * @copyright 2016-2017 Chris Andrew
  * @license MIT
  */
 
@@ -1584,8 +1636,10 @@ Phaser.Plugin.ArcadeSlopes.SatSolver = function (options) {
 	this.options = Phaser.Utils.mixin(options || {}, {
 		// Whether to store debug data with all encountered physics bodies
 		debug: false,
+		
 		// Whether to prefer the minimum Y offset over the smallest separation
 		preferY: false,
+		
 		// Whether to restrain SAT collisions
 		restrain: true
 	});
@@ -1595,7 +1649,7 @@ Phaser.Plugin.ArcadeSlopes.SatSolver = function (options) {
 	 *
 	 * They should expose a restrain() function.
 	 *
-	 * @property {object[]} restrainters
+	 * @property {object[]} restrainers
 	 */
 	this.restrainers = [
 		new Phaser.Plugin.ArcadeSlopes.SatRestrainer()
@@ -1607,13 +1661,31 @@ Phaser.Plugin.ArcadeSlopes.SatSolver = function (options) {
  *
  * @static
  * @method Phaser.Plugin.ArcadeSlopes.SatSolver#prepareResponse
- * @param  {SAT.Response}
+ * @param  {SAT.Response} response
  * @return {SAT.Response}
  */
-Phaser.Plugin.ArcadeSlopes.SatSolver.prepareResponse = function(response) {
+Phaser.Plugin.ArcadeSlopes.SatSolver.prepareResponse = function (response) {
 	// Invert our overlap vectors so that we have them facing outwards
 	response.overlapV.scale(-1);
 	response.overlapN.scale(-1);
+	
+	return response;
+};
+
+/**
+ * Reset the given SAT response's properties to their default values.
+ *
+ * @static
+ * @method Phaser.Plugin.ArcadeSlopes.SatSolver#resetResponse
+ * @param  {SAT.Response} response
+ * @return {SAT.Response}
+ */
+Phaser.Plugin.ArcadeSlopes.SatSolver.resetResponse = function (response) {
+	response.overlapN.x = 0;
+	response.overlapN.y = 0;
+	response.overlapV.x = 0;
+	response.overlapV.y = 0;
+	response.clear();
 	
 	return response;
 };
@@ -1664,6 +1736,9 @@ Phaser.Plugin.ArcadeSlopes.SatSolver.movingAgainstY = function (body, response) 
  *
  * Returns true if options.preferY is true, the overlap vector is non-zero
  * for each axis and the body is moving against the overlap vector.
+ *
+ * TODO: Adapt for circle bodies, somehow. Disable for now?
+ * TODO: Would be amazing to check to ensure that there are no other surrounding collisions.
  *
  * @method Phaser.Plugin.ArcadeSlopes.SatSolver#shouldPreferY
  * @param  {Phaser.Physics.Arcade.Body} body     - The physics body.
@@ -1793,13 +1868,6 @@ Phaser.Plugin.ArcadeSlopes.SatSolver.prototype.updateValues = function (body) {
  * @param  {SAT.Response}               response - The SAT response.
  */
 Phaser.Plugin.ArcadeSlopes.SatSolver.prototype.updateFlags = function (body, response) {
-	// Set the wasTouching values
-	body.wasTouching.up    = body.touching.up;
-	body.wasTouching.down  = body.touching.down;
-	body.wasTouching.left  = body.touching.left;
-	body.wasTouching.right = body.touching.right;
-	body.wasTouching.none  = body.touching.none;
-
 	// Set the touching values
 	body.touching.up    = body.touching.up    || response.overlapV.y > 0;
 	body.touching.down  = body.touching.down  || response.overlapV.y < 0;
@@ -1820,11 +1888,12 @@ Phaser.Plugin.ArcadeSlopes.SatSolver.prototype.updateFlags = function (body, res
  * TODO: Maybe remove snapping altogether.
  * 
  * @method Phaser.Plugin.ArcadeSlopes.SatSolver#snap
- * @param  {Phaser.Physics.Arcade.Body} body  - The physics body.
- * @param  {Phaser.Tile[]}              tiles - The tiles.
- * @return {boolean}                          - Whether the body was snapped to any tiles.
+ * @param  {Phaser.Physics.Arcade.Body} body         - The physics body.
+ * @param  {Phaser.Tile[]}              tiles        - The tiles.
+ * @param  {Phaser.TilemapLayer}        tilemapLayer - The tilemap layer.
+ * @return {boolean}                                 - Whether the body was snapped to any tiles.
  */
-Phaser.Plugin.ArcadeSlopes.SatSolver.prototype.snap = function (body, tiles) {
+Phaser.Plugin.ArcadeSlopes.SatSolver.prototype.snap = function (body, tiles, tilemapLayer) {
 	if (!body.slopes || (!body.slopes.snapUp && !body.slopes.snapDown && !body.slopes.snapLeft && !body.slopes.snapRight)) {
 		return false;
 	}
@@ -1850,7 +1919,7 @@ Phaser.Plugin.ArcadeSlopes.SatSolver.prototype.snap = function (body, tiles) {
 			body.position.x = current.x;
 			body.position.y = current.y - body.slopes.snapUp;
 			
-			if (this.snapCollide(body, tile, current)) {
+			if (this.snapCollide(body, tile, tilemapLayer, current)) {
 				return true;
 			}
 		}
@@ -1859,7 +1928,7 @@ Phaser.Plugin.ArcadeSlopes.SatSolver.prototype.snap = function (body, tiles) {
 			body.position.x = current.x;
 			body.position.y = current.y + body.slopes.snapDown;
 			
-			if (this.snapCollide(body, tile, current)) {
+			if (this.snapCollide(body, tile, tilemapLayer, current)) {
 				return true;
 			}
 		}
@@ -1868,7 +1937,7 @@ Phaser.Plugin.ArcadeSlopes.SatSolver.prototype.snap = function (body, tiles) {
 			body.position.x = current.x - body.slopes.snapLeft;
 			body.position.y = current.y;
 			
-			if (this.snapCollide(body, tile, current)) {
+			if (this.snapCollide(body, tile, tilemapLayer, current)) {
 				return true;
 			}
 		}
@@ -1877,7 +1946,7 @@ Phaser.Plugin.ArcadeSlopes.SatSolver.prototype.snap = function (body, tiles) {
 			body.position.x = current.x + body.slopes.snapRight;
 			body.position.y = current.y;
 			
-			if (this.snapCollide(body, tile, current)) {
+			if (this.snapCollide(body, tile, tilemapLayer, current)) {
 				return true;
 			}
 		}
@@ -1988,13 +2057,14 @@ Phaser.Plugin.ArcadeSlopes.SatSolver.prototype.pull = function (body, response) 
  * back to the given current position if it fails.
  *
  * @method Phaser.Plugin.ArcadeSlopes.SatSolver#snapCollide
- * @param  {Phaser.Physics.Arcade.Body} body    - The translated physics body.
- * @param  {Phaser.Tile}                tile    - The tile.
- * @param  {Phaser.Point}               current - The original position of the body.
- * @return {boolean}                            - Whether the body snapped to the tile.
+ * @param  {Phaser.Physics.Arcade.Body} body         - The translated physics body.
+ * @param  {Phaser.Tile}                tile         - The tile.
+ * @param  {Phaser.TilemapLayer}        tilemapLayer - The tilemap layer.
+ * @param  {Phaser.Point}               current      - The original position of the body.
+ * @return {boolean}                                 - Whether the body snapped to the tile.
  */
-Phaser.Plugin.ArcadeSlopes.SatSolver.prototype.snapCollide = function (body, tile, current) {
-	if (this.collide(0, body, tile)) {
+Phaser.Plugin.ArcadeSlopes.SatSolver.prototype.snapCollide = function (body, tile, tilemapLayer, current) {
+	if (this.collide(0, body, tile, tilemapLayer)) {
 		return true;
 	}
 	
@@ -2020,8 +2090,6 @@ Phaser.Plugin.ArcadeSlopes.SatSolver.prototype.shouldCollide = function (body, t
 /**
  * Separate the given body and tile from each other and apply any relevant
  * changes to the body's velocity.
- *
- * TODO: Accept a process callback into this method
  * 
  * @method Phaser.Plugin.ArcadeSlopes.SatSolver#collide
  * @param  {integer}                    i            - The tile index.
@@ -2050,7 +2118,7 @@ Phaser.Plugin.ArcadeSlopes.SatSolver.prototype.collide = function (i, body, tile
 	tile.slope.polygon.pos.x = tile.worldX + tilemapLayer.getCollisionOffsetX();
 	tile.slope.polygon.pos.y = tile.worldY + tilemapLayer.getCollisionOffsetY();
 	
-	var response = new SAT.Response();
+	var response = body.slopes.sat.response || new SAT.Response();
 	
 	// Test for an overlap and bail if there isn't one
 	if ((body.isCircle && !SAT.testCirclePolygon(body.polygon, tile.slope.polygon, response)) || (!body.isCircle && !SAT.testPolygonPolygon(body.polygon, tile.slope.polygon, response))) {
@@ -2062,20 +2130,23 @@ Phaser.Plugin.ArcadeSlopes.SatSolver.prototype.collide = function (i, body, tile
 		return true;
 	}
 	
+	// Invert our overlap vectors so that we have them facing outwards
+	Phaser.Plugin.ArcadeSlopes.SatSolver.prepareResponse(response);
+	
+	// Bail out if no separation occurred, resetting the response
+	if (!this.separate(body, tile, response)) {
+		Phaser.Plugin.ArcadeSlopes.SatSolver.resetResponse(response);
+		
+		return false;
+	}
+	
 	// Update the overlap properties of the body
 	body.overlapX = response.overlapV.x;
 	body.overlapY = response.overlapV.y;
 	body.slopes.sat.response = response;
 	
-	// TODO: Invoke a process callback here
-	
-	// Invert our overlap vectors so that we have them facing outwards
-	Phaser.Plugin.ArcadeSlopes.SatSolver.prepareResponse(response);
-	
-	// Bail out if no separation occurred
-	if (!this.separate(body, tile, response)) {
-		return false;
-	}
+	// Set the tile that the body separated from
+	body.slopes.tile = tile;
 	
 	// Apply any velocity changes as a result of the collision
 	this.applyVelocity(body, tile, response);
@@ -2113,11 +2184,20 @@ Phaser.Plugin.ArcadeSlopes.SatSolver.prototype.collideOnAxis = function (body, t
 		return false;
 	}
 	
+	// Invert our overlap vectors so that we have them facing outwards
 	Phaser.Plugin.ArcadeSlopes.SatSolver.prepareResponse(response);
 	
+	// Bail out if no separation occurred, resetting the response
 	if (!this.separate(body, tile, response, true)) {
+		Phaser.Plugin.ArcadeSlopes.SatSolver.resetResponse(response);
+		
 		return false;
 	}
+	
+	// Update the overlap properties of the body
+	body.overlapX = response.overlapV.x;
+	body.overlapY = response.overlapV.y;
+	body.slopes.sat.response = response;
 	
 	this.applyVelocity(body, tile, response);
 	this.updateFlags(body, response);
@@ -2222,7 +2302,7 @@ Phaser.Plugin.ArcadeSlopes.SatSolver.prototype.debug = function (position, respo
 
 /**
  * @author Chris Andrew <chris@hexus.io>
- * @copyright 2016 Chris Andrew
+ * @copyright 2016-2017 Chris Andrew
  * @license MIT
  */
 
@@ -2735,7 +2815,7 @@ Phaser.Plugin.ArcadeSlopes.TileSlope.QUARTER_TOP_RIGHT_HIGH = 20;
 
 /**
  * @author Chris Andrew <chris@hexus.io>
- * @copyright 2016 Chris Andrew
+ * @copyright 2016-2017 Chris Andrew
  * @license MIT
  */
 
