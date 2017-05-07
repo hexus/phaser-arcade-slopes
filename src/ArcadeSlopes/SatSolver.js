@@ -550,6 +550,11 @@ Phaser.Plugin.ArcadeSlopes.SatSolver.prototype.collideOnAxis = function (body, t
 	
 	Phaser.Plugin.ArcadeSlopes.SatSolver.prepareResponse(response);
 	
+	// Update the overlap properties of the body
+	body.overlapX = response.overlapV.x;
+	body.overlapY = response.overlapV.y;
+	body.slopes.sat.response = response;
+	
 	if (!this.separate(body, tile, response, true)) {
 		return false;
 	}
