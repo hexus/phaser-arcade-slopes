@@ -1,6 +1,7 @@
 # Arcade Slopes Change Log
 
-## Unreleased
+## v0.2.0-beta2 - 7th June 2017
+- Implemented unintrusive support for an experimental Phaser CE fork.
 - Added sprite scale support for AABB physics bodies.
 - Included a reference to the plugin with the facade. This makes it easier to
   remove the plugin at runtime
@@ -16,6 +17,14 @@
 - Added dynamic `heuristics` and `preferY` properties to the Facade, making it
   simpler to toggle these features globally (`game.slopes.heuristics`,
   `game.slopes.preferY`).
+- Fixed SatSolver.collide() setting collision response properties on physics
+  bodies before knowing whether the separation was successful.
+- Fixed SatSolver.collideOnAxis() not setting collision response properties on
+  physics bodies.
+- Improved memory consumption by reusing SAT response objects for each body.
+- Ensured that collision responses are reset if separation fails during a
+  collision test.
+
 
 ## v0.2.0-beta - 10th February 2017
 - Supported tile collision flags when determining separation (#27, #28,

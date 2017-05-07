@@ -45,13 +45,31 @@ Phaser.Plugin.ArcadeSlopes.SatSolver = function (options) {
  *
  * @static
  * @method Phaser.Plugin.ArcadeSlopes.SatSolver#prepareResponse
- * @param  {SAT.Response}
+ * @param  {SAT.Response} response
  * @return {SAT.Response}
  */
-Phaser.Plugin.ArcadeSlopes.SatSolver.prepareResponse = function(response) {
+Phaser.Plugin.ArcadeSlopes.SatSolver.prepareResponse = function (response) {
 	// Invert our overlap vectors so that we have them facing outwards
 	response.overlapV.scale(-1);
 	response.overlapN.scale(-1);
+	
+	return response;
+};
+
+/**
+ * Reset the given SAT response's properties to their default values.
+ *
+ * @static
+ * @method Phaser.Plugin.ArcadeSlopes.SatSolver#resetResponse
+ * @param  {SAT.Response} response
+ * @return {SAT.Response}
+ */
+Phaser.Plugin.ArcadeSlopes.SatSolver.resetResponse = function (response) {
+	response.overlapN.x = 0;
+	response.overlapN.y = 0;
+	response.overlapV.x = 0;
+	response.overlapV.y = 0;
+	response.clear();
 	
 	return response;
 };
@@ -484,7 +502,7 @@ Phaser.Plugin.ArcadeSlopes.SatSolver.prototype.collide = function (i, body, tile
 	tile.slope.polygon.pos.x = tile.worldX + tilemapLayer.getCollisionOffsetX();
 	tile.slope.polygon.pos.y = tile.worldY + tilemapLayer.getCollisionOffsetY();
 	
-	var response = new SAT.Response();
+	var response = body.slopes.sat.response || new SAT.Response();
 	
 	// Test for an overlap and bail if there isn't one
 	if ((body.isCircle && !SAT.testCirclePolygon(body.polygon, tile.slope.polygon, response)) || (!body.isCircle && !SAT.testPolygonPolygon(body.polygon, tile.slope.polygon, response))) {
@@ -499,15 +517,17 @@ Phaser.Plugin.ArcadeSlopes.SatSolver.prototype.collide = function (i, body, tile
 	// Invert our overlap vectors so that we have them facing outwards
 	Phaser.Plugin.ArcadeSlopes.SatSolver.prepareResponse(response);
 	
+	// Bail out if no separation occurred, resetting the response
+	if (!this.separate(body, tile, response)) {
+		Phaser.Plugin.ArcadeSlopes.SatSolver.resetResponse(response);
+		
+		return false;
+	}
+	
 	// Update the overlap properties of the body
 	body.overlapX = response.overlapV.x;
 	body.overlapY = response.overlapV.y;
 	body.slopes.sat.response = response;
-	
-	// Bail out if no separation occurred
-	if (!this.separate(body, tile, response)) {
-		return false;
-	}
 	
 	// Set the tile that the body separated from
 	body.slopes.tile = tile;
@@ -548,16 +568,20 @@ Phaser.Plugin.ArcadeSlopes.SatSolver.prototype.collideOnAxis = function (body, t
 		return false;
 	}
 	
+	// Invert our overlap vectors so that we have them facing outwards
 	Phaser.Plugin.ArcadeSlopes.SatSolver.prepareResponse(response);
+	
+	// Bail out if no separation occurred, resetting the response
+	if (!this.separate(body, tile, response, true)) {
+		Phaser.Plugin.ArcadeSlopes.SatSolver.resetResponse(response);
+		
+		return false;
+	}
 	
 	// Update the overlap properties of the body
 	body.overlapX = response.overlapV.x;
 	body.overlapY = response.overlapV.y;
 	body.slopes.sat.response = response;
-	
-	if (!this.separate(body, tile, response, true)) {
-		return false;
-	}
 	
 	this.applyVelocity(body, tile, response);
 	this.updateFlags(body, response);
