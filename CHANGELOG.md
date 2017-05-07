@@ -22,9 +22,6 @@
 - Fixed SatSolver.collideOnAxis() not setting collision response properties on
   physics bodies.
 - Improved memory consumption by reusing SAT response objects for each body.
-- Ensured that collision responses are reset if separation fails during a
-  collision test.
-
 
 ## v0.2.0-beta - 10th February 2017
 - Supported tile collision flags when determining separation (#27, #28,
