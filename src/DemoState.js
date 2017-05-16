@@ -219,12 +219,15 @@ var DemoState = (function (Phaser) {
 			this.game.debug.renderShadow = false;
 			
 			// Debugging
-			//this.player.body.position.set(580, 352);
-			// this.player.position.x = 187.22 + this.player.body.halfWidth;
-			// this.player.position.y = 283.22 + this.player.body.halfHeight;
+			this.features.particleFlow = true;
+			// - Corner skipping
 			this.player.position.x = 194 + this.player.body.halfWidth;
 			this.player.position.y = 290 + this.player.body.halfHeight;
-			this.emitter.on = true;
+			// - Seam skipping
+			this.player.position.x = 925.59 + this.player.body.halfWidth;
+			this.player.position.y = 270.79 + this.player.body.halfHeight;
+			this.features.particleGravity = false;
+			this.features.particleSize = 7;
 		},
 		
 		updatePlayer: function (player) {
@@ -477,7 +480,9 @@ var DemoState = (function (Phaser) {
 			}
 			
 			// Collide the particles against the collision layer
-			this.physics.arcade.collide(this.emitter, this.ground);
+			this.physics.arcade.collide(this.emitter, this.ground, function (particle, tile) {
+				//
+			});
 			
 			// Move the camera
 			if (controls.cameraUp.isDown) {
