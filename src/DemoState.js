@@ -446,11 +446,8 @@ var DemoState = (function (Phaser) {
 			
 			// Toggle particle flow
 			this.emitter.on = !!features.particleFlow;
-			//this.emitter.flow(3000 / this.time.slowMotion, 1, 5);
 			this.emitter.lifespan = 3000 / this.time.slowMotion;
 			this.emitter.frequency = features.particleFrequency;
-			this.emitter.quantity = features.particleQuantity;
-			
 			
 			// Toggle the Arcade Slopes plugin itself
 			if (features.slopes && !this.game.slopes) {
