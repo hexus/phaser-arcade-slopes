@@ -1,0 +1,66 @@
+<style>
+canvas {
+    border: 1px solid gray;
+}
+</style>
+<body>
+	<canvas id="canvas1" width="800" height="800"></canvas>
+	
+	<script>
+	var can = document.getElementById('canvas1');
+	var ctx = can.getContext('2d');
+	
+	var img = new Image();
+	
+	var size = 32;
+	var count = 12;
+	var dimensions = size * count;
+	var offset = 0.0;
+	var scale = 2.0;
+	
+	// Not allowed to use this, hah
+	//ctx.imageSmoothingEnabled = false;
+	ctx.imageSmoothingQuality = 'high';
+	
+	ctx.scale(scale, scale);
+	
+	img.onload = function() {
+	  for (var x = offset; x < dimensions; x += size) {
+	    for (var y = offset; y < dimensions; y += size) {
+	      // Get a random tile coordinate
+	      var sampleY = size * Math.floor(Math.random() * 3);
+	      var sampleX = size * Math.floor(Math.random() * (sampleY > 3 ? 4 : 17));
+	
+				// If you want to work with square tiles only
+				//sampleX = 0;
+	      //sampleY = 0;
+	
+	      // Just asserting that we're sampling appropriately
+	      if (sampleX % size !== 0 || sampleY % size !== 0) {
+	        console.error(sampleX, sampleY);
+	      }
+	
+	      ctx.drawImage(
+	        img,
+	        // Sample coordinates and dimensions
+	        sampleX,
+	        sampleY,
+	        size,
+	        size,
+	        // Render coordinates and dimensions
+	        x,
+	        y,
+	        size,
+	        size
+	        //x * scale,
+	        //y * scale,
+	        //size * scale,
+	        //size * scale
+	      );
+	    }
+	  }
+	}
+		
+		img.src = "http://phaser-arcade-slopes-demo.dev/assets/tilesets/arcade-slopes-32-pink.png";
+	</script>
+</body>

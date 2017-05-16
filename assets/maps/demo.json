@@ -31,7 +31,7 @@
         {
          "columns":16,
          "firstgid":1,
-         "image":"..\/tilesheets\/ninja-tiles32-pink.png",
+         "image":"..\/tilesets\/ninja-tiles32-pink.png",
          "imageheight":96,
          "imagewidth":512,
          "margin":0,
@@ -286,7 +286,7 @@
         {
          "columns":17,
          "firstgid":49,
-         "image":"..\/tilesheets\/arcade-slopes-32-pink.png",
+         "image":"..\/tilesets\/arcade-slopes-32-pink.png",
          "imageheight":96,
          "imagewidth":544,
          "margin":0,

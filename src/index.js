@@ -1,13 +1,13 @@
 (function (Phaser, DemoState) {
 	// Arcade Slopes Demo
 	var state = new DemoState();
-	var game = new Phaser.Game(1280, 720, Phaser.CANVAS, 'phaser', state);
+	var game = new Phaser.Game(1280, 720, Phaser.AUTO, 'phaser', state, null, false);
 
 	// Open up the state globally so we can access it at run time for debugging
 	window.state = state;
 
 	document.addEventListener('DOMContentLoaded', function () {
-		// Dat gui tho
+		// Dat gui tho ( ͡° ͜ʖ ͡°)
 		var features = state.features;
 		var gui = new dat.GUI({
 			width: 300
@@ -17,6 +17,7 @@
 		gui.slopesFolder = gui.addFolder('Arcade Slopes');
 		gui.slopesFolder.add(features, 'slopes').name('Enable');
 		gui.slopesFolder.add(features, 'minimumOffsetY').name('Minimum Y Offset');
+		gui.slopesFolder.add(features, 'heuristics').name('Heuristics');
 		
 		// Camera
 		gui.cameraFolder = gui.addFolder('Camera');
@@ -27,7 +28,8 @@
 		gui.cameraFolder.add(features, 'cameraLerp').min(0.1).max(1.0).name('Linear Interpolation');
 		gui.cameraFolder.add(features, 'cameraFollow').name('Follow');
 		gui.cameraFolder.add(features, 'cameraRoundPixels').name('Round Pixels');
-		gui.cameraFolder.open();
+		gui.cameraFolder.add(features, 'cameraSpeed').min(1).max(20).name('Camera Speed');
+		//gui.cameraFolder.open();
 		
 		// Player
 		gui.playerFolder = gui.addFolder('Player');
@@ -52,6 +54,21 @@
 		gui.playerFolder.frictionFolder.add(features, 'frictionX').min(0).max(0.5).step(0.01).name('X');
 		gui.playerFolder.frictionFolder.add(features, 'frictionY').min(0).max(0.5).step(0.01).name('Y');
 		
+		// Particles
+		gui.particleFolder = gui.addFolder('Particles');
+		gui.particleFolder.add(features, 'particleFlow').name('Enable');
+		gui.particleFolder.add(features, 'particleGravity').name('Gravity');
+		gui.particleFolder.add(features, 'particleSize').min(2).max(32).step(1).name('Size');
+		gui.particleFolder.add(features, 'particleFrequency').min(1).max(250).step(1).name('Frequency');
+		gui.particleFolder.add(features, 'particleFrequency').min(1).max(10).step(1).name('Quantity');
+		gui.particleFolder.add(features, 'particleMinX').min(-500).max(500).name('Minimum X Speed');
+		gui.particleFolder.add(features, 'particleMaxX').min(-500).max(500).name('Maximum X Speed');
+		gui.particleFolder.add(features, 'particleMinY').min(-500).max(500).name('Minimum Y Speed');
+		gui.particleFolder.add(features, 'particleMaxY').min(-500).max(500).name('Maximum Y Speed');
+		gui.particleFolder.add(features, 'emitterWidth').min(0).max(1).step(0.01).name('Emitter Width');
+		gui.particleFolder.add(features, 'emitterHeight').min(0).max(1).step(0.01).name('Emitter Height');
+		gui.particleFolder.open();
+		
 		// World
 		gui.worldFolder = gui.addFolder('World');
 		gui.worldFolder.add(features, 'gravity').min(-2000).max(2000).step(50).name('Gravity');
@@ -68,6 +85,7 @@
 		// Debug
 		gui.debugFolder = gui.addFolder('Debug');
 		gui.debugFolder.add(features, 'debugLayers').name('Tilemap Layers');
+		gui.debugFolder.add(features, 'debugLayersFullRedraw').name('Full Layer Redraw');
 		gui.debugFolder.add(features, 'debugPlayerBody').name('Player Body');
 		gui.debugFolder.add(features, 'debugPlayerBodyInfo').name('Player Body Info');
 		gui.debugFolder.add(features, 'debugCameraInfo').name('Camera Info');

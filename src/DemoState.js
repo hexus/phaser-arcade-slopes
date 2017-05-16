@@ -6,6 +6,7 @@ var DemoState = (function (Phaser) {
 			// Arcade slopes
 			slopes: true,
 			minimumOffsetY: true,
+			heuristics: true,
 			pullUp: 0,
 			pullDown: 0,
 			pullLeft: 0,
@@ -22,13 +23,15 @@ var DemoState = (function (Phaser) {
 			cameraMicroRotation: 0.0,
 			cameraLerp: 0.1,
 			cameraFollow: true,
-			cameraRoundPixels: false,
+			cameraRoundPixels: true,
+			cameraSpeed: 20,
 			
 			// Collision controls
 			particleSelfCollide: 0,
 			
 			// Debug controls
 			debugLayers: false,
+			debugLayersFullRedraw: true,
 			debugPlayerBody: false,
 			debugPlayerBodyInfo: false,
 			debugCameraInfo: false,
@@ -48,6 +51,20 @@ var DemoState = (function (Phaser) {
 			size: 96,
 			anchorX: 0.5,
 			anchorY: 0.5,
+			
+			// Particle controls
+			particleFlow: false,
+			particleGravity: true,
+			particleArea: false,
+			particleMinX: 500,
+			particleMaxX: 500,
+			particleMinY: 0,
+			particleMaxY: 0,
+			particleSize: 16,
+			particleFrequency: 100,
+			particleQuantity: 5,
+			emitterWidth: 0,
+			emitterHeight: 0,
 			
 			// Tilemaps
 			tilemapOffsetX1: 0,
@@ -69,9 +86,8 @@ var DemoState = (function (Phaser) {
 		
 		preload: function () {
 			// Load our assets (a demo map and two tilesets)
-			this.load.tilemap('demo-tilemap', 'assets/maps/demo.json', null, Phaser.Tilemap.TILED_JSON);
-			this.load.spritesheet('pink-collision-spritesheet', 'assets/tilesets/ninja-tiles32-pink.png', 32, 32);
-			this.load.spritesheet('arcade-slopes-spritesheet', 'assets/tilesets/arcade-slopes-32-pink.png', 32, 32);
+			this.load.tilemap('demo-tilemap', 'assets/maps/demo2.json', null, Phaser.Tilemap.TILED_JSON);
+			this.load.spritesheet('arcade-slopes-spritesheet', 'assets/tilesets/arcade-slopes-32-white-8.png', 32, 32);
 		},
 		
 		create: function () {
@@ -91,8 +107,7 @@ var DemoState = (function (Phaser) {
 			this.map = this.add.tilemap('demo-tilemap');
 			
 			// Attach the tileset images to the tilesets defined in the tilemap
-			this.map.addTilesetImage('collision', 'pink-collision-spritesheet');
-			this.map.addTilesetImage('arcade-slopes-32', 'arcade-slopes-spritesheet');
+			this.map.addTilesetImage('arcade-slopes-32-white-8', 'arcade-slopes-spritesheet');
 			
 			// Create TilemapLayer objects from the collision layers of the map
 			this.ground = this.map.createLayer('collision');
@@ -101,16 +116,16 @@ var DemoState = (function (Phaser) {
 			
 			// Enable collision between the appropriate tile indices for each
 			// layer in the map
-			this.map.setCollisionBetween(2, 34, true, 'collision');
-			this.map.setCollisionBetween(49, 73, true, 'collision2');
+			this.map.setCollisionBetween(1, 38, true, 'collision');
+			this.map.setCollisionBetween(1, 38, true, 'collision2');
 			
 			// Map Arcade Slopes tile types to the correct tilesets, preparing
 			// slope data for each tile in the layers
-			this.game.slopes.convertTilemapLayer(this.ground, 'ninja');
-			this.game.slopes.convertTilemapLayer(this.ground2, 'arcadeslopes', 49);
+			this.game.slopes.convertTilemapLayer(this.ground, 'arcadeslopes');
+			this.game.slopes.convertTilemapLayer(this.ground2, 'arcadeslopes');
 			
 			// Create a player sprite
-			this.player = this.add.sprite(595, 384);
+			this.player = this.add.sprite(0, 0);
 			
 			// Create a graphics object for the player
 			this.playerGraphics = new Phaser.Graphics(this);
@@ -139,12 +154,12 @@ var DemoState = (function (Phaser) {
 			this.emitter = this.add.emitter(this.player.x, this.player.y, 2000);
 			
 			// Particle graphics
-			var particleGraphics = new Phaser.Graphics(this)
+			this.particleGraphics = new Phaser.Graphics(this)
 				.beginFill(Phaser.Color.hexToRGB('#fff'), 0.5)
 				.drawCircle(0, 0, 16);
 			
 			// Cache the particle graphics as an image
-			this.cache.addImage('particle', null, particleGraphics.generateTexture().baseTexture.source);
+			this.cache.addImage('particle', null, this.particleGraphics.generateTexture().baseTexture.source);
 			
 			// Create 2000 particles using our newly cached image
 			this.emitter.makeParticles('particle', 0, 2000, true, true);
@@ -163,8 +178,8 @@ var DemoState = (function (Phaser) {
 			this.emitter.width = this.player.width;
 			this.emitter.height = this.player.height;
 			this.emitter.setAlpha(1, 0, 6000);
-			this.emitter.setXSpeed(-500, 500);
-			this.emitter.setYSpeed(-500, 500);
+			this.emitter.setXSpeed(500, 500);
+			this.emitter.setYSpeed(0, 0);
 			
 			// Map some keys for use in our update() loop
 			this.controls = this.input.keyboard.addKeys({
@@ -202,6 +217,14 @@ var DemoState = (function (Phaser) {
 			
 			// Prevent the debug text from rendering with a shadow
 			this.game.debug.renderShadow = false;
+			
+			// Debugging
+			//this.player.body.position.set(580, 352);
+			// this.player.position.x = 187.22 + this.player.body.halfWidth;
+			// this.player.position.y = 283.22 + this.player.body.halfHeight;
+			this.player.position.x = 194 + this.player.body.halfWidth;
+			this.player.position.y = 290 + this.player.body.halfHeight;
+			this.emitter.on = true;
 		},
 		
 		updatePlayer: function (player) {
@@ -256,14 +279,55 @@ var DemoState = (function (Phaser) {
 			
 			// Enable Arcade Slopes physics
 			if (this.game.slopes) {
-				player.body.slopes = null; // TODO: Fix Phaser.Util.Mixin or use something else
 				this.game.slopes.enable(player);
+			}
+		},
+		
+		updateEmitter: function (emitter) {
+			if (!emitter.children.length) {
+				return;
+			}
+			
+			var features = this.features;
+			var graphics = this.particleGraphics;
+			var size = features.particleSize;
+			var halfSize = size / 2;
+			var quarterSize = halfSize / 2;
+			var firstParticle = emitter.children[0];
+			
+			this.emitter.setXSpeed(features.particleMinX, features.particleMaxX);
+			this.emitter.setYSpeed(features.particleMinY, features.particleMaxY);
+			
+			// If the particle size option hasn't changed we can finish here
+			if (firstParticle.body.height === size) {
+				return;
+			}
+			
+			graphics.clear();
+			graphics._currentBounds = null; // Get Phaser to behave
+			
+			graphics.beginFill(Phaser.Color.hexToRGB('#fff'), 0.5)
+				.drawCircle(0, 0, size)
+				.updateLocalBounds();
+
+			this.cache.addImage('particle', null, graphics.generateTexture().baseTexture.source);
+			
+			emitter.forEach(function (particle) {
+				particle.body.setCircle(halfSize);
+				particle.loadTexture('particle');
+			});
+			
+			if (this.game.slopes) {
+				this.game.slopes.enable(emitter);
 			}
 		},
 		
 		update: function () {
 			// Update the player
 			this.updatePlayer(this.player);
+			
+			// Update the particle emitter
+			this.updateEmitter(this.emitter);
 			
 			// Define some shortcuts to some useful objects
 			var body = this.player.body;
@@ -328,6 +392,7 @@ var DemoState = (function (Phaser) {
 			body.slopes.friction.x = features.frictionX;
 			body.slopes.friction.y = features.frictionY;
 			body.slopes.preferY    = features.minimumOffsetY;
+			body.slopes.heuristics = features.heuristics;
 			body.slopes.pullUp     = features.pullUp;
 			body.slopes.pullDown   = features.pullDown;
 			body.slopes.pullLeft   = features.pullLeft;
@@ -343,18 +408,22 @@ var DemoState = (function (Phaser) {
 			this.ground2.tileOffset.x = features.tilemapOffsetX2;
 			this.ground2.tileOffset.y = features.tilemapOffsetY2;
 			
-			// Debug output for the tilemap
+			// Debug rendering for the tilemaps
 			this.ground.debug = features.debugLayers;
-			this.ground.debugSettings.forceFullRedraw = this.ground.debug;
 			this.ground2.debug = this.ground.debug;
-			this.ground.debugSettings.forceFullRedraw = this.ground.debug;
+			
+			// Full redraw for the tilemaps
+			this.ground.debugSettings.dirty = features.debugLayersFullRedraw;
+			this.ground2.debugSettings.dirty = features.debugLayersFullRedraw;
+			this.ground.debugSettings.forceFullRedraw = features.debugLayersFullRedraw;
+			this.ground2.debugSettings.forceFullRedraw = features.debugLayersFullRedraw;
 			
 			// Keep the particle emitter attached to the player (though there's
 			// probably a better way than this)
 			this.emitter.x = this.player.x;
 			this.emitter.y = this.player.y;
-			this.emitter.width = this.player.width;
-			this.emitter.height = this.player.height;
+			this.emitter.width = this.player.width * features.emitterWidth;
+			this.emitter.height = this.player.height * features.emitterHeight;
 			
 			// Update particle lifespan
 			this.emitter.lifespan = 3000 / this.time.slowMotion;
@@ -362,21 +431,26 @@ var DemoState = (function (Phaser) {
 			// This provides a much better slow motion effect for particles, but
 			// because this only affects newly spawned particles, old particles
 			// can take ages to die after returning to normal timing
+			// TODO: Try updating the lifespan of every particle when slowmotion
+			//       changes, in set intervals to avoid it being super slow
 			//this.emitter.lifespan = 3000 * this.time.slowMotion;
 			//this.emitter.frequency = 1 * this.time.slowMotion;
 			//this.emitter.setAlpha(1, 0, 3000 * this.time.slowMotion);
 			
 			// Ensure that all new particles defy gravity
-			this.emitter.gravity.y = -this.physics.arcade.gravity.y;
+			if (!features.particleGravity) {
+				this.emitter.gravity.y = -this.physics.arcade.gravity.y;
+			} else {
+				this.emitter.gravity.y = 0;
+			}
 			
 			// Toggle particle flow
-			if (controls.particles.justDown) {
-				if (this.emitter.on) {
-					this.emitter.kill();
-				} else {
-					this.emitter.flow(3000 / this.time.slowMotion, 1, 5);
-				}
-			}
+			this.emitter.on = !!features.particleFlow;
+			//this.emitter.flow(3000 / this.time.slowMotion, 1, 5);
+			this.emitter.lifespan = 3000 / this.time.slowMotion;
+			this.emitter.frequency = features.particleFrequency;
+			this.emitter.quantity = features.particleQuantity;
+			
 			
 			// Toggle the Arcade Slopes plugin itself
 			if (features.slopes && !this.game.slopes) {
@@ -410,19 +484,19 @@ var DemoState = (function (Phaser) {
 			
 			// Move the camera
 			if (controls.cameraUp.isDown) {
-				camera.y -= 20;
+				camera.y -= features.cameraSpeed;
 			}
 			
 			if (controls.cameraDown.isDown) {
-				camera.y += 20;
+				camera.y += features.cameraSpeed;
 			}
 			
 			if (controls.cameraLeft.isDown) {
-				camera.x -= 20;
+				camera.x -= features.cameraSpeed;
 			}
 			
 			if (controls.cameraRight.isDown) {
-				camera.x += 20;
+				camera.x += features.cameraSpeed;
 			}
 			
 			// Reset the player acceleration
