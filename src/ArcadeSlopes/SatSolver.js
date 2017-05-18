@@ -640,7 +640,7 @@ Phaser.Plugin.ArcadeSlopes.SatSolver.prototype.shouldSeparate = function (i, bod
 	}
 	
 	// Run any separation restrainers if appropriate
-	if ((this.options.restrain || body.slopes.heuristics === true) && !body.isCircle) {
+	if ((this.options.restrain || body.slopes.heuristics) && body.slopes.heuristics !== false && !body.isCircle) {
 		if (this.restrain(body, tile, response)) {
 			return false;
 		}

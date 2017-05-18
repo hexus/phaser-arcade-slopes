@@ -283,34 +283,34 @@ Phaser.Plugin.ArcadeSlopes.SatRestrainer.prepareRestraints = function (restraint
  * @return {SAT.Vector|boolean}
  */
 Phaser.Plugin.ArcadeSlopes.SatRestrainer.prototype.fullTileSeparation = function (body, tile, response) {
-	// If the body is left of the tile center and left collisions are allowed
-	if (body.left < tile.worldX + tile.centerX && tile.collideLeft && tile.slope.edges.left !== Phaser.Plugin.ArcadeSlopes.TileSlope.EMPTY) {
-		this.separationAxis.x = -1;
-		this.separationAxis.y = 0;
-		
-		return this.separationAxis;
-	}
-	
-	// If the body is right of the tile and right collisions are allowed
-	if (body.right > tile.worldX + tile.centerX && tile.collideRight && tile.slope.edges.right !== Phaser.Plugin.ArcadeSlopes.TileSlope.EMPTY) {
-		this.separationAxis.x = 1;
-		this.separationAxis.y = 0;
-		
-		return this.separationAxis;
-	}
-	
-	// If the body is above the tile and top collisions are allowed
-	if (body.top < tile.worldY + tile.centerY && tile.collideUp && tile.slope.edges.top !== Phaser.Plugin.ArcadeSlopes.TileSlope.EMPTY) {
+	// If the body is above the tile center and top collisions are allowed
+	if (body.top < tile.worldY + tile.centerY && tile.collideUp && tile.slope.edges.top !== Phaser.Plugin.ArcadeSlopes.TileSlope.EMPTY && body.slopes.velocity.x === 0 && body.slopes.velocity.y > 0) {
 		this.separationAxis.x = 0;
 		this.separationAxis.y = -1;
 		
 		return this.separationAxis;
 	}
 	
-	// If the body is below the tile and bottom collisions are allowed
-	if (body.bottom > tile.worldY + tile.centerY && tile.collideDown && tile.slope.edges.bottom !== Phaser.Plugin.ArcadeSlopes.TileSlope.EMPTY) {
+	// If the body is below the tile center and bottom collisions are allowed
+	if (body.bottom > tile.worldY + tile.centerY && tile.collideDown && tile.slope.edges.bottom !== Phaser.Plugin.ArcadeSlopes.TileSlope.EMPTY && body.slopes.velocity.x === 0 && body.slopes.velocity.y < 0) {
 		this.separationAxis.x = 0;
 		this.separationAxis.y = 1;
+		
+		return this.separationAxis;
+	}
+	
+	// If the body is left of the tile center and left collisions are allowed
+	if (body.left < tile.worldX + tile.centerX && tile.collideLeft && tile.slope.edges.left !== Phaser.Plugin.ArcadeSlopes.TileSlope.EMPTY && body.slopes.velocity.x > 0 && body.slopes.velocity.y === 0) {
+		this.separationAxis.x = -1;
+		this.separationAxis.y = 0;
+		
+		return this.separationAxis;
+	}
+	
+	// If the body is right of the tile center and right collisions are allowed
+	if (body.right > tile.worldX + tile.centerX && tile.collideRight && tile.slope.edges.right !== Phaser.Plugin.ArcadeSlopes.TileSlope.EMPTY && body.slopes.velocity.x < 0 && body.slopes.velocity.y === 0) {
+		this.separationAxis.x = 1;
+		this.separationAxis.y = 0;
 		
 		return this.separationAxis;
 	}
