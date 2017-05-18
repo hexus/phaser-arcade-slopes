@@ -1,5 +1,12 @@
 # Arcade Slopes Change Log
 
+## v0.2.0 - 18th June 2017
+- Added heuristics for square tiles to improve skipped collisions (#38) at the
+  expense of some inconsistencies when bodies exit tiles from inside.
+- Allowed physics bodies to disable and enable heuristics for themselves using
+  `body.slopes.heuristics`. `null` uses default, `false` disables and `true`
+  enables.
+
 ## v0.2.0-beta2 - 7th June 2017
 - Implemented unintrusive support for an experimental Phaser CE fork.
 - Added sprite scale support for AABB physics bodies.

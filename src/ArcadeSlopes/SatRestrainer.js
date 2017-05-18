@@ -319,8 +319,8 @@ Phaser.Plugin.ArcadeSlopes.SatRestrainer.prototype.fullTileSeparation = function
 		return this.separationAxis;
 	}
 	
-	// Otherwise we can't separate, unfortunately
-	return false;
+	// Otherwise separate normally
+	return true;
 };
 
 /**
