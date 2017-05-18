@@ -76,12 +76,23 @@ Phaser.Plugin.ArcadeSlopes.SatRestrainer = function () {
 	 */
 	this.restraints = {};
 	
+	/**
+	 * A reusable separation axis vector.
+	 * 
+	 * @property {SAT.Vector} separationAxis
+	 */
+	this.separationAxis = new SAT.Vector();
+	
 	// Define all of the default restraints
 	this.setDefaultRestraints();
 };
 
 /**
  * Restrain the given SAT body-tile collision context based on the set rules.
+ *
+ * Returns false if the collision is handled by a restraint condition, either
+ * triggering separation itself in the best case or skipping it entirely in the
+ * worst case.
  * 
  * @method Phaser.Plugin.ArcadeSlopes.SatRestrainer#restrain
  * @param  {Phaser.Plugin.ArcadeSlopes.SatSolver} solver   - The SAT solver.
@@ -141,9 +152,17 @@ Phaser.Plugin.ArcadeSlopes.SatRestrainer.prototype.restrain = function (solver, 
 				separate = separate.call(this, body, tile, response);
 			}
 			
-			// Collide on the tile's preferred axis if desired and available
-			if (separate && tile.slope.axis) {
-				solver.collideOnAxis(body, tile, tile.slope.axis);
+			// Separate on the tile's preferred axis by default
+			var separationAxis = tile.slope.axis;
+			
+			// Use the restraint decision as the axis if it's a vector
+			if (separate instanceof SAT.Vector) {
+				separationAxis = separate;
+			}
+			
+			// Collide on the separation axis if desired and available
+			if (separate && separationAxis) {
+				solver.collideOnAxis(body, tile, separationAxis);
 			}
 			
 			return false;
@@ -183,6 +202,8 @@ Phaser.Plugin.ArcadeSlopes.SatRestrainer.resolveOverlaps = function (direction) 
 				overlapX: [0, 1],
 				overlapY: 0
 			};
+		case 'any':
+			return {};
 	}
 	
 	console.warn('Unknown overlap direction \'' + direction + '\'');
@@ -203,7 +224,7 @@ Phaser.Plugin.ArcadeSlopes.SatRestrainer.resolveOverlaps = function (direction) 
  * @param  {object}        restraints - The restraints to prepare.
  * @return {object}                   - The prepared restraints.
  */
-Phaser.Plugin.ArcadeSlopes.SatRestrainer.prepareRestraints = function(restraints) {
+Phaser.Plugin.ArcadeSlopes.SatRestrainer.prepareRestraints = function (restraints) {
 	var prepared = {};
 	
 	for (var type in restraints) {
@@ -217,8 +238,13 @@ Phaser.Plugin.ArcadeSlopes.SatRestrainer.prepareRestraints = function(restraints
 			if (rule.direction) {
 				var resolved = Phaser.Plugin.ArcadeSlopes.SatRestrainer.resolveOverlaps(rule.direction);
 				
-				rule.overlapX = resolved.overlapX;
-				rule.overlapY = resolved.overlapY;
+				if (resolved.hasOwnProperty('overlapX')) {
+					rule.overlapX = resolved.overlapX;
+				}
+				
+				if (resolved.hasOwnProperty('overlapY')) {
+					rule.overlapY = resolved.overlapY;
+				}
 			}
 			
 			// Resolve neighbour types from their string representations
@@ -226,7 +252,8 @@ Phaser.Plugin.ArcadeSlopes.SatRestrainer.prepareRestraints = function(restraints
 				rule.types[nt] = Phaser.Plugin.ArcadeSlopes.TileSlope.resolveType(rule.types[nt]);
 			}
 			
-			// Conveniently set separate to true unless it's already false
+			// Conveniently set separate to true unless it's already false or
+			// it's a function that resolves a separation decision
 			if (rule.separate !== false && typeof rule.separate !== 'function') {
 				rule.separate = true;
 			}
@@ -241,6 +268,62 @@ Phaser.Plugin.ArcadeSlopes.SatRestrainer.prepareRestraints = function(restraints
 };
 
 /**
+ * Eagerly separate a body from a square tile.
+ * 
+ * This is used for full tile separation constraints to avoid tiny bodies
+ * slipping between tile seams.
+ *
+ * Ignores any non-colliding or internal edges.
+ * 
+ * Returns a desired axis to separate on, if it can.
+ * 
+ * @param  {Phaser.Physics.Arcade.Body} body     - The physics body.
+ * @param  {Phaser.Tile}                tile     - The tile.
+ * @param  {SAT.Response}               response - The initial collision response.
+ * @return {SAT.Vector|boolean}
+ */
+Phaser.Plugin.ArcadeSlopes.SatRestrainer.prototype.fullTileSeparation = function (body, tile, response) {
+	// If the body is above the tile center and top collisions are allowed,
+	// and we're moving down, and more vertically than horizontally
+	if (body.top < tile.worldY + tile.centerY && tile.collideUp && tile.slope.edges.top !== Phaser.Plugin.ArcadeSlopes.TileSlope.EMPTY && body.velocity.y > 0 && Math.abs(body.velocity.y) > Math.abs(body.velocity.x)) {
+		this.separationAxis.x = 0;
+		this.separationAxis.y = -1;
+		
+		return this.separationAxis;
+	}
+	
+	// If the body is below the tile center and bottom collisions are allowed,
+	// and we're moving up, and more vertically than horizontally
+	if (body.bottom > tile.worldY + tile.centerY && tile.collideDown && tile.slope.edges.bottom !== Phaser.Plugin.ArcadeSlopes.TileSlope.EMPTY && body.slopes.velocity.y < 0 && Math.abs(body.slopes.velocity.y) > Math.abs(body.slopes.velocity.x)) {
+		this.separationAxis.x = 0;
+		this.separationAxis.y = 1;
+		
+		return this.separationAxis;
+	}
+	
+	// If the body is left of the tile center and left collisions are allowed,
+	// and we're moving right, and more horizontally than vertically
+	if (body.left < tile.worldX + tile.centerX && tile.collideLeft && tile.slope.edges.left !== Phaser.Plugin.ArcadeSlopes.TileSlope.EMPTY && body.slopes.velocity.x > 0 && Math.abs(body.slopes.velocity.x) > Math.abs(body.slopes.velocity.y)) {
+		this.separationAxis.x = -1;
+		this.separationAxis.y = 0;
+		
+		return this.separationAxis;
+	}
+	
+	// If the body is right of the tile center and right collisions are allowed,
+	// and we're moving left, and more horizontally than vertically
+	if (body.right > tile.worldX + tile.centerX && tile.collideRight && tile.slope.edges.right !== Phaser.Plugin.ArcadeSlopes.TileSlope.EMPTY && body.slopes.velocity.x < 0 && Math.abs(body.slopes.velocity.x) > Math.abs(body.slopes.velocity.y)) {
+		this.separationAxis.x = 1;
+		this.separationAxis.y = 0;
+		
+		return this.separationAxis;
+	}
+	
+	// Otherwise we can't separate, unfortunately
+	return false;
+};
+
+/**
  * Set all of the default SAT collision handling restraints.
  *
  * These are the informally defined hueristics that get refined and utilised
@@ -252,6 +335,33 @@ Phaser.Plugin.ArcadeSlopes.SatRestrainer.prepareRestraints = function(restraints
  */
 Phaser.Plugin.ArcadeSlopes.SatRestrainer.prototype.setDefaultRestraints = function () {
 	var restraints = {};
+	
+	restraints.FULL = [
+		{
+			direction: 'up',
+			neighbour: 'above',
+			types: this.resolve('bottomLeft', 'bottomRight'),
+			separate: this.fullTileSeparation
+		},
+		{
+			direction: 'down',
+			neighbour: 'below',
+			types: this.resolve('topLeft', 'topRight'),
+			separate: this.fullTileSeparation
+		},
+		{
+			direction: 'left',
+			neighbour: 'left',
+			types: this.resolve('topRight', 'bottomRight'),
+			separate: this.fullTileSeparation
+		},
+		{
+			direction: 'right',
+			neighbour: 'right',
+			types: this.resolve('topLeft', 'bottomLeft'),
+			separate: this.fullTileSeparation
+		}
+	];
 	
 	restraints.HALF_TOP = [
 		{

@@ -502,8 +502,10 @@ Phaser.Plugin.ArcadeSlopes.SatSolver.prototype.collide = function (i, body, tile
 	tile.slope.polygon.pos.x = tile.worldX + tilemapLayer.getCollisionOffsetX();
 	tile.slope.polygon.pos.y = tile.worldY + tilemapLayer.getCollisionOffsetY();
 	
+	// Reuse the body's response or create one for it
 	var response = body.slopes.sat.response || new SAT.Response();
 	
+	// Reset the response
 	Phaser.Plugin.ArcadeSlopes.SatSolver.resetResponse(response);
 	
 	// Test for an overlap and bail if there isn't one
@@ -555,8 +557,8 @@ Phaser.Plugin.ArcadeSlopes.SatSolver.prototype.collideOnAxis = function (body, t
 	// Update the body's polygon position and velocity vector
 	this.updateValues(body);
 	
-	// Bail out if we don't have everything we need
-	if (!this.shouldCollide(body, tile)) {
+	// Bail out if we don't have everything we need or the body is circular
+	if (!this.shouldCollide(body, tile) || body.isCircle) {
 		return false;
 	}
 	
@@ -632,6 +634,18 @@ Phaser.Plugin.ArcadeSlopes.SatSolver.prototype.shouldSeparate = function (i, bod
 		return false;
 	}
 	
+	// Only separate if the body is moving into the tile
+	if (response.overlapV.clone().scale(-1).dot(body.slopes.velocity) < 0) {
+		return false;
+	}
+	
+	// Run any separation restrainers if appropriate
+	if ((this.options.restrain || body.slopes.heuristics) && body.slopes.heuristics !== false && !body.isCircle) {
+		if (this.restrain(body, tile, response)) {
+			return false;
+		}
+	}
+	
 	// Ignore any non-colliding or internal edges
 	if ((!tile.collideUp || tile.slope.edges.top === Phaser.Plugin.ArcadeSlopes.TileSlope.EMPTY) && response.overlapN.y < 0 && response.overlapN.x === 0) {
 		return false;
@@ -649,21 +663,7 @@ Phaser.Plugin.ArcadeSlopes.SatSolver.prototype.shouldSeparate = function (i, bod
 		return false;
 	}
 	
-	// Only separate if the body is moving into the tile
-	if (response.overlapV.clone().scale(-1).dot(body.slopes.velocity) < 0) {
-		return false;
-	}
-	
-	// Skip restraints if they are disabled or the body is circular
-	if (!this.options.restrain || body.isCircle) {
-		return true;
-	}
-	
-	// Run any separation restrainers
-	if (this.restrain(body, tile, response)) {
-		return false;
-	}
-	
+	// Otherwise we should separate normally
 	return true;
 };
 
