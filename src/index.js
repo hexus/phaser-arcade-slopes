@@ -16,8 +16,8 @@
 		// Arcade Slopes
 		gui.slopesFolder = gui.addFolder('Arcade Slopes');
 		gui.slopesFolder.add(features, 'slopes').name('Enable');
-		gui.slopesFolder.add(features, 'minimumOffsetY').name('Minimum Y Offset');
 		gui.slopesFolder.add(features, 'heuristics').name('Heuristics');
+		gui.slopesFolder.add(features, 'minimumOffsetY').name('Minimum Y Offset');
 		
 		// Camera
 		gui.cameraFolder = gui.addFolder('Camera');
@@ -33,11 +33,13 @@
 		
 		// Player
 		gui.playerFolder = gui.addFolder('Player');
+		gui.playerFolder.add(features, 'playerHeuristics').name('Heuristics');
+		gui.playerFolder.add(features, 'playerMinimumOffsetY').name('Minimum Y Offset');
 		gui.playerFolder.add(features, 'shape', {
 			'Rectangle (AABB)': 'aabb',
 			'Circle':           'circle'
 		}).name('Shape');
-		gui.playerFolder.add(features, 'size').min(16).max(256).name('Size');
+		gui.playerFolder.add(features, 'size').min(16).max(256).step(1).name('Size');
 		gui.playerFolder.add(features, 'acceleration').min(100).max(5000).name('Acceleration');
 		gui.playerFolder.add(features, 'jump').min(0).max(1000).step(50).name('Jump');
 		gui.playerFolder.add(features, 'wallJump').min(0).max(1000).step(50).name('Wall jump');
@@ -61,7 +63,7 @@
 		gui.particleFolder.add(features, 'particleGravity').name('Gravity');
 		gui.particleFolder.add(features, 'particleSize').min(2).max(32).step(1).name('Size');
 		gui.particleFolder.add(features, 'particleFrequency').min(1).max(250).step(1).name('Frequency');
-		//gui.particleFolder.add(features, 'particleQuantity').min(1).max(10).step(1).name('Quantity');
+		//gui.particleFolder.add(features, 'particleQuantity').min(1).max(10).step(1).name('Quantity'); // TODO: Get this working :)
 		gui.particleFolder.add(features, 'particleMinX').min(-500).max(500).name('Minimum X Speed');
 		gui.particleFolder.add(features, 'particleMaxX').min(-500).max(500).name('Maximum X Speed');
 		gui.particleFolder.add(features, 'particleMinY').min(-500).max(500).name('Minimum Y Speed');

@@ -10,8 +10,8 @@ var DemoState = (function (Phaser) {
 		this.features = {
 			// Arcade slopes
 			slopes: true,
-			minimumOffsetY: true,
 			heuristics: true,
+			minimumOffsetY: true,
 			pullUp: 0,
 			pullDown: 0,
 			pullLeft: 0,
@@ -54,6 +54,8 @@ var DemoState = (function (Phaser) {
 			debugInputInfo: false,
 			
 			// Player controls
+			playerHeuristics: true,
+			playerMinimumOffsetY: true,
 			acceleration: 2000,
 			dragX: 1200,
 			dragY: 0,
@@ -413,6 +415,10 @@ var DemoState = (function (Phaser) {
 				gravity.y = 0;
 			}
 			
+			// Update global Arcade Slopes options
+			this.game.slopes.preferY    = features.minimumOffsetY;
+			this.game.slopes.heuristics = features.heuristics;
+			
 			// Update player body properties
 			body.drag.x = features.dragX;
 			body.drag.y = features.dragY;
@@ -422,8 +428,8 @@ var DemoState = (function (Phaser) {
 			// Update player body Arcade Slopes properties
 			body.slopes.friction.x = features.frictionX;
 			body.slopes.friction.y = features.frictionY;
-			body.slopes.preferY    = features.minimumOffsetY;
-			body.slopes.heuristics = features.heuristics;
+			body.slopes.preferY    = features.playerMinimumOffsetY;
+			body.slopes.heuristics = features.playerHeuristics;
 			body.slopes.pullUp     = features.pullUp;
 			body.slopes.pullDown   = features.pullDown;
 			body.slopes.pullLeft   = features.pullLeft;
