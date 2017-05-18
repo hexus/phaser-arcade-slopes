@@ -1,0 +1,12 @@
+{
+  "ecmaVersion": "5",
+  "libs": [],
+  "loadEagerly": [
+    "../phaser-ce/dist/phaser.min.js",
+    "dist/phaser-arcade-slopes.js"
+  ],
+  "dontLoad": [],
+  "plugins": {
+    "doc_comment": true
+  }
+}

@@ -1,6 +1,11 @@
 var DemoState = (function (Phaser) {
 	
+	/**
+	 * @augments {Phaser.State}
+	 */
 	var DemoState = function () {
+		var state = this;
+		
 		// Feature configuration values that we'll use to control our game state
 		this.features = {
 			// Arcade slopes
@@ -30,10 +35,21 @@ var DemoState = (function (Phaser) {
 			particleSelfCollide: 0,
 			
 			// Debug controls
+			debugStepMode: function () {
+				if (state.game.stepping) {
+					state.game.disableStep();
+				} else {
+					state.game.enableStep();
+				}
+			},
+			debugStep: function () {
+				state.game.step();
+			},
 			debugLayers: false,
 			debugLayersFullRedraw: true,
 			debugPlayerBody: false,
 			debugPlayerBodyInfo: false,
+			debugParticleBodies: false,
 			debugCameraInfo: false,
 			debugInputInfo: false,
 			
@@ -65,6 +81,9 @@ var DemoState = (function (Phaser) {
 			particleQuantity: 5,
 			emitterWidth: 0,
 			emitterHeight: 0,
+			fireParticle: function () {
+				state.emitter.emitParticle();
+			},
 			
 			// Tilemaps
 			tilemapOffsetX1: 0,
@@ -178,6 +197,7 @@ var DemoState = (function (Phaser) {
 			this.emitter.width = this.player.width;
 			this.emitter.height = this.player.height;
 			this.emitter.setAlpha(1, 0, 6000);
+			this.emitter.setRotation(0, 0,);
 			this.emitter.setXSpeed(500, 500);
 			this.emitter.setYSpeed(0, 0);
 			
@@ -192,6 +212,7 @@ var DemoState = (function (Phaser) {
 				'controls': Phaser.KeyCode.C,
 				'particles': Phaser.KeyCode.J,
 				'toggle': Phaser.KeyCode.K,
+				'pause': Phaser.KeyCode.SPACEBAR,
 				'cameraUp': Phaser.KeyCode.UP,
 				'cameraDown': Phaser.KeyCode.DOWN,
 				'cameraLeft': Phaser.KeyCode.LEFT,
@@ -215,11 +236,16 @@ var DemoState = (function (Phaser) {
 				that.player.body.velocity.set(0);
 			});
 			
+			// Register a pause handler for Arcade Physics
+			this.controls.pause.onDown.add(function () {
+				this.physics.arcade.isPaused = !this.physics.arcade.isPaused;
+			}, this);
+			
 			// Prevent the debug text from rendering with a shadow
 			this.game.debug.renderShadow = false;
 			
 			// Debugging
-			this.features.particleFlow = true;
+			//this.features.particleFlow = true;
 			// - Corner skipping
 			this.player.position.x = 194 + this.player.body.halfWidth;
 			this.player.position.y = 290 + this.player.body.halfHeight;
@@ -310,13 +336,15 @@ var DemoState = (function (Phaser) {
 			graphics._currentBounds = null; // Get Phaser to behave
 			
 			graphics.beginFill(Phaser.Color.hexToRGB('#fff'), 0.5)
-				.drawCircle(0, 0, size)
+				//.drawCircle(0, 0, size)
+				.drawRect(0, 0, size, size)
 				.updateLocalBounds();
 
 			this.cache.addImage('particle', null, graphics.generateTexture().baseTexture.source);
 			
 			emitter.forEach(function (particle) {
-				particle.body.setCircle(halfSize);
+				//particle.body.setCircle(halfSize);
+				particle.body.setSize(size, size);
 				particle.loadTexture('particle');
 			});
 			
@@ -481,7 +509,7 @@ var DemoState = (function (Phaser) {
 			
 			// Collide the particles against the collision layer
 			this.physics.arcade.collide(this.emitter, this.ground, function (particle, tile) {
-				//
+				//console.log(particle.body.slopes);
 			});
 			
 			// Move the camera
@@ -563,7 +591,7 @@ var DemoState = (function (Phaser) {
 			//}
 		},
 		
-		render: function () {
+		preRender: function () {
 			var debug = this.game.debug;
 			var controls = this.controls;
 			var features = this.features;
@@ -572,11 +600,12 @@ var DemoState = (function (Phaser) {
 			debug.text(this.time.fps || '--', 4, 16, "#ffffff");
 			
 			// Render the keyboard controls
-			if(controls.controls.isDown) {
+			if (controls.controls.isDown) {
 				debug.start(32, 196, '#fff', 64);
 				debug.line('Click:', 'Teleport');
 				debug.line('WASD:', 'Move/jump');
 				debug.line('Arrows:', 'Move the camera');
+				debug.line('Space:', 'Pause physics');
 				debug.line('F:', 'Toggle camera follow');
 				debug.line('G:', 'Toggle gravity');
 				debug.line('J:', 'Toggle particles');
@@ -587,7 +616,7 @@ var DemoState = (function (Phaser) {
 			
 			// Render some debug information about the input, player and camera
 			if (features.debugPlayerBody) {
-				this.game.debug.body(this.player);
+				debug.body(this.player);
 			}
 			
 			if (features.debugPlayerBodyInfo) {
@@ -600,6 +629,12 @@ var DemoState = (function (Phaser) {
 			
 			if (features.debugInputInfo) {
 				debug.inputInfo(540, 628);
+			}
+			
+			if (features.debugParticleBodies) {
+				this.emitter.forEachAlive(function (particle) {
+					debug.body(particle);
+				});
 			}
 		}
 		

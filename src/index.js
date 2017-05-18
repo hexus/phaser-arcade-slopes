@@ -56,6 +56,7 @@
 		
 		// Particles
 		gui.particleFolder = gui.addFolder('Particles');
+		gui.particleFolder.add(features, 'fireParticle').name('Fire Particle');
 		gui.particleFolder.add(features, 'particleFlow').name('Enable');
 		gui.particleFolder.add(features, 'particleGravity').name('Gravity');
 		gui.particleFolder.add(features, 'particleSize').min(2).max(32).step(1).name('Size');
@@ -72,6 +73,7 @@
 		// World
 		gui.worldFolder = gui.addFolder('World');
 		gui.worldFolder.add(features, 'gravity').min(-2000).max(2000).step(50).name('Gravity');
+		gui.worldFolder.add(features, 'slowMotion').min(1).max(16).step(1).name('Slow Motion');
 		gui.worldFolder.tilemapFolder = gui.worldFolder.addFolder('Tilemap Layers');
 		gui.worldFolder.tilemapFolder.layerOneFolder = gui.worldFolder.tilemapFolder.addFolder('Layer 1');
 		gui.worldFolder.tilemapFolder.layerOneFolder.add(features, 'tilemapOffsetX1').name('Offset X');
@@ -84,11 +86,15 @@
 		
 		// Debug
 		gui.debugFolder = gui.addFolder('Debug');
+		gui.debugFolder.add(features, 'debugStep').name('Step');
+		gui.debugFolder.add(features, 'debugStepMode').name('Toggle Step Mode');
 		gui.debugFolder.add(features, 'debugLayers').name('Tilemap Layers');
 		gui.debugFolder.add(features, 'debugLayersFullRedraw').name('Full Layer Redraw');
 		gui.debugFolder.add(features, 'debugPlayerBody').name('Player Body');
 		gui.debugFolder.add(features, 'debugPlayerBodyInfo').name('Player Body Info');
+		gui.debugFolder.add(features, 'debugParticleBodies').name('Particle Bodies');
 		gui.debugFolder.add(features, 'debugCameraInfo').name('Camera Info');
 		gui.debugFolder.add(features, 'debugInputInfo').name('Input Info');
+		gui.debugFolder.open();
 	});
 })(Phaser, DemoState);
