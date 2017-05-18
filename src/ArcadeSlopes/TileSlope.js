@@ -46,7 +46,7 @@ Phaser.Plugin.ArcadeSlopes.TileSlope = function (type, tile, polygon, line, edge
 	this.line = line;
 	
 	/**
-	 * The flags for each edge of the tile; empty, solid or interesting?
+	 * The flags for each edge of the tile: empty, solid or interesting?
 	 *
 	 * @property {object} edges
 	 */
