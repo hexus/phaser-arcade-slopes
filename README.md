@@ -77,9 +77,11 @@ After you've created a tilemap with a collision layer, you'll need to convert
 that layer to work with Arcade Slopes.
 
 ```js
+// Create the tilemap and make it aware of the tileset it uses
 map = game.add.tilemap('tilemap');
 map.addTilesetImage('collision', 'arcade-slopes-32');
 
+// Create the collision layer from the tilemap
 ground = map.createLayer('collision');
 
 // Convert the collision layer to work with Arcade Slopes
@@ -92,6 +94,10 @@ not `1` (the default), you can provide a third argument to specify it.
 ```js
 game.slopes.convertTilemapLayer(ground, 'ninja', 16);
 ```
+
+**Please note:** Tile GIDs in maps exported from Tiled are always one more than
+the ID shown in the GUI. Arcade Slopes expects the above parameter to match the
+first GID _as specified in the Tiled map data_.
 
 ### Enabling physics bodies
 

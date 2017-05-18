@@ -167,7 +167,7 @@ Phaser.Plugin.ArcadeSlopes.Facade.prototype.convertTilemapLayer = function (laye
  * @return {boolean}                                 - Whether the body was separated.
  */
 Phaser.Plugin.ArcadeSlopes.Facade.prototype.collide = function (i, body, tile, tilemapLayer, overlapOnly) {
-	return this.solvers[this.defaultSolver].collide(i, body, tile, tilemapLayer, overlapOnly);
+	return this.solvers.sat.collide(i, body, tile, tilemapLayer, overlapOnly);
 };
 
 /**
