@@ -254,8 +254,11 @@ Phaser.Plugin.ArcadeSlopes.Overrides.renderDebug = function () {
 	var height = this.layer.height;
 	var tw = this._mc.tileWidth * scaleX;
 	var th = this._mc.tileHeight * scaleY;
+	var htw = tw / 2;
+	var hth = th / 2;
 	var cw = this._mc.cw * scaleX;
 	var ch = this._mc.ch * scaleY;
+	var m = this._mc.edgeMidpoint;
 	
 	var left = Math.floor(scrollX / tw);
 	var right = Math.floor((renderW - 1 + scrollX) / tw);
@@ -281,7 +284,7 @@ Phaser.Plugin.ArcadeSlopes.Overrides.renderDebug = function () {
 	var normStartX = (left + ((1 << 20) * width)) % width;
 	var normStartY = (top + ((1 << 20) * height)) % height;
 	
-	var tx, ty, x, y, xmax, ymax, polygon, i, j;
+	var tx, ty, x, y, xmax, ymax, polygon, i, j, a, b, norm;
 	
 	for (y = normStartY, ymax = bottom - top, ty = baseY; ymax >= 0; y++, ymax--, ty += th) {
 		if (y >= height) {
@@ -369,8 +372,9 @@ Phaser.Plugin.ArcadeSlopes.Overrides.renderDebug = function () {
 						}
 					}
 					
-					// Stroke the colliding edges
+					// Stroke the colliding edges and edge normals
 					if (this.debugSettings.slopeCollidingEdgeStroke) {
+						// Colliding edges
 						context.beginPath();
 						
 						context.lineWidth = this.debugSettings.slopeCollidingEdgeStrokeWidth || 1;
@@ -379,11 +383,11 @@ Phaser.Plugin.ArcadeSlopes.Overrides.renderDebug = function () {
 						polygon = tile.slope.polygon;
 						
 						for (i = 0; i < polygon.points.length; i++) {
-							j = (i + 1) % polygon.points.length;
-							
 							// Skip internal edges
 							if (polygon.points[i].internal)
 								continue;
+							
+							j = (i + 1) % polygon.points.length;
 							
 							context.moveTo(tx + polygon.points[i].x * scaleX, ty + polygon.points[i].y * scaleY);
 							context.lineTo(tx + polygon.points[j].x * scaleX, ty + polygon.points[j].y * scaleY);
@@ -392,7 +396,40 @@ Phaser.Plugin.ArcadeSlopes.Overrides.renderDebug = function () {
 						context.closePath();
 						
 						context.stroke();
+						
+						
+						// Edge normals
+						context.lineWidth = this.debugSettings.slopeNormalStrokeWidth || 1;
+						context.strokeStyle = this.debugSettings.slopeNormalStroke;
+						
+						context.beginPath();
+						
+						for (i = 0; i < polygon.points.length; i++) {
+							// Skip ignored normals
+							if (polygon.normals[i].ignore)
+								continue;
+							
+							j = (i + 1) % polygon.points.length;
+							
+							a = polygon.points[i];
+							b = polygon.points[j];
+							norm = polygon.normals[i];
+							
+							// Midpoint of the edge
+							m.x = (a.x + b.x) / 2;
+							m.y = (a.y + b.y) / 2;
+							
+							// Draw from the midpoint outwards using the normal
+							context.moveTo(tx + m.x * scaleX, ty + m.y * scaleY);
+							context.lineTo(tx + m.x * scaleX + norm.x * htw, ty + m.y * scaleY + norm.y * hth);
+						}
+						
+						context.closePath();
+						
+						context.stroke();
 					}
+					
+					
 				}
 			}
 		}

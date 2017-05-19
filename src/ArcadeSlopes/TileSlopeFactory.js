@@ -320,6 +320,8 @@ Phaser.Plugin.ArcadeSlopes.TileSlopeFactory.prototype.flagInternalVertices = fun
 			if (exactMatch || inverseMatch) {
 				firstPolygon.points[i].internal = true;
 				secondPolygon.points[j].internal = true;
+				firstPolygon.normals[i].ignore = true;
+				secondPolygon.normals[j].ignore = true;
 			}
 		}
 	}
@@ -332,10 +334,13 @@ Phaser.Plugin.ArcadeSlopes.TileSlopeFactory.prototype.flagInternalVertices = fun
  * @param {Phaser.TilemapLayer} layer - The tilemap layer.
  */
 Phaser.Plugin.ArcadeSlopes.TileSlopeFactory.prototype.addDebugSettings = function (layer) {
+	layer._mc.edgeMidpoint = new SAT.Vector();
 	layer.debugSettings.slopeFill = 'rgba(255, 0, 255, 0.2)';
 	layer.debugSettings.slopeEdgeStroke = 'rgba(255, 0, 255, 0.4)';
 	layer.debugSettings.slopeCollidingEdgeStroke = 'rgba(255, 0, 255, 1)';
 	layer.debugSettings.slopeCollidingEdgeStrokeWidth = 2;
+	layer.debugSettings.slopeNormalStroke = 'rgba(0, 255, 255, 1)';
+	layer.debugSettings.slopeCollidingEdgeStrokeWidth = 1;
 };
 
 /**
