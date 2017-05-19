@@ -639,6 +639,15 @@ Phaser.Plugin.ArcadeSlopes.SatSolver.prototype.shouldSeparate = function (i, bod
 		return false;
 	}
 	
+	// Ignore flagged edge normals
+	for (var n = 0; n < tile.slope.polygon.normals.length; n++) {
+		var normal = tile.slope.polygon.normals[n];
+		
+		if (normal.ignore && response.overlapN.x === normal.x && response.overlapN.y === normal.y) {
+			return false;
+		}
+	}
+	
 	// Run any separation restrainers if appropriate
 	// if ((this.options.restrain || body.slopes.heuristics) && body.slopes.heuristics !== false && !body.isCircle) {
 	// 	if (this.restrain(body, tile, response)) {

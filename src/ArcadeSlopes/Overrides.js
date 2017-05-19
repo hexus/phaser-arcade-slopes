@@ -397,7 +397,6 @@ Phaser.Plugin.ArcadeSlopes.Overrides.renderDebug = function () {
 						
 						context.stroke();
 						
-						
 						// Edge normals
 						context.lineWidth = this.debugSettings.slopeNormalStrokeWidth || 1;
 						context.strokeStyle = this.debugSettings.slopeNormalStroke;
