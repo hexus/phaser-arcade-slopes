@@ -472,6 +472,84 @@ Phaser.Plugin.ArcadeSlopes.SatSolver.prototype.shouldCollide = function (body, t
 };
 
 /**
+ * Test whether two polygons overlap.
+ *
+ * Optionally accepts a response object that will be populated with the shortest
+ * viable separation vector.
+ * 
+ * Returns true if there is a collision and false otherwise.
+ *
+ * Adapted from SAT.testPolygonPolygon.
+ * 
+ * @see    {SAT.testPolygonPolygon}
+ * @method Phaser.Plugin.ArcadeSlopes.SatSolver#testPolygonPolygon
+ * @param  {SAT.Polygon}  a          - The first polygon.
+ * @param  {SAT.Polygon}  b          - The second polygon.
+ * @param  {SAT.Response} [response] - An optional response object to populate with overlap information.
+ * @return {boolean}                 - Whether the the two polygons overlap.
+ */
+Phaser.Plugin.ArcadeSlopes.SatSolver.prototype.testPolygonPolygon = function (a, b, response) {
+	var aPoints = a.calcPoints;
+	var aLen = aPoints.length;
+	var bPoints = b.calcPoints;
+	var bLen = bPoints.length;
+	
+	// TODO: Optimise; pool responses to be copied from
+	var i;
+	var j;
+	var responses = [];
+	var responsesLength = aLen + bLen;
+	
+	// If any of the edge normals of A is a separating axis, no intersection
+	for (i = 0; i < aLen; i++) {
+		responses[i] = new SAT.Response();
+		responses[i].ignore = a.normals[i].ignore;
+		
+		if (SAT.isSeparatingAxis(a.pos, b.pos, aPoints, bPoints, a.normals[i], responses[i])) {
+			return false;
+		}
+	}
+	
+	// If any of the edge normals of B is a separating axis, no intersection
+	for (i = 0, j = aLen; i < bLen; i++, j++) {
+		responses[j] = new SAT.Response();
+		responses[j].ignore = b.normals[i].ignore;
+		
+		if (SAT.isSeparatingAxis(a.pos, b.pos, aPoints, bPoints, b.normals[i], responses[j])) {
+			return false;
+		}
+	}
+	
+	// Since none of the edge normals of A or B are a separating axis, there is
+	// an intersection
+	if (response) {
+		// Determine the shortest viable separation from the responses
+		for (i = 0; i < responses.length; i++) {
+			if (!responses[i].ignore && responses[i].overlap < response.overlap) {
+				response.aInB = responses[i].aInB;
+				response.bInA = responses[i].bInA;
+				response.overlap = responses[i].overlap;
+				response.overlapN = responses[i].overlapN;
+			}
+			
+			// Debugging
+			//console.log(responses[i].overlap, responses[i].ignore);
+			
+			if (!responses[i].ignore && responses[i].overlap === 0) {
+				//console.log(responses[i]);
+			}
+		}
+		
+		// Set the polygons on the response and calculate the overlap vector
+		response.a = a;
+		response.b = b;
+		response.overlapV.copy(response.overlapN).scale(response.overlap);
+	}
+	
+	return true;
+};
+
+/**
  * Separate the given body and tile from each other and apply any relevant
  * changes to the body's velocity.
  * 
@@ -509,7 +587,10 @@ Phaser.Plugin.ArcadeSlopes.SatSolver.prototype.collide = function (i, body, tile
 	Phaser.Plugin.ArcadeSlopes.SatSolver.resetResponse(response);
 	
 	// Test for an overlap and bail if there isn't one
-	if ((body.isCircle && !SAT.testCirclePolygon(body.polygon, tile.slope.polygon, response)) || (!body.isCircle && !SAT.testPolygonPolygon(body.polygon, tile.slope.polygon, response))) {
+	var circleOverlap = body.isCircle && SAT.testCirclePolygon(body.polygon, tile.slope.polygon, response);
+	var polygonOverlap = !body.isCircle && this.testPolygonPolygon(body.polygon, tile.slope.polygon, response);
+	
+	if (!circleOverlap && !polygonOverlap) {
 		return false;
 	}
 	
@@ -521,7 +602,7 @@ Phaser.Plugin.ArcadeSlopes.SatSolver.prototype.collide = function (i, body, tile
 	// Invert our overlap vectors so that we have them facing outwards
 	Phaser.Plugin.ArcadeSlopes.SatSolver.prepareResponse(response);
 	
-	// Bail out if no separation occurred, resetting the response
+	// Bail out if no separation occurred
 	if (!this.separate(body, tile, response)) {
 		return false;
 	}
@@ -541,79 +622,6 @@ Phaser.Plugin.ArcadeSlopes.SatSolver.prototype.collide = function (i, body, tile
 	this.updateFlags(body, response);
 	
 	return true;
-};
-
-/**
- * Collide a body with a tile on a specific axis.
- *
- * @method Phaser.Plugin.ArcadeSlopes.SatSolver#collideOnAxis
- * @param  {Phaser.Physics.Arcade.Body} body     - The physics body.
- * @param  {Phaser.Tile}                tile     - The tile.
- * @param  {SAT.Vector}                 axis     - The axis unit vector.
- * @param  {SAT.Response}               response - The SAT response to use.
- * @return {boolean}                             - Whether the body was separated.
- */
-Phaser.Plugin.ArcadeSlopes.SatSolver.prototype.collideOnAxis = function (body, tile, axis, response) {
-	// Update the body's polygon position and velocity vector
-	this.updateValues(body);
-	
-	// Bail out if we don't have everything we need or the body is circular
-	if (!this.shouldCollide(body, tile) || body.isCircle) {
-		return false;
-	}
-	
-	response = response || new SAT.Response();
-	
-	var separatingAxis = Phaser.Plugin.ArcadeSlopes.SatSolver.isSeparatingAxis(body.polygon, tile.slope.polygon, axis, response);
-	
-	if (separatingAxis) {
-		return false;
-	}
-	
-	// Invert our overlap vectors so that we have them facing outwards
-	Phaser.Plugin.ArcadeSlopes.SatSolver.prepareResponse(response);
-	
-	// Bail out if no separation occurred, resetting the response
-	if (!this.separate(body, tile, response, true)) {
-		return false;
-	}
-	
-	// Update the overlap properties of the body
-	body.overlapX = response.overlapV.x;
-	body.overlapY = response.overlapV.y;
-	body.slopes.sat.response = response;
-	
-	this.applyVelocity(body, tile, response);
-	this.updateFlags(body, response);
-	
-	return true;
-};
-
-/**
- * Run a constraint check for the given physics body, tile and response.
- *
- * @method Phaser.Plugin.ArcadeSlopes.SatSolver#restrain
- * @param  {Phaser.Physics.Arcade.Body} body     - The physics body.
- * @param  {Phaser.Tile}                tile     - The tile.
- * @param  {SAT.Response}               response - The initial collision response.
- * @return {boolean}                             - Whether the collision was restrained.
- */
-Phaser.Plugin.ArcadeSlopes.SatSolver.prototype.restrain = function (body, tile, response) {
-	for (var r in this.restrainers) {
-		var restrainer = this.restrainers[r];
-		
-		// Skip anything without a restrain function
-		if (typeof restrainer.restrain !== 'function') {
-			continue;
-		}
-		
-		// Bail if the restrainer dealt with the collision by itself
-		if (!restrainer.restrain(this, body, tile, response)) {
-			return true;
-		}
-	}
-	
-	return false;
 };
 
 /**
@@ -640,36 +648,12 @@ Phaser.Plugin.ArcadeSlopes.SatSolver.prototype.shouldSeparate = function (i, bod
 	}
 	
 	// Ignore flagged edge normals
-	for (var n = 0; n < tile.slope.polygon.normals.length; n++) {
-		var normal = tile.slope.polygon.normals[n];
-		
-		if (normal.ignore && response.overlapN.x === normal.x && response.overlapN.y === normal.y) {
-			return false;
-		}
-	}
-	
-	// Run any separation restrainers if appropriate
-	// if ((this.options.restrain || body.slopes.heuristics) && body.slopes.heuristics !== false && !body.isCircle) {
-	// 	if (this.restrain(body, tile, response)) {
+	// for (var n = 0; n < tile.slope.polygon.normals.length; n++) {
+	// 	var normal = tile.slope.polygon.normals[n];
+	// 	
+	// 	if (normal.ignore && response.overlapN.x === normal.x && response.overlapN.y === normal.y) {
 	// 		return false;
 	// 	}
-	// }
-	
-	// Ignore any non-colliding or internal edges
-	// if ((!tile.collideUp || tile.slope.edges.top === Phaser.Plugin.ArcadeSlopes.TileSlope.EMPTY) && response.overlapN.y < 0 && response.overlapN.x === 0) {
-	// 	return false;
-	// }
-	// 
-	// if ((!tile.collideDown || tile.slope.edges.bottom === Phaser.Plugin.ArcadeSlopes.TileSlope.EMPTY) && response.overlapN.y > 0 && response.overlapN.x === 0) {
-	// 	return false;
-	// }
-	// 
-	// if ((!tile.collideLeft || tile.slope.edges.left === Phaser.Plugin.ArcadeSlopes.TileSlope.EMPTY) && response.overlapN.x < 0 && response.overlapN.y === 0) {
-	// 	return false;
-	// }
-	// 
-	// if ((!tile.collideRight || tile.slope.edges.right === Phaser.Plugin.ArcadeSlopes.TileSlope.EMPTY) && response.overlapN.x > 0 && response.overlapN.y === 0) {
-	// 	return false;
 	// }
 	
 	// Otherwise we should separate normally
