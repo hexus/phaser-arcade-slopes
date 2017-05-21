@@ -102,7 +102,6 @@ Phaser.Plugin.ArcadeSlopes.Facade.prototype.enableBody = function (body) {
 	body.slopes = body.slopes || {
 		debug: false,
 		friction: new Phaser.Point(),
-		heuristics: null,
 		preferY: false,
 		pullUp: 0,
 		pullDown: 0,

@@ -375,10 +375,10 @@ Phaser.Plugin.ArcadeSlopes.SatSolver.prototype.shouldCollide = function (body, t
  * 
  * @see    {SAT.testPolygonPolygon}
  * @method Phaser.Plugin.ArcadeSlopes.SatSolver#testPolygonPolygon
- * @param  {SAT.Polygon}  a          - The first polygon.
- * @param  {SAT.Polygon}  b          - The second polygon.
- * @param  {SAT.Response} [response] - An optional response object to populate with overlap information.
- * @return {boolean}                 - Whether the the two polygons overlap.
+ * @param  {SAT.Polygon}  a        - The first polygon.
+ * @param  {SAT.Polygon}  b        - The second polygon.
+ * @param  {SAT.Response} response - The response object to populate with overlap information.
+ * @return {boolean}               - Whether the the two polygons overlap.
  */
 Phaser.Plugin.ArcadeSlopes.SatSolver.prototype.testPolygonPolygon = function (a, b, response) {
 	var aPoints = a.calcPoints;
@@ -389,7 +389,6 @@ Phaser.Plugin.ArcadeSlopes.SatSolver.prototype.testPolygonPolygon = function (a,
 	var i;
 	var j;
 	var responses = [];
-	var desirable = false;
 	
 	// Build a list of axes to ignore by filtering down flagged normals
 	var ignore = b.normals.filter(function (normal) {
@@ -399,6 +398,8 @@ Phaser.Plugin.ArcadeSlopes.SatSolver.prototype.testPolygonPolygon = function (a,
 	// If any of the edge normals of A is a separating axis, no intersection
 	for (i = 0; i < aLen; i++) {
 		responses[i] = new SAT.Response();
+		responses[i].axis = a.normals[i];
+		responses[i].ignore = a.normals[i].ignore;
 		
 		if (SAT.isSeparatingAxis(a.pos, b.pos, aPoints, bPoints, a.normals[i], responses[i])) {
 			return false;
@@ -408,6 +409,7 @@ Phaser.Plugin.ArcadeSlopes.SatSolver.prototype.testPolygonPolygon = function (a,
 	// If any of the edge normals of B is a separating axis, no intersection
 	for (i = 0, j = aLen; i < bLen; i++, j++) {
 		responses[j] = new SAT.Response();
+		responses[j].axis = b.normals[i];
 		
 		if (SAT.isSeparatingAxis(a.pos, b.pos, aPoints, bPoints, b.normals[i], responses[j])) {
 			return false;
@@ -416,44 +418,51 @@ Phaser.Plugin.ArcadeSlopes.SatSolver.prototype.testPolygonPolygon = function (a,
 	
 	// Filter the responses down to those that are desirable
 	responses = responses.filter(function (response) {
-		var ignored = false;
-		
 		// Is the axis of the overlap in the ignore list?
 		for (j = 0; j < ignore.length; j++) {
-			if (response.overlapN.x === -ignore[j].x && response.overlapN.y === -ignore[j].y) {
-				ignored = true;
-				break;
+			if (response.axis.ignore
+			  //|| (response.axis.x === ignore[j].x && response.axis.y === ignore[j].y)
+			  || (response.overlapN.x === -ignore[j].x && response.overlapN.y === -ignore[j].y)
+			) {
+				return false;
 			}
 		}
 		
-		return !ignored && response.overlap && response.overlap < Number.MAX_VALUE;
+		// Otherwise make sure the overlap is in the range we want
+		return response.overlap && response.overlap < Number.MAX_VALUE;
 	});
 	
 	// We have no desirable responses, so we can bail early
-	if (!responses.length) {
-		return false;
-	}
+	// if (!responses.length) {
+	// 	return false;
+	// }
 	
 	// Since none of the edge normals of A or B are a separating axis, there is
 	// an intersection
-	if (response) {
-		// Determine the shortest viable separation from the desirable responses
-		for (i = 0; i < responses.length; i++) {
-			if (responses[i].overlap < response.overlap) {
-				response.overlapN = responses[i].overlapN;
-				response.overlap = responses[i].overlap;
-				response.aInB = responses[i].aInB;
-				response.bInA = responses[i].bInA;
-			}
+	var viable = false;
+	
+	// Determine the shortest viable separation from the desirable responses
+	for (i = 0; i < responses.length; i++) {
+		if (responses[i].overlap < response.overlap) {
+			viable = true;
+			response.aInB = responses[i].aInB;
+			response.bInA = responses[i].bInA;
+			response.overlap = responses[i].overlap;
+			response.overlapN = responses[i].overlapN;
 		}
-		
-		// Set the polygons on the response and calculate the overlap vector
-		response.a = a;
-		response.b = b;
-		response.overlapV.copy(response.overlapN).scale(response.overlap);
-		
-		console.log(response.overlapN.x, response.overlapN.y, response.overlap, response.overlapV.x, response.overlapV.y, JSON.stringify(ignore));
 	}
+	
+	// If we have no viable response, bail
+	if (!viable) {
+		return false;
+	}
+	
+	// Set the polygons on the response and calculate the overlap vector
+	response.a = a;
+	response.b = b;
+	response.overlapV.copy(response.overlapN).scale(response.overlap);
+	
+	//console.log(response.overlap, response.overlapN.x, response.overlapN.y, response.overlapV.x, response.overlapV.y, JSON.stringify(ignore), JSON.stringify(responses, null, 2));
 	
 	return true;
 };

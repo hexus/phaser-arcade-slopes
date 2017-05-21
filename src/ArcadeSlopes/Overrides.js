@@ -113,7 +113,7 @@ Phaser.Plugin.ArcadeSlopes.Overrides.collideSpriteVsTilemapLayer = function (spr
 		sprite.body.position.y - sprite.body.tilePadding.y - tilemapLayer.getCollisionOffsetY(),
 		sprite.body.width      + sprite.body.tilePadding.x,
 		sprite.body.height     + sprite.body.tilePadding.y,
-		false,
+		true,
 		false
 	);
 	
@@ -121,10 +121,7 @@ Phaser.Plugin.ArcadeSlopes.Overrides.collideSpriteVsTilemapLayer = function (spr
 		return false;
 	}
 	
-	// Debugging response reset before all tiles, instead of before each tile
-	// if (sprite.body.slopes.sat.response) {
-	// 	Phaser.Plugin.ArcadeSlopes.SatSolver.resetResponse(sprite.body.slopes.sat.response);
-	// }
+	// TODO: Sort by distance from body center to tile center?
 	
 	var collided = this.collideSpriteVsTiles(sprite, tiles, tilemapLayer, collideCallback, processCallback, callbackContext, overlapOnly);
 	
