@@ -22,22 +22,8 @@ Phaser.Plugin.ArcadeSlopes.SatSolver = function (options) {
 		debug: false,
 		
 		// Whether to prefer the minimum Y offset over the smallest separation
-		preferY: false,
-		
-		// Whether to restrain SAT collisions
-		restrain: true
+		preferY: false
 	});
-	
-	/**
-	 * Objects that have the chance to process collisions themselves.
-	 *
-	 * They should expose a restrain() function.
-	 *
-	 * @property {object[]} restrainers
-	 */
-	this.restrainers = [
-		new Phaser.Plugin.ArcadeSlopes.SatRestrainer()
-	];
 };
 
 /**
@@ -183,7 +169,7 @@ Phaser.Plugin.ArcadeSlopes.SatSolver.prototype.separate = function (body, tile, 
 		return false;
 	}
 	
-	// Separate the body from the tile
+	// Separate the body from the tile, using the minimum Y offset if preferred
 	if (this.shouldPreferY(body, response)) {
 		body.position.y += Phaser.Plugin.ArcadeSlopes.SatSolver.minimumOffsetY(response.overlapV);
 	} else {
@@ -264,79 +250,6 @@ Phaser.Plugin.ArcadeSlopes.SatSolver.prototype.updateFlags = function (body, res
 	body.blocked.down  = body.blocked.down  || response.overlapV.x === 0 && response.overlapV.y < 0;
 	body.blocked.left  = body.blocked.left  || response.overlapV.y === 0 && response.overlapV.x > 0;
 	body.blocked.right = body.blocked.right || response.overlapV.y === 0 && response.overlapV.x < 0;
-};
-
-/**
- * Attempt to snap the body to a given set of tiles based on its slopes options.
- *
- * TODO: Maybe remove snapping altogether.
- * 
- * @method Phaser.Plugin.ArcadeSlopes.SatSolver#snap
- * @param  {Phaser.Physics.Arcade.Body} body         - The physics body.
- * @param  {Phaser.Tile[]}              tiles        - The tiles.
- * @param  {Phaser.TilemapLayer}        tilemapLayer - The tilemap layer.
- * @return {boolean}                                 - Whether the body was snapped to any tiles.
- */
-Phaser.Plugin.ArcadeSlopes.SatSolver.prototype.snap = function (body, tiles, tilemapLayer) {
-	if (!body.slopes || (!body.slopes.snapUp && !body.slopes.snapDown && !body.slopes.snapLeft && !body.slopes.snapRight)) {
-		return false;
-	}
-	
-	// Keep the current body position to snap from
-	// TODO: Get rid of the instantiation
-	var current = new Phaser.Point(body.position.x, body.position.y);
-	
-	// Keep track of whether the body has snapped to a tile
-	var snapped = false;
-	
-	// For each tile, move the body in each direction by the configured amount,
-	// and try to collide, returning the body to its original position if no
-	// collision occurs
-	for (var t in tiles) {
-		var tile = tiles[t];
-		
-		if (!tile.slope) {
-			continue;
-		}
-		
-		if (body.slopes.snapUp) {
-			body.position.x = current.x;
-			body.position.y = current.y - body.slopes.snapUp;
-			
-			if (this.snapCollide(body, tile, tilemapLayer, current)) {
-				return true;
-			}
-		}
-		
-		if (body.slopes.snapDown) {
-			body.position.x = current.x;
-			body.position.y = current.y + body.slopes.snapDown;
-			
-			if (this.snapCollide(body, tile, tilemapLayer, current)) {
-				return true;
-			}
-		}
-		
-		if (body.slopes.snapLeft) {
-			body.position.x = current.x - body.slopes.snapLeft;
-			body.position.y = current.y;
-			
-			if (this.snapCollide(body, tile, tilemapLayer, current)) {
-				return true;
-			}
-		}
-		
-		if (body.slopes.snapRight) {
-			body.position.x = current.x + body.slopes.snapRight;
-			body.position.y = current.y;
-			
-			if (this.snapCollide(body, tile, tilemapLayer, current)) {
-				return true;
-			}
-		}
-	}
-	
-	return false;
 };
 
 /**
@@ -437,29 +350,6 @@ Phaser.Plugin.ArcadeSlopes.SatSolver.prototype.pull = function (body, response) 
 };
 
 /**
- * Perform a snap collision between the given body and tile, setting the body
- * back to the given current position if it fails.
- *
- * @method Phaser.Plugin.ArcadeSlopes.SatSolver#snapCollide
- * @param  {Phaser.Physics.Arcade.Body} body         - The translated physics body.
- * @param  {Phaser.Tile}                tile         - The tile.
- * @param  {Phaser.TilemapLayer}        tilemapLayer - The tilemap layer.
- * @param  {Phaser.Point}               current      - The original position of the body.
- * @return {boolean}                                 - Whether the body snapped to the tile.
- */
-Phaser.Plugin.ArcadeSlopes.SatSolver.prototype.snapCollide = function (body, tile, tilemapLayer, current) {
-	if (this.collide(0, body, tile, tilemapLayer)) {
-		return true;
-	}
-	
-	// There was no collision, so reset the body position
-	body.position.x = current.x;
-	body.position.y = current.y;
-	
-	return false;
-};
-
-/**
  * Determine whether everything required to process a collision is available.
  *
  * @method Phaser.Plugin.ArcadeSlopes.SatSolver#shouldCollide
@@ -494,7 +384,7 @@ Phaser.Plugin.ArcadeSlopes.SatSolver.prototype.testPolygonPolygon = function (a,
 	var bPoints = b.calcPoints;
 	var bLen = bPoints.length;
 	
-	// TODO: Optimise; pool responses to be copied from
+	// TODO: Optimise temporary responses with pooling
 	var i;
 	var j;
 	var responses = [];
@@ -523,9 +413,12 @@ Phaser.Plugin.ArcadeSlopes.SatSolver.prototype.testPolygonPolygon = function (a,
 	// Since none of the edge normals of A or B are a separating axis, there is
 	// an intersection
 	if (response) {
+		//console.log(responses);
+		//console.log(responsesLength, responses.length);
+		
 		// Determine the shortest viable separation from the responses
-		for (i = 0; i < responses.length; i++) {
-			if (!responses[i].ignore && responses[i].overlap < response.overlap) {
+		for (i = 0; i < responsesLength; i++) {
+			if (!responses[i].ignore/* && responses[i].overlap > 0*/ && responses[i].overlap < response.overlap) {
 				response.aInB = responses[i].aInB;
 				response.bInA = responses[i].bInA;
 				response.overlap = responses[i].overlap;
@@ -544,6 +437,8 @@ Phaser.Plugin.ArcadeSlopes.SatSolver.prototype.testPolygonPolygon = function (a,
 		response.a = a;
 		response.b = b;
 		response.overlapV.copy(response.overlapN).scale(response.overlap);
+		
+		//console.log(response);
 	}
 	
 	return true;

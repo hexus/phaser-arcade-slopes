@@ -121,12 +121,12 @@ Phaser.Plugin.ArcadeSlopes.Overrides.collideSpriteVsTilemapLayer = function (spr
 		return false;
 	}
 	
-	var collided = this.collideSpriteVsTiles(sprite, tiles, tilemapLayer, collideCallback, processCallback, callbackContext, overlapOnly);
+	// Debugging response reset before all tiles, instead of before each tile
+	// if (sprite.body.slopes.sat.response) {
+	// 	Phaser.Plugin.ArcadeSlopes.SatSolver.resetResponse(sprite.body.slopes.sat.response);
+	// }
 	
-	if (!collided && !overlapOnly) {
-		// TODO: This call is too hacky and solver-specific
-		this.game.slopes.solvers.sat.snap(sprite.body, tiles, tilemapLayer);
-	}
+	var collided = this.collideSpriteVsTiles(sprite, tiles, tilemapLayer, collideCallback, processCallback, callbackContext, overlapOnly);
 	
 	return collided;
 };
@@ -256,6 +256,8 @@ Phaser.Plugin.ArcadeSlopes.Overrides.renderDebug = function () {
 	var th = this._mc.tileHeight * scaleY;
 	var htw = tw / 2;
 	var hth = th / 2;
+	var qtw = tw / 4;
+	var qth = th / 4;
 	var cw = this._mc.cw * scaleX;
 	var ch = this._mc.ch * scaleY;
 	var m = this._mc.edgeMidpoint;
@@ -384,8 +386,9 @@ Phaser.Plugin.ArcadeSlopes.Overrides.renderDebug = function () {
 						
 						for (i = 0; i < polygon.points.length; i++) {
 							// Skip internal edges
-							if (polygon.points[i].internal)
+							if (polygon.points[i].internal) {
 								continue;
+							}
 							
 							j = (i + 1) % polygon.points.length;
 							
@@ -398,15 +401,17 @@ Phaser.Plugin.ArcadeSlopes.Overrides.renderDebug = function () {
 						context.stroke();
 						
 						// Edge normals
-						context.lineWidth = this.debugSettings.slopeNormalStrokeWidth || 1;
-						context.strokeStyle = this.debugSettings.slopeNormalStroke;
-						
-						context.beginPath();
-						
 						for (i = 0; i < polygon.points.length; i++) {
-							// Skip ignored normals
-							if (polygon.normals[i].ignore)
-								continue;
+							context.beginPath();
+							
+							if (polygon.normals[i].ignore) {
+								context.lineWidth = this.debugSettings.slopeNormalStrokeWidth;
+								context.strokeStyle = this.debugSettings.slopeNormalStroke;
+							} else {
+								context.lineWidth = this.debugSettings.slopeCollidingNormalStrokeWidth;
+								context.strokeStyle = this.debugSettings.slopeCollidingNormalStroke;
+							}
+								
 							
 							j = (i + 1) % polygon.points.length;
 							
@@ -420,12 +425,11 @@ Phaser.Plugin.ArcadeSlopes.Overrides.renderDebug = function () {
 							
 							// Draw from the midpoint outwards using the normal
 							context.moveTo(tx + m.x * scaleX, ty + m.y * scaleY);
-							context.lineTo(tx + m.x * scaleX + norm.x * htw, ty + m.y * scaleY + norm.y * hth);
+							context.lineTo(tx + m.x * scaleX + norm.x * qtw, ty + m.y * scaleY + norm.y * qth);
+							
+							context.closePath();
+							context.stroke();
 						}
-						
-						context.closePath();
-						
-						context.stroke();
 					}
 					
 					

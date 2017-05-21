@@ -339,8 +339,10 @@ Phaser.Plugin.ArcadeSlopes.TileSlopeFactory.prototype.addDebugSettings = functio
 	layer.debugSettings.slopeEdgeStroke = 'rgba(255, 0, 255, 0.4)';
 	layer.debugSettings.slopeCollidingEdgeStroke = 'rgba(255, 0, 255, 1)';
 	layer.debugSettings.slopeCollidingEdgeStrokeWidth = 2;
-	layer.debugSettings.slopeNormalStroke = 'rgba(0, 255, 255, 1)';
-	layer.debugSettings.slopeCollidingEdgeStrokeWidth = 1;
+	layer.debugSettings.slopeNormalStroke = 'rgba(0, 255, 255, 0.4)';
+	layer.debugSettings.slopeNormalStrokeWidth = 1;
+	layer.debugSettings.slopeCollidingNormalStroke = 'rgba(0, 255, 255, 1)';
+	layer.debugSettings.slopeCollidingNormalStrokeWidth = 2;
 };
 
 /**
