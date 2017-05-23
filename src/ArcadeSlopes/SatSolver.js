@@ -24,6 +24,28 @@ Phaser.Plugin.ArcadeSlopes.SatSolver = function (options) {
 		// Whether to prefer the minimum Y offset over the smallest separation
 		preferY: false
 	});
+	
+	/**
+	 * A pool of arrays to use for calculations.
+	 * 
+	 * @property {Array[]} arrayPool
+	 */
+	this.arrayPool = [];
+	
+	for (var i = 0; i < 5; i++) {
+		this.arrayPool.push([]);
+	}
+	
+	/**
+	 * A pool of vectors to use for calculations.
+	 * 
+	 * @property {SAT.Vector[]} vectorPool
+	 */
+	this.vectorPool = [];
+	
+	for (i = 0; i < 10; i++) {
+		this.vectorPool.push(new SAT.Vector());
+	}
 };
 
 /**
@@ -119,29 +141,6 @@ Phaser.Plugin.ArcadeSlopes.SatSolver.prototype.shouldPreferY = function (body, r
 	return (this.options.preferY || body.slopes.preferY) &&                  // Enabled globally or on the body
 		response.overlapV.y !== 0 && response.overlapV.x !== 0 &&            // There's an overlap on both axes
 		Phaser.Plugin.ArcadeSlopes.SatSolver.movingAgainstY(body, response); // And we're moving into the shape
-};
-
-/**
- * Determine whether two polygons intersect on a given axis.
- *
- * @static
- * @method Phaser.Plugin.ArcadeSlopes.SatSolver#isSeparatingAxis
- * @param  {SAT.Polygon}  a        - The first polygon.
- * @param  {SAT.Polygon}  b        - The second polygon.
- * @param  {SAT.Vector}   axis     - The axis to test.
- * @param  {SAT.Response} response - The response to populate.
- * @return {boolean}               - Whether a separating axis was found.
- */
-Phaser.Plugin.ArcadeSlopes.SatSolver.isSeparatingAxis = function (a, b, axis, response) {
-	var result = SAT.isSeparatingAxis(a.pos, b.pos, a.points, b.points, axis, response || null);
-	
-	if (response) {
-		response.a = a;
-		response.b = b;
-		response.overlapV = response.overlapN.clone().scale(response.overlap);
-	}
-	
-	return result;
 };
 
 /**
@@ -362,6 +361,143 @@ Phaser.Plugin.ArcadeSlopes.SatSolver.prototype.shouldCollide = function (body, t
 };
 
 /**
+ * Flattens the specified array of points onto a unit vector axis,
+ * resulting in a one dimensional range of the minimum and
+ * maximum value on that axis.
+ *
+ * Copied verbatim from SAT.flattenPointsOn.
+ * 
+ * @see SAT.flattenPointsOn
+ * @static
+ * @method Phaser.Plugin.ArcadeSlopes.SatSolver#flattenPointsOn
+ * @param {Vector[]} points - The points to flatten.
+ * @param {Vector}   normal - The unit vector axis to flatten on.
+ * @param {number[]} result - An array. After calling this,
+ *   result[0] will be the minimum value,
+ *   result[1] will be the maximum value.
+ */
+Phaser.Plugin.ArcadeSlopes.SatSolver.flattenPointsOn = function (points, normal, result) {
+	var min = Number.MAX_VALUE;
+	var max = -Number.MAX_VALUE;
+	var len = points.length;
+	
+	for (var i = 0; i < len; i++ ) {
+		// The magnitude of the projection of the point onto the normal
+		var dot = points[i].dot(normal);
+		if (dot < min) { min = dot; }
+		if (dot > max) { max = dot; }
+	}
+	
+	result[0] = min; result[1] = max;
+};
+
+/**
+ * Determine whether two polygons are separated by a given axis.
+ *
+ * Adapted from SAT.isSeparatingAxis.
+ *
+ * @see    {SAT.isSeparatingAxis}
+ * @method Phaser.Plugin.ArcadeSlopes.SatSolver#isSeparatingAxis
+ * @param  {SAT.Polygon} a          - The first polygon.
+ * @param  {SAT.Polygon} b          - The second polygon.
+ * @param  {Vector}      axis       - The axis (unit sized) to test against.
+ *                                    The points of both polygons are projected
+ *                                    onto this axis.
+ * @param  {Response}    [response] - An optional response that will be populated
+ *                                    if the axis is not separating.
+ * @return {boolean} true if it is a separating axis, false otherwise. If false,
+ *   and a response is passed in, information about how much overlap and
+ *   the direction of the overlap will be populated.
+ */
+Phaser.Plugin.ArcadeSlopes.SatSolver.prototype.isSeparatingAxis = function (a, b, axis, response) {
+	
+	var aPos = a.pos;
+	var bPos = b.pos;
+	var aPoints = a.calcPoints;
+	var bPoints = b.calcPoints;
+	
+	var rangeA = this.arrayPool.pop();
+	var rangeB = this.arrayPool.pop();
+	
+	// The magnitude of the offset between the two polygons
+	var offsetV = this.vectorPool.pop().copy(bPos).sub(aPos);
+	var projectedOffset = offsetV.dot(axis);
+	
+	// Project the polygons onto the axis.
+	Phaser.Plugin.ArcadeSlopes.SatSolver.flattenPointsOn(aPoints, axis, rangeA);
+	Phaser.Plugin.ArcadeSlopes.SatSolver.flattenPointsOn(bPoints, axis, rangeB);
+	
+	// Move B's range to its position relative to A.
+	rangeB[0] += projectedOffset;
+	rangeB[1] += projectedOffset;
+	
+	// Check if there is a gap. If there is, this is a separating axis and we can stop
+	if (rangeA[0] > rangeB[1] || rangeB[0] > rangeA[1]) {
+		this.vectorPool.push(offsetV);
+		this.arrayPool.push(rangeA);
+		this.arrayPool.push(rangeB);
+		return true;
+	}
+	
+	var option1, option2;
+	
+	// This is not a separating axis. If we're calculating a response, calculate
+	// the overlap
+	if (response) {
+		var overlap = 0;
+		
+		if (rangeA[0] < rangeB[0]) {
+			// A starts further left than B
+			response.aInB = false;
+			
+			if (rangeA[1] < rangeB[1]) {
+				// A ends before B does. We have to pull A out of B
+				//overlap = rangeA[1] - rangeB[0];
+				response.bInA = false;
+			} else {
+				// B is fully inside A. Pick the shortest way out.
+				//option1 = rangeA[1] - rangeB[0];
+				//option2 = rangeB[1] - rangeA[0];
+				//overlap = option1 < option2 ? option1 : -option2;
+			}
+		} else {
+			// B starts further left than A
+			response.bInA = false;
+			
+			if (rangeA[1] > rangeB[1]) {
+				// B ends before A ends. We have to push A out of B
+				overlap = rangeA[0] - rangeB[1];
+				response.aInB = false;
+			} else {
+				// A is fully inside B.  Pick the shortest way out.
+				option1 = rangeA[1] - rangeB[0];
+				option2 = rangeB[1] - rangeA[0];
+				overlap = option1 < option2 ? option1 : -option2;
+			}
+		}
+		
+		// If this is the smallest amount of overlap we've seen so far, set it
+		// as the minimum overlap.
+		var absOverlap = Math.abs(overlap);
+		
+		if (absOverlap < response.overlap) {
+			response.overlap = absOverlap;
+			response.overlapN.copy(axis);
+			
+			if (overlap < 0) {
+				response.overlapN.reverse();
+			}
+		}
+	}
+	
+	this.vectorPool.push(offsetV);
+	this.arrayPool.push(rangeA);
+	this.arrayPool.push(rangeB);
+	
+	return false;
+};
+
+/**
  * Test whether two polygons overlap.
  *
  * Optionally accepts a response object that will be populated with the shortest
@@ -399,9 +535,8 @@ Phaser.Plugin.ArcadeSlopes.SatSolver.prototype.testPolygonPolygon = function (a,
 	for (i = 0; i < aLen; i++) {
 		responses[i] = new SAT.Response();
 		responses[i].axis = a.normals[i];
-		responses[i].ignore = a.normals[i].ignore;
 		
-		if (SAT.isSeparatingAxis(a.pos, b.pos, aPoints, bPoints, a.normals[i], responses[i])) {
+		if (this.isSeparatingAxis(a, b, a.normals[i], responses[i])) {
 			return false;
 		}
 	}
@@ -411,7 +546,7 @@ Phaser.Plugin.ArcadeSlopes.SatSolver.prototype.testPolygonPolygon = function (a,
 		responses[j] = new SAT.Response();
 		responses[j].axis = b.normals[i];
 		
-		if (SAT.isSeparatingAxis(a.pos, b.pos, aPoints, bPoints, b.normals[i], responses[j])) {
+		if (this.isSeparatingAxis(a, b, b.normals[i], responses[j])) {
 			return false;
 		}
 	}
@@ -420,9 +555,10 @@ Phaser.Plugin.ArcadeSlopes.SatSolver.prototype.testPolygonPolygon = function (a,
 	responses = responses.filter(function (response) {
 		// Is the axis of the overlap in the ignore list?
 		for (j = 0; j < ignore.length; j++) {
-			if (response.axis.ignore
-			  //|| (response.axis.x === ignore[j].x && response.axis.y === ignore[j].y)
-			  || (response.overlapN.x === -ignore[j].x && response.overlapN.y === -ignore[j].y)
+			if (
+				(response.axis.x === ignore[j].x && response.axis.y === ignore[j].y)
+				//||
+				//(-response.overlapN.x === ignore[j].x && -response.overlapN.y === ignore[j].y)
 			) {
 				return false;
 			}
@@ -431,11 +567,6 @@ Phaser.Plugin.ArcadeSlopes.SatSolver.prototype.testPolygonPolygon = function (a,
 		// Otherwise make sure the overlap is in the range we want
 		return response.overlap && response.overlap < Number.MAX_VALUE;
 	});
-	
-	// We have no desirable responses, so we can bail early
-	// if (!responses.length) {
-	// 	return false;
-	// }
 	
 	// Since none of the edge normals of A or B are a separating axis, there is
 	// an intersection
@@ -462,7 +593,7 @@ Phaser.Plugin.ArcadeSlopes.SatSolver.prototype.testPolygonPolygon = function (a,
 	response.b = b;
 	response.overlapV.copy(response.overlapN).scale(response.overlap);
 	
-	//console.log(response.overlap, response.overlapN.x, response.overlapN.y, response.overlapV.x, response.overlapV.y, JSON.stringify(ignore), JSON.stringify(responses, null, 2));
+	console.log(response.overlap, response.overlapN.x, response.overlapN.y, response.overlapV.x, response.overlapV.y, JSON.stringify(ignore), JSON.stringify(responses, null, 2));
 	
 	return true;
 };
