@@ -394,6 +394,8 @@ Phaser.Plugin.ArcadeSlopes.SatSolver.flattenPointsOn = function (points, normal,
 /**
  * Determine whether two polygons are separated by a given axis.
  *
+ * Tailored to only push out in the direction of the given axis.
+ * 
  * Adapted from SAT.isSeparatingAxis.
  *
  * @see    {SAT.isSeparatingAxis}
@@ -410,7 +412,6 @@ Phaser.Plugin.ArcadeSlopes.SatSolver.flattenPointsOn = function (points, normal,
  *   the direction of the overlap will be populated.
  */
 Phaser.Plugin.ArcadeSlopes.SatSolver.prototype.isSeparatingAxis = function (a, b, axis, response) {
-	
 	var aPos = a.pos;
 	var bPos = b.pos;
 	var aPoints = a.calcPoints;
@@ -504,6 +505,8 @@ Phaser.Plugin.ArcadeSlopes.SatSolver.prototype.isSeparatingAxis = function (a, b
  * viable separation vector.
  * 
  * Returns true if there is a collision and false otherwise.
+ *
+ * Tailored to work with an AABB as the first polygon.
  * 
  * Adapted from SAT.testPolygonPolygon.
  *
@@ -552,14 +555,10 @@ Phaser.Plugin.ArcadeSlopes.SatSolver.prototype.testPolygonPolygon = function (a,
 	}
 	
 	// Filter the responses down to those that are desirable
-	responses = responses.filter(function (response) {
+	responses = responses.filter(function (response, index) {
 		// Is the axis of the overlap in the ignore list?
 		for (j = 0; j < ignore.length; j++) {
-			if (
-				(response.axis.x === ignore[j].x && response.axis.y === ignore[j].y)
-				//||
-				//(-response.overlapN.x === ignore[j].x && -response.overlapN.y === ignore[j].y)
-			) {
+			if (response.axis.x === ignore[j].x && response.axis.y === ignore[j].y) {
 				return false;
 			}
 		}

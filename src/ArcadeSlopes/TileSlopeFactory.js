@@ -59,6 +59,17 @@ Phaser.Plugin.ArcadeSlopes.TileSlopeFactory = function () {
 	
 	this.mappings[Phaser.Plugin.ArcadeSlopes.TileSlopeFactory.ARCADESLOPES] = Phaser.Plugin.ArcadeSlopes.TileSlopeFactory.mapArcadeSlopes;
 	this.mappings[Phaser.Plugin.ArcadeSlopes.TileSlopeFactory.NINJA]        = Phaser.Plugin.ArcadeSlopes.TileSlopeFactory.mapNinjaPhysics;
+	
+	/**
+	 * A pool of vectors.
+	 * 
+	 * @property {SAT.Vector[]} vectorPool
+	 */
+	this.vectorPool = [];
+	
+	for (var i = 0; i < 100; i++) {
+		this.vectorPool.push(new SAT.Vector());
+	}
 };
 
 Phaser.Plugin.ArcadeSlopes.TileSlopeFactory.prototype.constructor = Phaser.Plugin.ArcadeSlopes.TileSlopeFactory;
@@ -200,6 +211,8 @@ Phaser.Plugin.ArcadeSlopes.TileSlopeFactory.prototype.convertTilemapLayer = func
 /**
  * Calculate the edge flags for each tile in the given tilemap layer.
  *
+ * TODO: Allow this to work with an optional range of tile coordinates.
+ * 
  * @method Phaser.Plugin.ArcadeSlopes.TileSlopeFactory#calculateEdges
  * @param {Phaser.TilemapLayer} layer - The tilemap layer to calculate edge flags for.
  */
@@ -214,6 +227,7 @@ Phaser.Plugin.ArcadeSlopes.TileSlopeFactory.prototype.calculateEdges = function 
 			var tile = layer.layer.data[y][x];
 			
 			if (tile && tile.hasOwnProperty('slope')) {
+				// Compare edges and flag internal vertices
 				above = layer.map.getTileAbove(layer.index, x, y);
 				below = layer.map.getTileBelow(layer.index, x, y);
 				left  = layer.map.getTileLeft(layer.index, x, y);
@@ -241,6 +255,28 @@ Phaser.Plugin.ArcadeSlopes.TileSlopeFactory.prototype.calculateEdges = function 
 					tile.slope.edges.right = this.compareEdges(tile.slope.edges.right, right.slope.edges.left);
 					tile.collideRight = tile.slope.edges.right !== Phaser.Plugin.ArcadeSlopes.TileSlope.EMPTY;
 					this.flagInternalVertices(tile, right);
+				}
+				
+				// Create ghost vertices for corner tiles
+				topLeft = layer.map.getTileTopLeft(layer.index, x, y);
+				topRight = layer.map.getTileTopRight(layer.index, x, y);
+				bottomLeft = layer.map.getTileBottomLeft(layer.index, x, y);
+				bottomRight = layer.map.getTileBottomRight(layer.index, x, y);
+				
+				if (topLeft && topLeft.hasOwnProperty('slope')) {
+					this.createGhostVertices(tile, topLeft);
+				}
+				
+				if (topRight && topRight.hasOwnProperty('slope')) {
+					this.createGhostVertices(tile, topRight);
+				}
+				
+				if (bottomLeft && bottomLeft.hasOwnProperty('slope')) {
+					this.createGhostVertices(tile, bottomLeft);
+				}
+				
+				if (bottomRight && bottomRight.hasOwnProperty('slope')) {
+					this.createGhostVertices(tile, bottomRight);
 				}
 			}
 		}
@@ -278,9 +314,8 @@ Phaser.Plugin.ArcadeSlopes.TileSlopeFactory.prototype.compareEdges = function (f
  * Because the polygons are represented by a set of points, instead of actual
  * edges, the first vector (assuming they are specified clockwise) of each
  * potential edge is flagged instead.
- * 
- * TODO: Optimise by bailing if both first vertices are already flagged and
- *       possibly by avoiding SAT.Vector instantiation.
+ *
+ * TODO: Rename .internal to .ignore
  *
  * @method Phaser.Plugin.ArcadeSlopes.TileSlopeFactory#flagInternalVertices
  * @param  {Phaser.Tile} firstTile  - The first tile to compare.
@@ -292,18 +327,34 @@ Phaser.Plugin.ArcadeSlopes.TileSlopeFactory.prototype.flagInternalVertices = fun
 		return;
 	}
 	
+	// Bail if the first vertices of each polygon are already flagged
+	if (firstTile.slope.polygon.points[0].internal && secondTile.slope.polygon.points[0].internal) {
+		return;
+	}
+	
+	// Access the tile polygons and grab some vectors from the pool
 	var firstPolygon = firstTile.slope.polygon;
 	var secondPolygon = secondTile.slope.polygon;
-	var firstPosition = new SAT.Vector(firstTile.worldX, firstTile.worldY);
-	var secondPosition = new SAT.Vector(secondTile.worldX, secondTile.worldY);
+	var firstPosition = this.vectorPool.pop();
+	var secondPosition = this.vectorPool.pop();
+	var firstTileVertexOne = this.vectorPool.pop();
+	var firstTileVertexTwo = this.vectorPool.pop();
+	var secondTileVertexOne = this.vectorPool.pop();
+	var secondTileVertexTwo = this.vectorPool.pop();
+	
+	// TODO: Take into account tilemap offset...
+	firstPosition.x = firstTile.worldX;
+	firstPosition.y = firstTile.worldY;
+	secondPosition.x = secondTile.worldX;
+	secondPosition.y = secondTile.worldY;
 	
 	for (var i = 0; i < firstPolygon.points.length; i++) {
-		var firstTileVertexOne = firstPolygon.points[i].clone().add(firstPosition);
-		var firstTileVertexTwo = firstPolygon.points[(i + 1) % firstPolygon.points.length].clone().add(firstPosition);
+		firstTileVertexOne.copy(firstPolygon.points[i]).add(firstPosition);
+		firstTileVertexTwo.copy(firstPolygon.points[(i + 1) % firstPolygon.points.length]).add(firstPosition);
 		
 		for (var j = 0; j < secondPolygon.points.length; j++) {
-			var secondTileVertexOne = secondPolygon.points[j].clone().add(secondPosition);
-			var secondTileVertexTwo = secondPolygon.points[(j + 1) % secondPolygon.points.length].clone().add(secondPosition);
+			secondTileVertexOne.copy(secondPolygon.points[j]).add(secondPosition);
+			secondTileVertexTwo.copy(secondPolygon.points[(j + 1) % secondPolygon.points.length]).add(secondPosition);
 			
 			// Now we can compare vertices for an exact or inverse match
 			var exactMatch = firstTileVertexOne.x === secondTileVertexOne.x &&
@@ -316,13 +367,45 @@ Phaser.Plugin.ArcadeSlopes.TileSlopeFactory.prototype.flagInternalVertices = fun
 				firstTileVertexTwo.x === secondTileVertexOne.x &&
 				firstTileVertexTwo.y === secondTileVertexOne.y;
 			
-			// Flag the vertices that begin an internal edge
+			// Flag the first vertex and the normal of the internal edge
 			if (exactMatch || inverseMatch) {
 				firstPolygon.points[i].internal = true;
 				secondPolygon.points[j].internal = true;
 				firstPolygon.normals[i].ignore = true;
 				secondPolygon.normals[j].ignore = true;
 			}
+		}
+	}
+	
+	// Recycle the vectors we used
+	this.vectorPool.push(
+		firstPosition, secondPosition, firstTileVertexOne, firstTileVertexTwo,
+		secondTileVertexOne, secondTileVertexTwo
+	);
+};
+
+/**
+ * Create ghost vertices for the polygons of the given tiles.
+ *
+ * These are used to further prevent internal collisions where tiles join.
+ *
+ * @method Phaser.Plugin.ArcadeSlopes.TileSlopeFactory#createGhostVertices
+ * @param {Phaser.Tile} firstTile  - The first tile to compare.
+ * @param {Phaser.Tile} secondTile - The second tile to compare.
+ */
+Phaser.Plugin.ArcadeSlopes.TileSlopeFactory.prototype.createGhostVertices = function (firstTile, secondTile) {
+	// Bail if either tile lacks a polygon
+	if (!firstTile.slope.polygon || !secondTile.slope.polygon) {
+		return;
+	}
+	
+	var firstPolygon = firstTile.slope.polygon;
+	var secondPolygon = secondTile.slope.polygon;
+	
+	for (var i = 0; i < firstPolygon.points.length; i++) {
+		// Do...
+		for (var j = 0; j < secondPolygon.points.length; j++) {
+			// some magic...
 		}
 	}
 };
