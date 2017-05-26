@@ -227,41 +227,41 @@ Phaser.Plugin.ArcadeSlopes.TileSlopeFactory.prototype.calculateEdges = function 
 			var tile = layer.layer.data[y][x];
 			
 			if (tile && tile.hasOwnProperty('slope')) {
-				// Compare edges and flag internal vertices
+				// Compare edges, flag internal vertices, create ghost normals
 				above = layer.map.getTileAbove(layer.index, x, y);
 				below = layer.map.getTileBelow(layer.index, x, y);
 				left  = layer.map.getTileLeft(layer.index, x, y);
 				right = layer.map.getTileRight(layer.index, x, y);
+				topLeft = layer.map.getTileTopLeft(layer.index, x, y);
+				topRight = layer.map.getTileTopRight(layer.index, x, y);
+				bottomLeft = layer.map.getTileBottomLeft(layer.index, x, y);
+				bottomRight = layer.map.getTileBottomRight(layer.index, x, y);
 				
 				if (above && above.hasOwnProperty('slope')) {
 					tile.slope.edges.top = this.compareEdges(tile.slope.edges.top, above.slope.edges.bottom);
 					tile.collideUp = tile.slope.edges.top !== Phaser.Plugin.ArcadeSlopes.TileSlope.EMPTY;
 					this.flagInternalVertices(tile, above);
+					this.createGhostVertices(tile, above);
 				}
 				
 				if (below && below.hasOwnProperty('slope')) {
 					tile.slope.edges.bottom = this.compareEdges(tile.slope.edges.bottom, below.slope.edges.top);
 					tile.collideDown = tile.slope.edges.bottom !== Phaser.Plugin.ArcadeSlopes.TileSlope.EMPTY;
-					this.flagInternalVertices(tile, below);
+					this.createGhostVertices(tile, below);
 				}
 				
 				if (left && left.hasOwnProperty('slope')) {
 					tile.slope.edges.left = this.compareEdges(tile.slope.edges.left, left.slope.edges.right);
 					tile.collideLeft = tile.slope.edges.left !== Phaser.Plugin.ArcadeSlopes.TileSlope.EMPTY;
 					this.flagInternalVertices(tile, left);
+					this.createGhostVertices(tile, left);
 				}
 				
 				if (right && right.hasOwnProperty('slope')) {
 					tile.slope.edges.right = this.compareEdges(tile.slope.edges.right, right.slope.edges.left);
 					tile.collideRight = tile.slope.edges.right !== Phaser.Plugin.ArcadeSlopes.TileSlope.EMPTY;
-					this.flagInternalVertices(tile, right);
+					this.createGhostVertices(tile, right);
 				}
-				
-				// Create ghost vertices for corner tiles
-				topLeft = layer.map.getTileTopLeft(layer.index, x, y);
-				topRight = layer.map.getTileTopRight(layer.index, x, y);
-				bottomLeft = layer.map.getTileBottomLeft(layer.index, x, y);
-				bottomRight = layer.map.getTileBottomRight(layer.index, x, y);
 				
 				if (topLeft && topLeft.hasOwnProperty('slope')) {
 					this.createGhostVertices(tile, topLeft);
@@ -327,11 +327,6 @@ Phaser.Plugin.ArcadeSlopes.TileSlopeFactory.prototype.flagInternalVertices = fun
 		return;
 	}
 	
-	// Bail if the first vertices of each polygon are already flagged
-	if (firstTile.slope.polygon.points[0].internal && secondTile.slope.polygon.points[0].internal) {
-		return;
-	}
-	
 	// Access the tile polygons and grab some vectors from the pool
 	var firstPolygon = firstTile.slope.polygon;
 	var secondPolygon = secondTile.slope.polygon;
@@ -341,6 +336,8 @@ Phaser.Plugin.ArcadeSlopes.TileSlopeFactory.prototype.flagInternalVertices = fun
 	var firstTileVertexTwo = this.vectorPool.pop();
 	var secondTileVertexOne = this.vectorPool.pop();
 	var secondTileVertexTwo = this.vectorPool.pop();
+	var exactMatch;
+	var inverseMatch;
 	
 	// TODO: Take into account tilemap offset...
 	firstPosition.x = firstTile.worldX;
@@ -357,12 +354,12 @@ Phaser.Plugin.ArcadeSlopes.TileSlopeFactory.prototype.flagInternalVertices = fun
 			secondTileVertexTwo.copy(secondPolygon.points[(j + 1) % secondPolygon.points.length]).add(secondPosition);
 			
 			// Now we can compare vertices for an exact or inverse match
-			var exactMatch = firstTileVertexOne.x === secondTileVertexOne.x &&
+			exactMatch = firstTileVertexOne.x === secondTileVertexOne.x &&
 				firstTileVertexOne.y === secondTileVertexOne.y &&
 				firstTileVertexTwo.x === secondTileVertexTwo.x &&
 				firstTileVertexTwo.y === secondTileVertexTwo.y;
 			
-			var inverseMatch = firstTileVertexOne.x === secondTileVertexTwo.x &&
+			inverseMatch = firstTileVertexOne.x === secondTileVertexTwo.x &&
 				firstTileVertexOne.y === secondTileVertexTwo.y &&
 				firstTileVertexTwo.x === secondTileVertexOne.x &&
 				firstTileVertexTwo.y === secondTileVertexOne.y;
@@ -385,9 +382,9 @@ Phaser.Plugin.ArcadeSlopes.TileSlopeFactory.prototype.flagInternalVertices = fun
 };
 
 /**
- * Create ghost vertices for the polygons of the given tiles.
- *
- * These are used to further prevent internal collisions where tiles join.
+ * Create ghost vertices for the polygon of the given tiles.
+ * 
+ * Ghost vertices are used to further prevent internal edge collisions.
  *
  * @method Phaser.Plugin.ArcadeSlopes.TileSlopeFactory#createGhostVertices
  * @param {Phaser.Tile} firstTile  - The first tile to compare.
@@ -399,15 +396,50 @@ Phaser.Plugin.ArcadeSlopes.TileSlopeFactory.prototype.createGhostVertices = func
 		return;
 	}
 	
+	// Here are our polygons
 	var firstPolygon = firstTile.slope.polygon;
 	var secondPolygon = secondTile.slope.polygon;
 	
+	// Here are the vectors we'll need to test for a worthwhile ghost normal
+	var firstPosition = this.vectorPool.pop();
+	var secondPosition = this.vectorPool.pop();
+	var firstTileVertexOne = this.vectorPool.pop();
+	var firstTileVertexTwo = this.vectorPool.pop();
+	var secondTileVertexOne = this.vectorPool.pop();
+	var secondTileVertexTwo = this.vectorPool.pop();
+	
+	firstPosition.x = firstTile.worldX;
+	firstPosition.y = firstTile.worldY;
+	secondPosition.x = secondTile.worldX;
+	secondPosition.y = secondTile.worldY;
+	
 	for (var i = 0; i < firstPolygon.points.length; i++) {
-		// Do...
+		firstTileVertexOne.copy(firstPolygon.points[i]).add(firstPosition);
+		firstTileVertexTwo.copy(firstPolygon.points[(i + 1) % firstPolygon.points.length]).add(firstPosition);
+		
 		for (var j = 0; j < secondPolygon.points.length; j++) {
-			// some magic...
+			secondTileVertexOne.copy(secondPolygon.points[j]).add(secondPosition);
+			secondTileVertexTwo.copy(secondPolygon.points[(j + 1) % secondPolygon.points.length]).add(secondPosition);
+			
+			// First tile vertex one matches second tile vertex two;
+			// Second tile edge leads into first tile edge
+			if (firstTileVertexOne.x === secondTileVertexTwo.x && firstTileVertexOne.y === secondTileVertexTwo.y) {
+				// TODO: Give the second tile a ghost normal for the first tile edge
+			}
+			
+			// First tile vertex two matches second tile vertex one;
+			// First tile edge leads into second tile edge
+			if (firstTileVertexTwo.x === secondTileVertexOne.x && firstTileVertexTwo.y === secondTileVertexTwo.y) {
+				// TODO: Give the first tile a ghost normal for the second tile edge
+			}
 		}
 	}
+	
+	// Recycle the vectors we used
+	this.vectorPool.push(
+		firstPosition, secondPosition, firstTileVertexOne, firstTileVertexTwo,
+		secondTileVertexOne, secondTileVertexTwo
+	);
 };
 
 /**
