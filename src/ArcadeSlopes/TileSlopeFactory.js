@@ -466,8 +466,8 @@ Phaser.Plugin.ArcadeSlopes.TileSlopeFactory.prototype.flagIgnormals = function (
 		if ((topLeft && topLeft.slope.edges.bottom !== empty) ||
 			(bottomLeft && bottomLeft.slope.edges.top !== empty) ||
 			(topInteresting && bottomInteresting && (
-				(above && above.slope.edges.bottom !== empty && above.slope.edges.left !== solid && above.slope.edges.top === solid) ||
-				(below && below.slope.edges.top !== empty && below.slope.edges.left !== solid && below.slope.edges.bottom === solid)
+				(above && above.slope.edges.bottom !== empty && above.slope.edges.left !== solid && above.slope.edges.top !== interesting) ||
+				(below && below.slope.edges.top !== empty && below.slope.edges.left !== solid && below.slope.edges.bottom !== interesting)
 			))
 		) {
 			tile.slope.polygon.ignormals.push(new SAT.Vector(-1, 0));
@@ -479,8 +479,8 @@ Phaser.Plugin.ArcadeSlopes.TileSlopeFactory.prototype.flagIgnormals = function (
 		if ((topRight && topRight.slope.edges.bottom !== empty) ||
 			(bottomRight && bottomRight.slope.edges.top !== empty) ||
 			(topInteresting && bottomInteresting && (
-				(above && above.slope.edges.bottom !== empty && above.slope.edges.right !== solid && above.slope.edges.top === solid) ||
-				(below && below.slope.edges.top !== empty && below.slope.edges.right !== solid && below.slope.edges.bottom === solid)
+				(above && above.slope.edges.bottom !== empty && above.slope.edges.right !== solid && above.slope.edges.top !== interesting) ||
+				(below && below.slope.edges.top !== empty && below.slope.edges.right !== solid && below.slope.edges.bottom !== interesting)
 			))
 		) {
 			tile.slope.polygon.ignormals.push(new SAT.Vector(1, 0));
@@ -1098,7 +1098,7 @@ Phaser.Plugin.ArcadeSlopes.TileSlopeFactory.createQuarterRightTopLow = function 
 	var edges = {
 		top:    Phaser.Plugin.ArcadeSlopes.TileSlope.INTERESTING,
 		bottom: Phaser.Plugin.ArcadeSlopes.TileSlope.INTERESTING,
-		right:  Phaser.Plugin.ArcadeSlopes.TileSlope.INTERESTING
+		left:  Phaser.Plugin.ArcadeSlopes.TileSlope.INTERESTING
 	};
 	
 	var axis = new SAT.Vector(-0.8944271909999159, 0.4472135954999579);
@@ -1127,7 +1127,7 @@ Phaser.Plugin.ArcadeSlopes.TileSlopeFactory.createQuarterRightTopHigh = function
 	
 	var edges = {
 		bottom: Phaser.Plugin.ArcadeSlopes.TileSlope.INTERESTING,
-		right:  Phaser.Plugin.ArcadeSlopes.TileSlope.INTERESTING
+		left:  Phaser.Plugin.ArcadeSlopes.TileSlope.INTERESTING
 	};
 	
 	var axis = new SAT.Vector(-0.8944271909999159, 0.4472135954999579);
