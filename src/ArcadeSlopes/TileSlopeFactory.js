@@ -217,69 +217,45 @@ Phaser.Plugin.ArcadeSlopes.TileSlopeFactory.prototype.convertTilemapLayer = func
  * @param {Phaser.TilemapLayer} layer - The tilemap layer to calculate edge flags for.
  */
 Phaser.Plugin.ArcadeSlopes.TileSlopeFactory.prototype.calculateEdges = function (layer) {
-	var above = null;
-	var below = null;
-	var left  = null;
-	var right = null;
+	var above, below, left, right;
 	
 	for (var y = 0, h = layer.layer.height; y < h; y++) {
 		for (var x = 0, w = layer.layer.width; x < w; x++) {
 			var tile = layer.layer.data[y][x];
 			
 			if (tile && tile.hasOwnProperty('slope')) {
-				// Compare edges, flag internal vertices, create ghost normals
+				// Compare edges and flag internal vertices
 				above = layer.map.getTileAbove(layer.index, x, y);
 				below = layer.map.getTileBelow(layer.index, x, y);
 				left  = layer.map.getTileLeft(layer.index, x, y);
 				right = layer.map.getTileRight(layer.index, x, y);
-				topLeft = layer.map.getTileTopLeft(layer.index, x, y);
-				topRight = layer.map.getTileTopRight(layer.index, x, y);
-				bottomLeft = layer.map.getTileBottomLeft(layer.index, x, y);
-				bottomRight = layer.map.getTileBottomRight(layer.index, x, y);
 				
 				if (above && above.hasOwnProperty('slope')) {
 					tile.slope.edges.top = this.compareEdges(tile.slope.edges.top, above.slope.edges.bottom);
 					tile.collideUp = tile.slope.edges.top !== Phaser.Plugin.ArcadeSlopes.TileSlope.EMPTY;
 					this.flagInternalVertices(tile, above);
-					this.createGhostVertices(tile, above);
 				}
 				
 				if (below && below.hasOwnProperty('slope')) {
 					tile.slope.edges.bottom = this.compareEdges(tile.slope.edges.bottom, below.slope.edges.top);
 					tile.collideDown = tile.slope.edges.bottom !== Phaser.Plugin.ArcadeSlopes.TileSlope.EMPTY;
 					this.flagInternalVertices(tile, below);
-					this.createGhostVertices(tile, below);
 				}
 				
 				if (left && left.hasOwnProperty('slope')) {
 					tile.slope.edges.left = this.compareEdges(tile.slope.edges.left, left.slope.edges.right);
 					tile.collideLeft = tile.slope.edges.left !== Phaser.Plugin.ArcadeSlopes.TileSlope.EMPTY;
 					this.flagInternalVertices(tile, left);
-					this.createGhostVertices(tile, left);
 				}
 				
 				if (right && right.hasOwnProperty('slope')) {
 					tile.slope.edges.right = this.compareEdges(tile.slope.edges.right, right.slope.edges.left);
 					tile.collideRight = tile.slope.edges.right !== Phaser.Plugin.ArcadeSlopes.TileSlope.EMPTY;
 					this.flagInternalVertices(tile, right);
-					this.createGhostVertices(tile, right);
 				}
 				
-				if (topLeft && topLeft.hasOwnProperty('slope')) {
-					this.createGhostVertices(tile, topLeft);
-				}
-				
-				if (topRight && topRight.hasOwnProperty('slope')) {
-					this.createGhostVertices(tile, topRight);
-				}
-				
-				if (bottomLeft && bottomLeft.hasOwnProperty('slope')) {
-					this.createGhostVertices(tile, bottomLeft);
-				}
-				
-				if (bottomRight && bottomRight.hasOwnProperty('slope')) {
-					this.createGhostVertices(tile, bottomRight);
-				}
+				// Flag further normals that we want to ignore for this tile
+				this.flagIgnormals(tile);
 			}
 		}
 	}
@@ -382,88 +358,34 @@ Phaser.Plugin.ArcadeSlopes.TileSlopeFactory.prototype.flagInternalVertices = fun
 };
 
 /**
- * Create ghost vertices for the polygon of the given tiles.
- * 
- * Ghost vertices are used to further prevent internal edge collisions.
+ * Flag further normals to ignore to prevent unwanted collision responses.
  *
- * @method Phaser.Plugin.ArcadeSlopes.TileSlopeFactory#createGhostVertices
- * @param {Phaser.Tile} firstTile  - The first tile to compare.
- * @param {Phaser.Tile} secondTile - The second tile to compare.
+ * Simply observes Phaser's edge flags of neighbouring tiles to decide whether
+ * axis-aligned collisions are desirable.
+ *
+ * @method Phaser.Plugin.ArcadeSlopes.TileSlopeFactory#flagIgnormals
+ * @param {Phaser.Tile} tile  - The tile to flag ignormals for.
  */
-Phaser.Plugin.ArcadeSlopes.TileSlopeFactory.prototype.createGhostVertices = function (firstTile, secondTile) {
-	// Bail if either tile lacks a polygon
-	if (!firstTile.slope.polygon || !secondTile.slope.polygon) {
+Phaser.Plugin.ArcadeSlopes.TileSlopeFactory.prototype.flagIgnormals = function (tile) {
+	if (!tile.slope || !tile.slope.polygon) {
 		return;
 	}
 	
-	// Here are our polygons
-	var firstPolygon = firstTile.slope.polygon;
-	var secondPolygon = secondTile.slope.polygon;
-	
-	if (!firstPolygon.ghostNormals) {
-		firstPolygon.ghostNormals = [];
-		firstPolygon.ignormals = [];
+	if (!tile.slope.polygon.ignormals) {
+		tile.slope.polygon.ignormals = [];
 	}
 	
-	if (!secondPolygon.ghostNormals) {
-		secondPolygon.ghostNormals = [];
-		secondPolygon.ignormals = [];
-	}
+	var topLeft = tile.neighbours.topLeft;
+	var topRight = tile.neighbours.topRight;
+	var bottomLeft = tile.neighbours.bottomLeft;
+	var bottomRight = tile.neighbours.bottomRight;
 	
-	// Here are the vectors we'll need to test for a worthwhile ghost normal
-	var firstPosition = this.vectorPool.pop();
-	var secondPosition = this.vectorPool.pop();
-	var firstTileVertexOne = this.vectorPool.pop();
-	var firstTileVertexTwo = this.vectorPool.pop();
-	var secondTileVertexOne = this.vectorPool.pop();
-	var secondTileVertexTwo = this.vectorPool.pop();
-	
-	firstPosition.x = firstTile.worldX;
-	firstPosition.y = firstTile.worldY;
-	secondPosition.x = secondTile.worldX;
-	secondPosition.y = secondTile.worldY;
-	
-	for (var i = 0; i < firstPolygon.points.length; i++) {
-		if (firstPolygon.normals[i].ignore) {
-			continue;
-		}
-		
-		firstTileVertexOne.copy(firstPolygon.points[i]).add(firstPosition);
-		firstTileVertexTwo.copy(firstPolygon.points[(i + 1) % firstPolygon.points.length]).add(firstPosition);
-		
-		for (var j = 0; j < secondPolygon.points.length; j++) {
-			if (secondPolygon.normals[j].ignore) {
-				continue;
-			}
-			
-			secondTileVertexOne.copy(secondPolygon.points[j]).add(secondPosition);
-			secondTileVertexTwo.copy(secondPolygon.points[(j + 1) % secondPolygon.points.length]).add(secondPosition);
-			
-			// First tile vertex one matches second tile vertex two;
-			// Second tile edge leads into first tile edge
-			if (firstTileVertexOne.x === secondTileVertexTwo.x && firstTileVertexOne.y === secondTileVertexTwo.y) {
-				
-				
-				if (firstTileVertexOne.x >= firstTileVertexTwo.x && secondTileVertexOne.x > secondTileVertexTwo.x &&
-					firstTileVertexOne.y < firstTileVertexTwo.y && secondTileVertexOne.y <= secondTileVertexTwo.y
-				) {
-					secondPolygon.ignormals.push(new SAT.Vector(1, 0));
-				}
-			}
-			
-			// First tile vertex two matches second tile vertex one;
-			// First tile edge leads into second tile edge
-			if (firstTileVertexTwo.x === secondTileVertexOne.x && firstTileVertexTwo.y === secondTileVertexTwo.y) {
-				
-			}
+	if (bottomRight && bottomRight.hasOwnProperty('slope') && tile.slope.edges.right === Phaser.Plugin.ArcadeSlopes.TileSlope.INTERESTING) {
+		if (bottomRight.slope.edges.top !== Phaser.Plugin.ArcadeSlopes.TileSlope.EMPTY) {
+			console.log(tile, bottomRight);
+			tile.slope.polygon.ignormals.push(new SAT.Vector(1, 0));
 		}
 	}
-	
-	// Recycle the vectors we used
-	this.vectorPool.push(
-		firstPosition, secondPosition, firstTileVertexOne, firstTileVertexTwo,
-		secondTileVertexOne, secondTileVertexTwo
-	);
 };
 
 /**

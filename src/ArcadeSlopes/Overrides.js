@@ -426,23 +426,6 @@ Phaser.Plugin.ArcadeSlopes.Overrides.renderDebug = function () {
 							
 							context.closePath();
 							context.stroke();
-							
-							// Ghost normals
-							if (polygon.ghostNormals && polygon.ghostNormals[i]) {
-								context.beginPath();
-								
-								context.lineWidth = 1;
-								context.strokeStyle = 'rgba(0, 255, 0, 1)';
-								
-								gx = polygon.ghostNormals[i].x;
-								gy = polygon.ghostNormals[i].y;
-								
-								context.moveTo(tx + m.x * scaleX, ty + m.y * scaleY);
-								context.lineTo(tx + m.x * scaleX + gx * qtw, ty + m.y * scaleY + gy * qth);
-								
-								context.closePath();
-								context.stroke();
-							}
 						}
 						
 						// Ignormals
