@@ -433,7 +433,7 @@ Phaser.Plugin.ArcadeSlopes.SatSolver.prototype.isSeparatingAxis = function (a, b
 	rangeB[1] += projectedOffset;
 	
 	// Check if there is a gap. If there is, this is a separating axis and we can stop
-	if (rangeA[0] > rangeB[1] || rangeB[0] > rangeA[1]) {
+	if (rangeA[0] >= rangeB[1] || rangeB[0] >= rangeA[1]) {
 		this.vectorPool.push(offsetV);
 		this.arrayPool.push(rangeA);
 		this.arrayPool.push(rangeB);
@@ -474,6 +474,8 @@ Phaser.Plugin.ArcadeSlopes.SatSolver.prototype.isSeparatingAxis = function (a, b
 				option1 = rangeA[1] - rangeB[0];
 				option2 = rangeB[1] - rangeA[0];
 				overlap = option1 < option2 ? option1 : -option2;
+				//overlap = option1 < option2 ? 0 : -option2;
+				//overlap = option1 < option2 ? option1 : 0;
 			}
 		}
 		
@@ -514,12 +516,13 @@ Phaser.Plugin.ArcadeSlopes.SatSolver.prototype.isSeparatingAxis = function (a, b
  * 
  * @see    {SAT.testPolygonPolygon}
  * @method Phaser.Plugin.ArcadeSlopes.SatSolver#testPolygonPolygon
- * @param  {SAT.Polygon}  a        - The first polygon.
- * @param  {SAT.Polygon}  b        - The second polygon.
- * @param  {SAT.Response} response - The response object to populate with overlap information.
- * @return {boolean}               - Whether the the two polygons overlap.
+ * @param  {SAT.Polygon}  a          - The first polygon.
+ * @param  {SAT.Polygon}  b          - The second polygon.
+ * @param  {SAT.Response} response   - The response object to populate with overlap information.
+ * @param  {Array}        [velocity] - Velocity vector to ignore.
+ * @return {boolean}                 - Whether the the two polygons overlap.
  */
-Phaser.Plugin.ArcadeSlopes.SatSolver.prototype.testPolygonPolygon = function (a, b, response) {
+Phaser.Plugin.ArcadeSlopes.SatSolver.prototype.testPolygonPolygon = function (a, b, response, velocity) {
 	var aPoints = a.calcPoints;
 	var aLen = aPoints.length;
 	var bPoints = b.calcPoints;
@@ -556,6 +559,11 @@ Phaser.Plugin.ArcadeSlopes.SatSolver.prototype.testPolygonPolygon = function (a,
 	
 	// Filter the responses down to those that are desirable
 	responses = responses.filter(function (response, index) {
+		// Is the direction of the overlap too close to that of the given velocity?
+		if (velocity && response.overlapN.clone().scale(-1).dot(velocity) > 0) {
+			return false;
+		}
+		
 		// Is the axis of the overlap in the ignore list?
 		for (j = 0; j < ignore.length; j++) {
 			if (response.axis.x === ignore[j].x && response.axis.y === ignore[j].y) {
@@ -636,7 +644,7 @@ Phaser.Plugin.ArcadeSlopes.SatSolver.prototype.collide = function (i, body, tile
 	
 	// Test for an overlap and bail if there isn't one
 	var circleOverlap = body.isCircle && SAT.testCirclePolygon(body.polygon, tile.slope.polygon, response);
-	var polygonOverlap = !body.isCircle && this.testPolygonPolygon(body.polygon, tile.slope.polygon, response);
+	var polygonOverlap = !body.isCircle && this.testPolygonPolygon(body.polygon, tile.slope.polygon, response, body.slopes.velocity);
 	
 	if (!circleOverlap && !polygonOverlap) {
 		return false;
@@ -691,9 +699,9 @@ Phaser.Plugin.ArcadeSlopes.SatSolver.prototype.shouldSeparate = function (i, bod
 	}
 	
 	// Only separate if the body is moving into the collision
-	if (response.overlapV.clone().scale(-1).dot(body.slopes.velocity) < 0) {
-		return false;
-	}
+	//if (response.overlapV.clone().scale(-1).dot(body.slopes.velocity) < 0) {
+	//	return false;
+	//}
 	
 	// Ignore flagged edge normals
 	// for (var n = 0; n < tile.slope.polygon.normals.length; n++) {
