@@ -1,7 +1,7 @@
 (function (Phaser, DemoState) {
 	// Arcade Slopes Demo
 	var state = new DemoState();
-	var game = new Phaser.Game(1280, 720, Phaser.AUTO, 'phaser', state, null, false);
+	var game = new Phaser.Game(1280, 720, Phaser.CANVAS, 'phaser', state, null, false);
 
 	// Open up the state globally so we can access it at run time for debugging
 	window.state = state;

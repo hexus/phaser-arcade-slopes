@@ -597,7 +597,7 @@ var DemoState = (function (Phaser) {
 			//}
 		},
 		
-		preRender: function () {
+		render: function () {
 			var debug = this.game.debug;
 			var controls = this.controls;
 			var features = this.features;
