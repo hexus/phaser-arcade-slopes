@@ -247,6 +247,7 @@ Phaser.Plugin.ArcadeSlopes.TileSlopeFactory.prototype.calculateEdges = function 
 				if (below && below.hasOwnProperty('slope')) {
 					tile.slope.edges.bottom = this.compareEdges(tile.slope.edges.bottom, below.slope.edges.top);
 					tile.collideDown = tile.slope.edges.bottom !== Phaser.Plugin.ArcadeSlopes.TileSlope.EMPTY;
+					this.flagInternalVertices(tile, below);
 					this.createGhostVertices(tile, below);
 				}
 				
@@ -260,6 +261,7 @@ Phaser.Plugin.ArcadeSlopes.TileSlopeFactory.prototype.calculateEdges = function 
 				if (right && right.hasOwnProperty('slope')) {
 					tile.slope.edges.right = this.compareEdges(tile.slope.edges.right, right.slope.edges.left);
 					tile.collideRight = tile.slope.edges.right !== Phaser.Plugin.ArcadeSlopes.TileSlope.EMPTY;
+					this.flagInternalVertices(tile, right);
 					this.createGhostVertices(tile, right);
 				}
 				
@@ -315,8 +317,6 @@ Phaser.Plugin.ArcadeSlopes.TileSlopeFactory.prototype.compareEdges = function (f
  * edges, the first vector (assuming they are specified clockwise) of each
  * potential edge is flagged instead.
  *
- * TODO: Rename .internal to .ignore
- *
  * @method Phaser.Plugin.ArcadeSlopes.TileSlopeFactory#flagInternalVertices
  * @param  {Phaser.Tile} firstTile  - The first tile to compare.
  * @param  {Phaser.Tile} secondTile - The second tile to compare.
@@ -366,8 +366,8 @@ Phaser.Plugin.ArcadeSlopes.TileSlopeFactory.prototype.flagInternalVertices = fun
 			
 			// Flag the first vertex and the normal of the internal edge
 			if (exactMatch || inverseMatch) {
-				firstPolygon.points[i].internal = true;
-				secondPolygon.points[j].internal = true;
+				firstPolygon.points[i].ignore = true;
+				secondPolygon.points[j].ignore = true;
 				firstPolygon.normals[i].ignore = true;
 				secondPolygon.normals[j].ignore = true;
 			}
@@ -400,6 +400,16 @@ Phaser.Plugin.ArcadeSlopes.TileSlopeFactory.prototype.createGhostVertices = func
 	var firstPolygon = firstTile.slope.polygon;
 	var secondPolygon = secondTile.slope.polygon;
 	
+	if (!firstPolygon.ghostNormals) {
+		firstPolygon.ghostNormals = [];
+		firstPolygon.ignormals = [];
+	}
+	
+	if (!secondPolygon.ghostNormals) {
+		secondPolygon.ghostNormals = [];
+		secondPolygon.ignormals = [];
+	}
+	
 	// Here are the vectors we'll need to test for a worthwhile ghost normal
 	var firstPosition = this.vectorPool.pop();
 	var secondPosition = this.vectorPool.pop();
@@ -414,23 +424,37 @@ Phaser.Plugin.ArcadeSlopes.TileSlopeFactory.prototype.createGhostVertices = func
 	secondPosition.y = secondTile.worldY;
 	
 	for (var i = 0; i < firstPolygon.points.length; i++) {
+		if (firstPolygon.normals[i].ignore) {
+			continue;
+		}
+		
 		firstTileVertexOne.copy(firstPolygon.points[i]).add(firstPosition);
 		firstTileVertexTwo.copy(firstPolygon.points[(i + 1) % firstPolygon.points.length]).add(firstPosition);
 		
 		for (var j = 0; j < secondPolygon.points.length; j++) {
+			if (secondPolygon.normals[j].ignore) {
+				continue;
+			}
+			
 			secondTileVertexOne.copy(secondPolygon.points[j]).add(secondPosition);
 			secondTileVertexTwo.copy(secondPolygon.points[(j + 1) % secondPolygon.points.length]).add(secondPosition);
 			
 			// First tile vertex one matches second tile vertex two;
 			// Second tile edge leads into first tile edge
 			if (firstTileVertexOne.x === secondTileVertexTwo.x && firstTileVertexOne.y === secondTileVertexTwo.y) {
-				// TODO: Give the second tile a ghost normal for the first tile edge
+				
+				
+				if (firstTileVertexOne.x >= firstTileVertexTwo.x && secondTileVertexOne.x > secondTileVertexTwo.x &&
+					firstTileVertexOne.y < firstTileVertexTwo.y && secondTileVertexOne.y <= secondTileVertexTwo.y
+				) {
+					secondPolygon.ignormals.push(new SAT.Vector(1, 0));
+				}
 			}
 			
 			// First tile vertex two matches second tile vertex one;
 			// First tile edge leads into second tile edge
 			if (firstTileVertexTwo.x === secondTileVertexOne.x && firstTileVertexTwo.y === secondTileVertexTwo.y) {
-				// TODO: Give the first tile a ghost normal for the second tile edge
+				
 			}
 		}
 	}

@@ -457,8 +457,8 @@ Phaser.Plugin.ArcadeSlopes.SatSolver.prototype.isSeparatingAxis = function (a, b
 				response.bInA = false;
 			} else {
 				// B is fully inside A. Pick the shortest way out.
-				//option1 = rangeA[1] - rangeB[0];
-				//option2 = rangeB[1] - rangeA[0];
+				option1 = rangeA[1] - rangeB[0];
+				option2 = rangeB[1] - rangeA[0];
 				//overlap = option1 < option2 ? option1 : -option2;
 			}
 		} else {
@@ -474,8 +474,6 @@ Phaser.Plugin.ArcadeSlopes.SatSolver.prototype.isSeparatingAxis = function (a, b
 				option1 = rangeA[1] - rangeB[0];
 				option2 = rangeB[1] - rangeA[0];
 				overlap = option1 < option2 ? option1 : -option2;
-				//overlap = option1 < option2 ? 0 : -option2;
-				//overlap = option1 < option2 ? option1 : 0;
 			}
 		}
 		
@@ -537,6 +535,12 @@ Phaser.Plugin.ArcadeSlopes.SatSolver.prototype.testPolygonPolygon = function (a,
 		return normal.ignore;
 	});
 	
+	if (b.ignormals) {
+		for (i = 0; i < b.ignormals.length; i++) {
+			ignore.push(b.ignormals[i]);
+		}
+	}
+	
 	// If any of the edge normals of A is a separating axis, no intersection
 	for (i = 0; i < aLen; i++) {
 		responses[i] = new SAT.Response();
@@ -559,7 +563,7 @@ Phaser.Plugin.ArcadeSlopes.SatSolver.prototype.testPolygonPolygon = function (a,
 	
 	// Filter the responses down to those that are desirable
 	responses = responses.filter(function (response, index) {
-		// Is the direction of the overlap too close to that of the given velocity?
+		// Is the overlap direction too close to that of the velocity direction?
 		if (velocity && response.overlapN.clone().scale(-1).dot(velocity) > 0) {
 			return false;
 		}
@@ -572,7 +576,8 @@ Phaser.Plugin.ArcadeSlopes.SatSolver.prototype.testPolygonPolygon = function (a,
 		}
 		
 		// Otherwise make sure the overlap is in the range we want
-		return response.overlap && response.overlap < Number.MAX_VALUE;
+		// TODO: Less than the max of tile width/height?
+		return response.overlap > 0 && response.overlap < Number.MAX_VALUE;
 	});
 	
 	// Since none of the edge normals of A or B are a separating axis, there is
@@ -600,7 +605,7 @@ Phaser.Plugin.ArcadeSlopes.SatSolver.prototype.testPolygonPolygon = function (a,
 	response.b = b;
 	response.overlapV.copy(response.overlapN).scale(response.overlap);
 	
-	console.log(response.overlap, response.overlapN.x, response.overlapN.y, response.overlapV.x, response.overlapV.y, JSON.stringify(ignore), JSON.stringify(responses, null, 2));
+	//console.log(response.overlap, response.overlapN.x, response.overlapN.y, response.overlapV.x, response.overlapV.y, JSON.stringify(ignore), JSON.stringify(responses, null, 2));
 	
 	return true;
 };
