@@ -217,11 +217,14 @@ Phaser.Plugin.ArcadeSlopes.TileSlopeFactory.prototype.convertTilemapLayer = func
  * @param {Phaser.TilemapLayer} layer - The tilemap layer to calculate edge flags for.
  */
 Phaser.Plugin.ArcadeSlopes.TileSlopeFactory.prototype.calculateEdges = function (layer) {
-	var above, below, left, right;
+	var x, y, h, w, tile, above, below, left, right;
 	
-	for (var y = 0, h = layer.layer.height; y < h; y++) {
-		for (var x = 0, w = layer.layer.width; x < w; x++) {
-			var tile = layer.layer.data[y][x];
+	h = layer.layer.height;
+	w = layer.layer.width;
+	
+	for (y = 0; y < h; y++) {
+		for (x = 0; x < w; x++) {
+			tile = layer.layer.data[y][x];
 			
 			if (tile && tile.hasOwnProperty('slope')) {
 				// Compare edges and flag internal vertices
@@ -253,10 +256,17 @@ Phaser.Plugin.ArcadeSlopes.TileSlopeFactory.prototype.calculateEdges = function 
 					tile.collideRight = tile.slope.edges.right !== Phaser.Plugin.ArcadeSlopes.TileSlope.EMPTY;
 					this.flagInternalVertices(tile, right);
 				}
-				
-				// Flag further normals that we want to ignore for this tile
-				this.flagIgnormals(tile);
 			}
+		}
+	}
+	
+	// Flag further normals that we want to ignore for this tile, now that all
+	// of the edges have been set
+	for (y = 0; y < h; y++) {
+		for (x = 0; x < w; x++) {
+			tile = layer.layer.data[y][x];
+			
+			this.flagIgnormals(tile);
 		}
 	}
 };
@@ -363,6 +373,8 @@ Phaser.Plugin.ArcadeSlopes.TileSlopeFactory.prototype.flagInternalVertices = fun
  * Simply observes Phaser's edge flags of neighbouring tiles to decide whether
  * axis-aligned collisions are desirable.
  *
+ * Heuristics 2.0. Generalised instead of tile-specific.
+ *
  * @method Phaser.Plugin.ArcadeSlopes.TileSlopeFactory#flagIgnormals
  * @param {Phaser.Tile} tile  - The tile to flag ignormals for.
  */
@@ -371,18 +383,106 @@ Phaser.Plugin.ArcadeSlopes.TileSlopeFactory.prototype.flagIgnormals = function (
 		return;
 	}
 	
+	// Skip full and half blocks
+	// TODO: Skip any tiles with purely axis-aligned edges
+	if (tile.slope.type === Phaser.Plugin.ArcadeSlopes.TileSlope.FULL ||
+		tile.slope.type === Phaser.Plugin.ArcadeSlopes.TileSlope.HALF_TOP ||
+		tile.slope.type === Phaser.Plugin.ArcadeSlopes.TileSlope.HALF_BOTTOM ||
+		tile.slope.type === Phaser.Plugin.ArcadeSlopes.TileSlope.HALF_LEFT ||
+		tile.slope.type === Phaser.Plugin.ArcadeSlopes.TileSlope.HALF_RIGHT
+	) {
+		return;
+	}
+	
+	// Give the tile polygon an ignormals array if it doesn't have one
+	// TODO: Give the tile slope these normals, don't augment SAT.js types
 	if (!tile.slope.polygon.ignormals) {
 		tile.slope.polygon.ignormals = [];
 	}
 	
-	var topLeft = tile.neighbours.topLeft;
-	var topRight = tile.neighbours.topRight;
-	var bottomLeft = tile.neighbours.bottomLeft;
+	// Define some shorthand variables to use in the conditions
+	var empty       = Phaser.Plugin.ArcadeSlopes.TileSlope.EMPTY;
+	var interesting = Phaser.Plugin.ArcadeSlopes.TileSlope.INTERESTING;
+	var solid       = Phaser.Plugin.ArcadeSlopes.TileSlope.SOLID;
+	var above       = tile.neighbours.above;
+	var below       = tile.neighbours.below;
+	var left        = tile.neighbours.left;
+	var right       = tile.neighbours.right;
+	var topLeft     = tile.neighbours.topLeft;
+	var topRight    = tile.neighbours.topRight;
+	var bottomLeft  = tile.neighbours.bottomLeft;
 	var bottomRight = tile.neighbours.bottomRight;
 	
-	if (bottomRight && bottomRight.hasOwnProperty('slope') && tile.slope.edges.right === Phaser.Plugin.ArcadeSlopes.TileSlope.INTERESTING) {
-		if (bottomRight.slope.edges.top !== Phaser.Plugin.ArcadeSlopes.TileSlope.EMPTY) {
-			console.log(tile, bottomRight);
+	// Skip neighbours without a TileSlope
+	if (above && !above.hasOwnProperty('slope')) {
+		above = null;
+	}
+	
+	if (below && !below.hasOwnProperty('slope')) {
+		below = null;
+	}
+	
+	if (left && !left.hasOwnProperty('slope')) {
+		left = null;
+	}
+	
+	if (right && !right.hasOwnProperty('slope')) {
+		right = null;
+	}
+	
+	if (topLeft && !topLeft.hasOwnProperty('slope')) {
+		topLeft = null;
+	}
+	
+	if (topRight && !topRight.hasOwnProperty('slope')) {
+		topRight = null;
+	}
+	
+	if (bottomLeft && !bottomLeft.hasOwnProperty('slope')) {
+		bottomLeft = null;
+	}
+	
+	if (bottomRight && !bottomRight.hasOwnProperty('slope')) {
+		bottomRight = null;
+	}
+	
+	// Determine the interesting edges of the current tile
+	var topInteresting    = tile.slope.edges.top === interesting;
+	var bottomInteresting = tile.slope.edges.bottom === interesting;
+	var leftInteresting   = tile.slope.edges.left === interesting;
+	var rightInteresting  = tile.slope.edges.right === interesting;
+	
+	// Skip top collisions
+	if (topInteresting) {
+		if ((topLeft && topLeft.slope.edges.right !== empty) ||
+			(topRight && topRight.slope.edges.left !== empty)
+		) {
+			tile.slope.polygon.ignormals.push(new SAT.Vector(0, -1));
+		}
+	}
+	
+	// Skip left collisions
+	if (leftInteresting) {
+		if ((topLeft && topLeft.slope.edges.bottom !== empty) ||
+			(bottomLeft && bottomLeft.slope.edges.top !== empty) ||
+			(topInteresting && bottomInteresting && (
+				(above && above.slope.edges.bottom !== empty && above.slope.edges.left !== solid && above.slope.edges.top === solid) ||
+				(below && below.slope.edges.top !== empty && below.slope.edges.left !== solid && below.slope.edges.bottom === solid)
+			))
+		) {
+			tile.slope.polygon.ignormals.push(new SAT.Vector(-1, 0));
+		}
+	}
+	
+	// Skip right collisions
+	if (rightInteresting) {
+		if ((topRight && topRight.slope.edges.bottom !== empty) ||
+			(bottomRight && bottomRight.slope.edges.top !== empty) ||
+			(topInteresting && bottomInteresting && (
+				(above && above.slope.edges.bottom !== empty && above.slope.edges.right !== solid && above.slope.edges.top === solid) ||
+				(below && below.slope.edges.top !== empty && below.slope.edges.right !== solid && below.slope.edges.bottom === solid)
+			))
+		) {
 			tile.slope.polygon.ignormals.push(new SAT.Vector(1, 0));
 		}
 	}

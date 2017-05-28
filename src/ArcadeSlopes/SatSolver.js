@@ -511,6 +511,7 @@ Phaser.Plugin.ArcadeSlopes.SatSolver.prototype.isSeparatingAxis = function (a, b
  * Adapted from SAT.testPolygonPolygon.
  *
  * TODO: Optimise temporary responses with pooling.
+ * TODO: Pass in a list of normals to ignore, don't pick them up here.
  * 
  * @see    {SAT.testPolygonPolygon}
  * @method Phaser.Plugin.ArcadeSlopes.SatSolver#testPolygonPolygon
