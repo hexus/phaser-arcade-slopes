@@ -73,6 +73,7 @@ var DemoState = (function (Phaser) {
 			// Particle controls
 			particleFlow: false,
 			particleGravity: true,
+			particleSelfCollide : false,
 			particleMinX: -500,
 			particleMaxX: 500,
 			particleMinY: -500,
@@ -258,9 +259,9 @@ var DemoState = (function (Phaser) {
 			player.anchor.set(features.anchorX, features.anchorY);
 			
 			// Determine whether we need to update the player
-			if (player.body && player.body.height === features.size && player.body.isCircle == features.shape) {
-				// If the player has a body, and the body's height hasn't
-				// changed, we don't need to update it
+			if (player.body && player.body.height === features.size && ((player.body.isCircle && features.shape === 'circle') || (!player.body.isCircle && features.shape === 'aabb'))) {
+				// If the player has a body, and the body's height and shape
+				// haven't changed, we don't need to update it
 				return;
 			}
 			
@@ -321,7 +322,7 @@ var DemoState = (function (Phaser) {
 			this.emitter.setYSpeed(features.particleMinY, features.particleMaxY);
 			
 			// If the particle size option hasn't changed we can finish here
-			if (firstParticle.body.height === size && firstParticle.body.isCircle == features.shape) {
+			if (firstParticle.body.height === size && ((firstParticle.body.isCircle && features.shape === 'circle') || (!firstParticle.body.isCircle && features.shape === 'aabb'))) {
 				return;
 			}
 			
