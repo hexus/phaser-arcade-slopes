@@ -78,10 +78,10 @@ var DemoState = (function (Phaser) {
 			particleMinY: -500,
 			particleMaxY: 500,
 			particleSize: 16,
-			particleFrequency: 100,
+			particleFrequency: 20,
 			particleQuantity: 5,
-			emitterWidth: 0,
-			emitterHeight: 0,
+			emitterWidth: 1,
+			emitterHeight: 1,
 			fireParticle: function () {
 				state.emitter.emitParticle();
 			},
@@ -145,7 +145,7 @@ var DemoState = (function (Phaser) {
 			this.game.slopes.convertTilemapLayer(this.ground2, 'arcadeslopes');
 			
 			// Create a player sprite
-			this.player = this.add.sprite(0, 0);
+			this.player = this.add.sprite(925, 360);
 			
 			// Create a graphics object for the player
 			this.playerGraphics = new Phaser.Graphics(this);
@@ -245,17 +245,6 @@ var DemoState = (function (Phaser) {
 			
 			// Prevent the debug text from rendering with a shadow
 			this.game.debug.renderShadow = false;
-			
-			// Debugging
-			//this.features.particleFlow = true;
-			// - Corner skipping
-			this.player.position.x = 194 + this.player.body.halfWidth;
-			this.player.position.y = 290 + this.player.body.halfHeight;
-			// - Seam skipping
-			this.player.position.x = 925.59 + this.player.body.halfWidth;
-			this.player.position.y = 270.79 + this.player.body.halfHeight;
-			this.features.particleGravity = false;
-			this.features.particleSize = 7;
 		},
 		
 		updatePlayer: function (player) {
