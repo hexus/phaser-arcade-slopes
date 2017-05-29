@@ -32,7 +32,7 @@ Phaser.Plugin.ArcadeSlopes.SatSolver = function (options) {
 	 */
 	this.arrayPool = [];
 	
-	for (var i = 0; i < 5; i++) {
+	for (var i = 0; i < 10; i++) {
 		this.arrayPool.push([]);
 	}
 	
@@ -45,6 +45,17 @@ Phaser.Plugin.ArcadeSlopes.SatSolver = function (options) {
 	
 	for (i = 0; i < 10; i++) {
 		this.vectorPool.push(new SAT.Vector());
+	}
+	
+	/**
+	 * A pool of responses to use for collision tests.
+	 * 
+	 * @property {SAT.Response[]} responsePool
+	 */
+	this.responsePool = [];
+	
+	for (i = 0; i < 20; i++) {
+		this.responsePool.push(new SAT.Response());
 	}
 };
 
@@ -473,7 +484,8 @@ Phaser.Plugin.ArcadeSlopes.SatSolver.prototype.isSeparatingAxis = function (a, b
 				// A is fully inside B.  Pick the shortest way out.
 				option1 = rangeA[1] - rangeB[0];
 				option2 = rangeB[1] - rangeA[0];
-				overlap = option1 < option2 ? option1 : -option2;
+				//overlap = option1 < option2 ? option1 : -option2;
+				overlap = option1 < option2 ? 0 : -option2;
 			}
 		}
 		
@@ -527,15 +539,19 @@ Phaser.Plugin.ArcadeSlopes.SatSolver.prototype.testPolygonPolygon = function (a,
 	var bPoints = b.calcPoints;
 	var bLen = bPoints.length;
 	
-	var i;
-	var j;
-	var responses = [];
+	var i, j, k;
+	var responses = this.arrayPool.pop();
+	var axes = this.arrayPool.pop();
+	
+	responses.length = 0;
+	axes.length = 0;
 	
 	// Build a list of axes to ignore by filtering down flagged normals
 	var ignore = b.normals.filter(function (normal) {
 		return normal.ignore;
 	});
 	
+	// And by including the polygon's ignormals
 	if (b.ignormals) {
 		for (i = 0; i < b.ignormals.length; i++) {
 			ignore.push(b.ignormals[i]);
@@ -544,51 +560,79 @@ Phaser.Plugin.ArcadeSlopes.SatSolver.prototype.testPolygonPolygon = function (a,
 	
 	// If any of the edge normals of A is a separating axis, no intersection
 	for (i = 0; i < aLen; i++) {
-		responses[i] = new SAT.Response();
-		responses[i].axis = a.normals[i];
+		responses[i] = this.responsePool.pop();
+		responses[i].clear();
+		axes[i] = a.normals[i];
 		
 		if (this.isSeparatingAxis(a, b, a.normals[i], responses[i])) {
+			for (k = 0; k < responses.length; k++) {
+				this.responsePool.push(responses[k]);
+			}
+			
+			this.arrayPool.push(responses, axes);
+			
 			return false;
 		}
 	}
 	
 	// If any of the edge normals of B is a separating axis, no intersection
 	for (i = 0, j = aLen; i < bLen; i++, j++) {
-		responses[j] = new SAT.Response();
-		responses[j].axis = b.normals[i];
+		responses[j] = this.responsePool.pop();
+		responses[j].clear();
+		axes[j] = b.normals[i];
 		
 		if (this.isSeparatingAxis(a, b, b.normals[i], responses[j])) {
+			for (k = 0; k < responses.length; k++) {
+				this.responsePool.push(responses[k]);
+			}
+			
+			this.arrayPool.push(responses, axes);
+			
 			return false;
 		}
 	}
 	
+	// Since none of the edge normals of A or B are a separating axis, there is
+	// an intersection
 	// Filter the responses down to those that are desirable
 	responses = responses.filter(function (response, index) {
 		// Is the overlap direction too close to that of the velocity direction?
 		if (velocity && response.overlapN.clone().scale(-1).dot(velocity) > 0) {
+			this.responsePool.push(response);
+			
 			return false;
 		}
 		
 		// Is the axis of the overlap in the ignore list?
 		for (j = 0; j < ignore.length; j++) {
-			if (response.axis.x === ignore[j].x && response.axis.y === ignore[j].y) {
+			if (axes[index].x === ignore[j].x && axes[index].y === ignore[j].y) {
+				this.responsePool.push(response);
+				
 				return false;
 			}
 		}
 		
 		// Otherwise make sure the overlap is in the range we want
 		// TODO: Less than the max of tile width/height?
-		return response.overlap > 0 && response.overlap < Number.MAX_VALUE;
-	});
+		if (!(response.overlap > 0 && response.overlap < Number.MAX_VALUE)) {
+			this.responsePool.push(response);
+			
+			return false;
+		}
+		
+		return true;
+	}, this);
 	
-	// Since none of the edge normals of A or B are a separating axis, there is
-	// an intersection
-	var viable = false;
+	// If we have no desirable responses, bail
+	if (!responses.length) {
+		this.arrayPool.push(responses, axes);
+		
+		return false;
+	}
 	
 	// Determine the shortest viable separation from the desirable responses
 	for (i = 0; i < responses.length; i++) {
 		if (responses[i].overlap < response.overlap) {
-			viable = true;
 			response.aInB = responses[i].aInB;
 			response.bInA = responses[i].bInA;
 			response.overlap = responses[i].overlap;
@@ -596,17 +640,17 @@ Phaser.Plugin.ArcadeSlopes.SatSolver.prototype.testPolygonPolygon = function (a,
 		}
 	}
 	
-	// If we have no viable response, bail
-	if (!viable) {
-		return false;
-	}
-	
 	// Set the polygons on the response and calculate the overlap vector
 	response.a = a;
 	response.b = b;
 	response.overlapV.copy(response.overlapN).scale(response.overlap);
 	
-	//console.log(response.overlap, response.overlapN.x, response.overlapN.y, response.overlapV.x, response.overlapV.y, JSON.stringify(ignore), JSON.stringify(responses, null, 2));
+	// Clean up and return positive
+	for (k = 0; k < responses.length; k++) {
+		this.responsePool.push(responses[k]);
+	}
+	
+	this.arrayPool.push(responses, axes);
 	
 	return true;
 };
