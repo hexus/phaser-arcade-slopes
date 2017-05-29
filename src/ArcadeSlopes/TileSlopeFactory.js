@@ -457,8 +457,8 @@ Phaser.Plugin.ArcadeSlopes.TileSlopeFactory.prototype.flagIgnormals = function (
 		(topLeft && topLeft.slope.edges.right !== empty) ||
 		(topRight && topRight.slope.edges.left !== empty) ||
 		(leftInteresting && rightInteresting && (
-			(left && left.slope.edges.right !== empty && left.slope.edges.bottom !== solid && left.slope.edges.top !== interesting) ||
-			(right && right.slope.edges.left !== empty && right.slope.edges.top !== solid && right.slope.edges.bottom !== interesting)
+			(left && left.slope.edges.right !== empty && left.slope.edges.top !== solid && left.slope.edges.left !== interesting) ||
+			(right && right.slope.edges.left !== empty && right.slope.edges.top !== solid && right.slope.edges.right !== interesting)
 		))
 	)) {
 		tile.slope.polygon.ignormals.push(new SAT.Vector(0, -1));
@@ -469,8 +469,8 @@ Phaser.Plugin.ArcadeSlopes.TileSlopeFactory.prototype.flagIgnormals = function (
 		(bottomLeft && bottomLeft.slope.edges.right !== empty) ||
 		(bottomRight && bottomRight.slope.edges.left !== empty) ||
 		(leftInteresting && rightInteresting && (
-			(left && left.slope.edges.right !== empty && left.slope.edges.bottom !== solid && left.slope.edges.top !== interesting) ||
-			(right && right.slope.edges.left !== empty && right.slope.edges.top !== solid && right.slope.edges.bottom !== interesting)
+			(left && left.slope.edges.right !== empty && left.slope.edges.bottom !== solid && left.slope.edges.left !== interesting) ||
+			(right && right.slope.edges.left !== empty && right.slope.edges.bottom !== solid && right.slope.edges.right !== interesting)
 		))
 	)) {
 		tile.slope.polygon.ignormals.push(new SAT.Vector(0, 1));
