@@ -453,38 +453,51 @@ Phaser.Plugin.ArcadeSlopes.TileSlopeFactory.prototype.flagIgnormals = function (
 	var rightInteresting  = tile.slope.edges.right === interesting;
 	
 	// Skip top collisions
-	if (topInteresting) {
-		if ((topLeft && topLeft.slope.edges.right !== empty) ||
-			(topRight && topRight.slope.edges.left !== empty)
-		) {
-			tile.slope.polygon.ignormals.push(new SAT.Vector(0, -1));
-		}
+	if (topInteresting && (
+		(topLeft && topLeft.slope.edges.right !== empty) ||
+		(topRight && topRight.slope.edges.left !== empty) ||
+		(leftInteresting && rightInteresting && (
+			(left && left.slope.edges.right !== empty && left.slope.edges.bottom !== solid && left.slope.edges.top !== interesting) ||
+			(right && right.slope.edges.left !== empty && right.slope.edges.top !== solid && right.slope.edges.bottom !== interesting)
+		))
+	)) {
+		tile.slope.polygon.ignormals.push(new SAT.Vector(0, -1));
+	}
+	
+	// Skip bottom collisions
+	if (bottomInteresting && (
+		(bottomLeft && bottomLeft.slope.edges.right !== empty) ||
+		(bottomRight && bottomRight.slope.edges.left !== empty) ||
+		(leftInteresting && rightInteresting && (
+			(left && left.slope.edges.right !== empty && left.slope.edges.bottom !== solid && left.slope.edges.top !== interesting) ||
+			(right && right.slope.edges.left !== empty && right.slope.edges.top !== solid && right.slope.edges.bottom !== interesting)
+		))
+	)) {
+		tile.slope.polygon.ignormals.push(new SAT.Vector(0, 1));
 	}
 	
 	// Skip left collisions
-	if (leftInteresting) {
-		if ((topLeft && topLeft.slope.edges.bottom !== empty) ||
-			(bottomLeft && bottomLeft.slope.edges.top !== empty) ||
-			(topInteresting && bottomInteresting && (
-				(above && above.slope.edges.bottom !== empty && above.slope.edges.left !== solid && above.slope.edges.top !== interesting) ||
-				(below && below.slope.edges.top !== empty && below.slope.edges.left !== solid && below.slope.edges.bottom !== interesting)
-			))
-		) {
-			tile.slope.polygon.ignormals.push(new SAT.Vector(-1, 0));
-		}
+	if (leftInteresting && (
+		(topLeft && topLeft.slope.edges.bottom !== empty) ||
+		(bottomLeft && bottomLeft.slope.edges.top !== empty) ||
+		(topInteresting && bottomInteresting && (
+			(above && above.slope.edges.bottom !== empty && above.slope.edges.left !== solid && above.slope.edges.top !== interesting) ||
+			(below && below.slope.edges.top !== empty && below.slope.edges.left !== solid && below.slope.edges.bottom !== interesting)
+		))
+	)) {
+		tile.slope.polygon.ignormals.push(new SAT.Vector(-1, 0));
 	}
 	
 	// Skip right collisions
-	if (rightInteresting) {
-		if ((topRight && topRight.slope.edges.bottom !== empty) ||
-			(bottomRight && bottomRight.slope.edges.top !== empty) ||
-			(topInteresting && bottomInteresting && (
-				(above && above.slope.edges.bottom !== empty && above.slope.edges.right !== solid && above.slope.edges.top !== interesting) ||
-				(below && below.slope.edges.top !== empty && below.slope.edges.right !== solid && below.slope.edges.bottom !== interesting)
-			))
-		) {
-			tile.slope.polygon.ignormals.push(new SAT.Vector(1, 0));
-		}
+	if (rightInteresting && (
+		(topRight && topRight.slope.edges.bottom !== empty) ||
+		(bottomRight && bottomRight.slope.edges.top !== empty) ||
+		(topInteresting && bottomInteresting && (
+			(above && above.slope.edges.bottom !== empty && above.slope.edges.right !== solid && above.slope.edges.top !== interesting) ||
+			(below && below.slope.edges.top !== empty && below.slope.edges.right !== solid && below.slope.edges.bottom !== interesting)
+		))
+	)) {
+		tile.slope.polygon.ignormals.push(new SAT.Vector(1, 0));
 	}
 };
 
