@@ -82,8 +82,8 @@ var DemoState = (function (Phaser) {
 			particleSize: 16,
 			particleFrequency: 20,
 			particleQuantity: 5,
-			emitterWidth: 1,
-			emitterHeight: 1,
+			emitterWidth: 0.8,
+			emitterHeight: 0.8,
 			fireParticle: function () {
 				state.emitter.emitParticle();
 			},
