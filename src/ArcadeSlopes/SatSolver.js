@@ -488,7 +488,7 @@ Phaser.Plugin.ArcadeSlopes.SatSolver.prototype.isSeparatingAxis = function (a, b
 			option2 = rangeB[1] - rangeA[0];
 			//overlap = option1 < option2 ? option1 : -option2;
 			
-			if (option1 < option2)
+			if (option1 >= option2)
 				overlap = -option2;
 		}
 	}
