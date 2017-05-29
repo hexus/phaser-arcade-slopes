@@ -352,10 +352,11 @@ Phaser.Plugin.ArcadeSlopes.TileSlopeFactory.prototype.flagInternalVertices = fun
 			
 			// Flag the first vertex and the normal of the internal edge
 			if (exactMatch || inverseMatch) {
-				firstPolygon.points[i].ignore = true;
-				secondPolygon.points[j].ignore = true;
 				firstPolygon.normals[i].ignore = true;
 				secondPolygon.normals[j].ignore = true;
+				
+				firstTile.slope.ignormals.push(firstPolygon.normals[i]);
+				secondTile.slope.ignormals.push(secondPolygon.normals[j]);
 			}
 		}
 	}
@@ -383,6 +384,9 @@ Phaser.Plugin.ArcadeSlopes.TileSlopeFactory.prototype.flagIgnormals = function (
 		return;
 	}
 	
+	// Clear the current ignormals list for this tile
+	//tile.slope.ignormals.length = 0;
+	
 	// Skip full and half blocks
 	// TODO: Skip any tiles with purely axis-aligned edges
 	if (tile.slope.type === Phaser.Plugin.ArcadeSlopes.TileSlope.FULL ||
@@ -393,14 +397,6 @@ Phaser.Plugin.ArcadeSlopes.TileSlopeFactory.prototype.flagIgnormals = function (
 	) {
 		return;
 	}
-	
-	// Give the tile polygon an ignormals array if it doesn't have one
-	// TODO: Give the tile slope these normals, don't augment SAT.js types
-	if (!tile.slope.polygon.ignormals) {
-		tile.slope.polygon.ignormals = [];
-	}
-	
-	tile.slope.polygon.ignormals.length = 0;
 	
 	// Define some shorthand variables to use in the conditions
 	var empty       = Phaser.Plugin.ArcadeSlopes.TileSlope.EMPTY;
@@ -463,7 +459,7 @@ Phaser.Plugin.ArcadeSlopes.TileSlopeFactory.prototype.flagIgnormals = function (
 			(right && right.slope.edges.left !== empty && right.slope.edges.top !== solid && right.slope.edges.right !== interesting)
 		))
 	)) {
-		tile.slope.polygon.ignormals.push(new SAT.Vector(0, -1));
+		tile.slope.ignormals.push(new SAT.Vector(0, -1));
 	}
 	
 	// Skip bottom collisions
@@ -475,7 +471,7 @@ Phaser.Plugin.ArcadeSlopes.TileSlopeFactory.prototype.flagIgnormals = function (
 			(right && right.slope.edges.left !== empty && right.slope.edges.bottom !== solid && right.slope.edges.right !== interesting)
 		))
 	)) {
-		tile.slope.polygon.ignormals.push(new SAT.Vector(0, 1));
+		tile.slope.ignormals.push(new SAT.Vector(0, 1));
 	}
 	
 	// Skip left collisions
@@ -487,7 +483,7 @@ Phaser.Plugin.ArcadeSlopes.TileSlopeFactory.prototype.flagIgnormals = function (
 			(below && below.slope.edges.top !== empty && below.slope.edges.left !== solid && below.slope.edges.bottom !== interesting)
 		))
 	)) {
-		tile.slope.polygon.ignormals.push(new SAT.Vector(-1, 0));
+		tile.slope.ignormals.push(new SAT.Vector(-1, 0));
 	}
 	
 	// Skip right collisions
@@ -499,7 +495,7 @@ Phaser.Plugin.ArcadeSlopes.TileSlopeFactory.prototype.flagIgnormals = function (
 			(below && below.slope.edges.top !== empty && below.slope.edges.right !== solid && below.slope.edges.bottom !== interesting)
 		))
 	)) {
-		tile.slope.polygon.ignormals.push(new SAT.Vector(1, 0));
+		tile.slope.ignormals.push(new SAT.Vector(1, 0));
 	}
 };
 

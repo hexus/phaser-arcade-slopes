@@ -382,8 +382,8 @@ Phaser.Plugin.ArcadeSlopes.Overrides.renderDebug = function () {
 						polygon = tile.slope.polygon;
 						
 						for (i = 0; i < polygon.points.length; i++) {
-							// Skip ignored edges
-							if (polygon.points[i].ignore) {
+							// Skip the edges with ignored normals
+							if (polygon.normals[i].ignore) {
 								continue;
 							}
 							
@@ -429,15 +429,15 @@ Phaser.Plugin.ArcadeSlopes.Overrides.renderDebug = function () {
 						}
 						
 						// Ignormals
-						if (polygon.ignormals) {
-							for (i = 0; i < polygon.ignormals.length; i++) {
+						if (tile.slope.ignormals) {
+							for (i = 0; i < tile.slope.ignormals.length; i++) {
 								context.beginPath();
 								
 								context.lineWidth = 1;
 								context.strokeStyle = 'rgba(255, 0, 0, 1)';
 								
-								gx = polygon.ignormals[i].x;
-								gy = polygon.ignormals[i].y;
+								gx = tile.slope.ignormals[i].x;
+								gy = tile.slope.ignormals[i].y;
 								
 								context.moveTo(tx + htw * scaleX, ty + hth * scaleY);
 								context.lineTo(tx + htw * scaleX + gx * qtw, ty + hth * scaleY + gy * qth);
