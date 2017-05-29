@@ -525,8 +525,6 @@ Phaser.Plugin.ArcadeSlopes.SatSolver.prototype.isSeparatingAxis = function (a, b
  * Tailored to work with an AABB as the first polygon.
  * 
  * Adapted from SAT.testPolygonPolygon.
- *
- * TODO: Use one response. Don't pool them. Move conditions into isSeparatingAxis.
  * 
  * @see    {SAT.testPolygonPolygon}
  * @method Phaser.Plugin.ArcadeSlopes.SatSolver#testPolygonPolygon
