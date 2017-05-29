@@ -77,6 +77,7 @@ var DemoState = (function (Phaser) {
 			particleMaxX: 500,
 			particleMinY: -500,
 			particleMaxY: 500,
+			particleShape: 'circle',
 			particleSize: 16,
 			particleFrequency: 20,
 			particleQuantity: 5,
@@ -315,27 +316,44 @@ var DemoState = (function (Phaser) {
 			var quarterSize = halfSize / 2;
 			var firstParticle = emitter.children[0];
 			
+			// Update the speed range allowed for particles
 			this.emitter.setXSpeed(features.particleMinX, features.particleMaxX);
 			this.emitter.setYSpeed(features.particleMinY, features.particleMaxY);
 			
 			// If the particle size option hasn't changed we can finish here
-			if (firstParticle.body.height === size) {
+			if (firstParticle.body.height === size && firstParticle.body.isCircle == features.shape) {
 				return;
 			}
 			
+			// Draw the particle graphics
 			graphics.clear();
 			graphics._currentBounds = null; // Get Phaser to behave
 			
 			graphics.beginFill(Phaser.Color.hexToRGB('#fff'), 0.5)
-				//.drawCircle(0, 0, size)
-				.drawRect(0, 0, size, size)
-				.updateLocalBounds();
-
+			
+			if (features.particleShape === 'circle') {
+				graphics.drawCircle(0, 0, size)
+			}
+			
+			if (features.particleShape === 'aabb') {
+				graphics.drawRect(0, 0, size, size)
+			}
+			
+			graphics.updateLocalBounds();
+			
+			// Cache the graphics as a texture to our particle image cache key
 			this.cache.addImage('particle', null, graphics.generateTexture().baseTexture.source);
 			
+			// Update the body and texture of every particle in the emitter
 			emitter.forEach(function (particle) {
-				//particle.body.setCircle(halfSize);
-				particle.body.setSize(size, size);
+				if (features.particleShape === 'circle') {
+					particle.body.setCircle(halfSize);
+				};
+				
+				if (features.particleShape === 'aabb') {
+					particle.body.setSize(size, size);
+				}
+				
 				particle.loadTexture('particle');
 			});
 			

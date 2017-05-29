@@ -61,6 +61,10 @@
 		gui.particleFolder.add(features, 'fireParticle').name('Fire Particle');
 		gui.particleFolder.add(features, 'particleFlow').name('Enable');
 		gui.particleFolder.add(features, 'particleGravity').name('Gravity');
+		gui.particleFolder.add(features, 'particleShape', {
+			'Square': 'aabb',
+			'Circle': 'circle'
+		}).name('Shape');
 		gui.particleFolder.add(features, 'particleSize').min(2).max(32).step(1).name('Size');
 		gui.particleFolder.add(features, 'particleFrequency').min(1).max(250).step(1).name('Frequency');
 		gui.particleFolder.add(features, 'particleQuantity').min(1).max(10).step(1).name('Quantity');
