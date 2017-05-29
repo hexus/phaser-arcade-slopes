@@ -11,7 +11,7 @@ var DemoState = (function (Phaser) {
 			// Arcade slopes
 			slopes: true,
 			heuristics: true,
-			minimumOffsetY: true,
+			minimumOffsetY: false,
 			pullUp: 0,
 			pullDown: 0,
 			pullLeft: 0,
@@ -73,11 +73,10 @@ var DemoState = (function (Phaser) {
 			// Particle controls
 			particleFlow: false,
 			particleGravity: true,
-			particleArea: false,
-			particleMinX: 500,
+			particleMinX: -500,
 			particleMaxX: 500,
-			particleMinY: 0,
-			particleMaxY: 0,
+			particleMinY: -500,
+			particleMaxY: 500,
 			particleSize: 16,
 			particleFrequency: 100,
 			particleQuantity: 5,
@@ -202,6 +201,7 @@ var DemoState = (function (Phaser) {
 			this.emitter.setRotation(0, 0,);
 			this.emitter.setXSpeed(500, 500);
 			this.emitter.setYSpeed(0, 0);
+			this.emitter._flowTotal = -1;
 			
 			// Map some keys for use in our update() loop
 			this.controls = this.input.keyboard.addKeys({
@@ -416,8 +416,10 @@ var DemoState = (function (Phaser) {
 			}
 			
 			// Update global Arcade Slopes options
-			this.game.slopes.preferY    = features.minimumOffsetY;
-			this.game.slopes.heuristics = features.heuristics;
+			if (this.game.slopes) {
+				this.game.slopes.preferY    = features.minimumOffsetY;
+				this.game.slopes.heuristics = features.heuristics;
+			}
 			
 			// Update player body properties
 			body.drag.x = features.dragX;
@@ -485,6 +487,12 @@ var DemoState = (function (Phaser) {
 			this.emitter.on = !!features.particleFlow;
 			this.emitter.lifespan = 3000 / this.time.slowMotion;
 			this.emitter.frequency = features.particleFrequency;
+			
+			if (this.emitter._flowQuantity !== features.particleQuantity) {
+				this.emitter._flowQuantity = features.particleQuantity;
+				this.emitter._counter = 0;
+				this.emitter._timer = this.game.time.time + this.emitter.frequency * this.game.time.slowMotion;
+			}
 			
 			// Toggle the Arcade Slopes plugin itself
 			if (features.slopes && !this.game.slopes) {

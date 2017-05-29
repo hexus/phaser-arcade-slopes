@@ -63,7 +63,7 @@
 		gui.particleFolder.add(features, 'particleGravity').name('Gravity');
 		gui.particleFolder.add(features, 'particleSize').min(2).max(32).step(1).name('Size');
 		gui.particleFolder.add(features, 'particleFrequency').min(1).max(250).step(1).name('Frequency');
-		//gui.particleFolder.add(features, 'particleQuantity').min(1).max(10).step(1).name('Quantity'); // TODO: Get this working :)
+		gui.particleFolder.add(features, 'particleQuantity').min(1).max(10).step(1).name('Quantity');
 		gui.particleFolder.add(features, 'particleMinX').min(-500).max(500).name('Minimum X Speed');
 		gui.particleFolder.add(features, 'particleMaxX').min(-500).max(500).name('Maximum X Speed');
 		gui.particleFolder.add(features, 'particleMinY').min(-500).max(500).name('Minimum Y Speed');
