@@ -43,7 +43,7 @@ Phaser.Plugin.ArcadeSlopes.SatSolver = function (options) {
 	 */
 	this.vectorPool = [];
 	
-	for (i = 0; i < 10; i++) {
+	for (i = 0; i < 20; i++) {
 		this.vectorPool.push(new SAT.Vector());
 	}
 	
@@ -203,10 +203,10 @@ Phaser.Plugin.ArcadeSlopes.SatSolver.prototype.separate = function (body, tile, 
  */
 Phaser.Plugin.ArcadeSlopes.SatSolver.prototype.applyVelocity = function (body, tile, response) {
 	// Project our velocity onto the overlap normal for the bounce vector (Vn)
-	var bounce = body.slopes.velocity.clone().projectN(response.overlapN);
+	var bounce = this.vectorPool.pop().copy(body.slopes.velocity).projectN(response.overlapN);
 	
 	// Then work out the surface vector (Vt)
-	var friction = body.slopes.velocity.clone().sub(bounce);
+	var friction = this.vectorPool.pop().copy(body.slopes.velocity).sub(bounce);
 	
 	// Apply bounce coefficients
 	bounce.x = bounce.x * (-body.bounce.x);
@@ -222,6 +222,9 @@ Phaser.Plugin.ArcadeSlopes.SatSolver.prototype.applyVelocity = function (body, t
 	
 	// Process collision pulling
 	this.pull(body, response);
+	
+	// Recycle the vectors we used for bounce and friction
+	this.vectorPool.push(bounce, friction);
 };
 
 /**
@@ -523,6 +526,8 @@ Phaser.Plugin.ArcadeSlopes.SatSolver.prototype.isSeparatingAxis = function (a, b
  * Adapted from SAT.testPolygonPolygon.
  * 
  * TODO: Pass in a list of normals to ignore, don't pick them up here.
+ * TODO: A minor optimisation would be to move desirability conditions into
+ *       isSeparatingAxis.
  * 
  * @see    {SAT.testPolygonPolygon}
  * @method Phaser.Plugin.ArcadeSlopes.SatSolver#testPolygonPolygon
@@ -591,12 +596,14 @@ Phaser.Plugin.ArcadeSlopes.SatSolver.prototype.testPolygonPolygon = function (a,
 		}
 	}
 	
+	var velocityTestVector = this.vectorPool.pop();
+	
 	// Since none of the edge normals of A or B are a separating axis, there is
 	// an intersection
 	// Filter the responses down to those that are desirable
 	responses = responses.filter(function (response, index) {
 		// Is the overlap direction too close to that of the velocity direction?
-		if (velocity && response.overlapN.clone().scale(-1).dot(velocity) > 0) {
+		if (velocity && velocityTestVector.copy(response.overlapN).scale(-1).dot(velocity) > 0) {
 			this.responsePool.push(response);
 			
 			return false;
@@ -625,6 +632,7 @@ Phaser.Plugin.ArcadeSlopes.SatSolver.prototype.testPolygonPolygon = function (a,
 	// If we have no desirable responses, bail
 	if (!responses.length) {
 		this.arrayPool.push(responses, axes);
+		this.vectorPool.push(velocityTestVector);
 		
 		return false;
 	}
@@ -650,6 +658,7 @@ Phaser.Plugin.ArcadeSlopes.SatSolver.prototype.testPolygonPolygon = function (a,
 	}
 	
 	this.arrayPool.push(responses, axes);
+	this.vectorPool.push(velocityTestVector);
 	
 	return true;
 };
@@ -748,17 +757,8 @@ Phaser.Plugin.ArcadeSlopes.SatSolver.prototype.shouldSeparate = function (i, bod
 	}
 	
 	// Only separate if the body is moving into the collision
-	//if (response.overlapV.clone().scale(-1).dot(body.slopes.velocity) < 0) {
-	//	return false;
-	//}
-	
-	// Ignore flagged edge normals
-	// for (var n = 0; n < tile.slope.polygon.normals.length; n++) {
-	// 	var normal = tile.slope.polygon.normals[n];
-	// 	
-	// 	if (normal.ignore && response.overlapN.x === normal.x && response.overlapN.y === normal.y) {
-	// 		return false;
-	// 	}
+	// if (response.overlapV.clone().scale(-1).dot(body.slopes.velocity) < 0) {
+	// 	return false;
 	// }
 	
 	// Otherwise we should separate normally

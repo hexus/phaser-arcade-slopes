@@ -400,6 +400,8 @@ Phaser.Plugin.ArcadeSlopes.TileSlopeFactory.prototype.flagIgnormals = function (
 		tile.slope.polygon.ignormals = [];
 	}
 	
+	tile.slope.polygon.ignormals.length = 0;
+	
 	// Define some shorthand variables to use in the conditions
 	var empty       = Phaser.Plugin.ArcadeSlopes.TileSlope.EMPTY;
 	var interesting = Phaser.Plugin.ArcadeSlopes.TileSlope.INTERESTING;
