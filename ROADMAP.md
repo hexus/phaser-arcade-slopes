@@ -27,7 +27,7 @@
   - [x] Tile collision direction flags
   - [ ] Clearer yet more in-depth readme
 - [ ] v0.3.0
-  - [ ] Custom SAT.js implementation that can prevent internal edge collisions
+  - [x] Custom SAT.js implementation that can prevent internal edge collisions
     ([like this](http://www.wildbunny.co.uk/blog/2012/10/31/2d-polygonal-collision-detection-and-internal-edges/comment-page-1/#comment-1978))
   - [x] Debug rendering
     - [x] Tile edge collision normals
