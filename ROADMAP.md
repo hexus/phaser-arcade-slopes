@@ -42,4 +42,4 @@
     - [ ] Omni-directional
     - [ ] Selective
   - [ ] AABB collision margins
-  - [ ] Memory consumption improvements
+  - [x] Memory consumption improvements
