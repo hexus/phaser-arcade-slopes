@@ -439,8 +439,8 @@ Phaser.Plugin.ArcadeSlopes.Overrides.renderDebug = function () {
 								gx = tile.slope.ignormals[i].x;
 								gy = tile.slope.ignormals[i].y;
 								
-								context.moveTo(tx + htw * scaleX, ty + hth * scaleY);
-								context.lineTo(tx + htw * scaleX + gx * qtw, ty + hth * scaleY + gy * qth);
+								context.moveTo(tx + htw, ty + hth);
+								context.lineTo(tx + htw + gx * qtw, ty + hth + gy * qth);
 								
 								context.closePath();
 								context.stroke();
