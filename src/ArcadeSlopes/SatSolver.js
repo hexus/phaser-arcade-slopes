@@ -94,6 +94,27 @@ Phaser.Plugin.ArcadeSlopes.SatSolver.resetResponse = function (response) {
 };
 
 /**
+ * Copy the values of one SAT response to another.
+ * 
+ * @static
+ * @method Phaser.Plugin.ArcadeSlopes.SatSolver#copyResponse
+ * @param  {SAT.Response} a - The source response.
+ * @param  {SAT.Response} b - The target response.
+ * @return {SAT.Response}
+ */
+Phaser.Plugin.ArcadeSlopes.SatSolver.copyResponse = function (a, b) {
+	b.a = a.a;
+	b.b = a.b;
+	b.aInB = a.aInB;
+	b.bInA = a.bInA;
+	b.overlap = a.overlap;
+	b.overlapN.copy(a.overlapN);
+	b.overlapV.copy(a.overlapV);
+	
+	return b;
+};
+
+/**
  * Calculate the minimum X offset given an overlap vector.
  *
  * @static
@@ -678,37 +699,51 @@ Phaser.Plugin.ArcadeSlopes.SatSolver.prototype.collide = function (i, body, tile
 	tile.slope.polygon.pos.x = tile.worldX + tilemapLayer.getCollisionOffsetX();
 	tile.slope.polygon.pos.y = tile.worldY + tilemapLayer.getCollisionOffsetY();
 	
-	// Reuse the body's response or create one for it
-	var response = body.slopes.sat.response || new SAT.Response();
+	// Create the body's response if it doesn't have one
+	body.slopes.sat.response = body.slopes.sat.response || new SAT.Response();
 	
-	// Reset the response
+	// Acquire a temporary response from the pool
+	var response = this.responsePool.pop();
 	Phaser.Plugin.ArcadeSlopes.SatSolver.resetResponse(response);
 	
-	// Test for an overlap and bail if there isn't one
+	// Test for an overlap
 	var circleOverlap = body.isCircle && SAT.testCirclePolygon(body.polygon, tile.slope.polygon, response);
 	var polygonOverlap = !body.isCircle && this.testPolygonPolygon(body.polygon, tile.slope.polygon, response, body.slopes.velocity, tile.slope.ignormals);
 	
+	// Bail if there isn't one, leaving the body's response as is
 	if (!circleOverlap && !polygonOverlap) {
+		this.responsePool.push(response);
+		
 		return false;
-	}
-	
-	// If we're only testing for the overlap, we can bail here
-	if (overlapOnly) {
-		return true;
 	}
 	
 	// Invert our overlap vectors so that we have them facing outwards
 	Phaser.Plugin.ArcadeSlopes.SatSolver.prepareResponse(response);
 	
+	// If we're only testing for the overlap, we can bail here
+	if (overlapOnly) {
+		Phaser.Plugin.ArcadeSlopes.SatSolver.copyResponse(response, body.slopes.sat.response);
+		this.responsePool.push(response);
+		
+		return true;
+	}
+	
 	// Bail out if no separation occurred
 	if (!this.separate(body, tile, response)) {
+		this.responsePool.push(response);
+		
 		return false;
 	}
+	
+	// Copy the temporary response into the body's response, then recycle it
+	Phaser.Plugin.ArcadeSlopes.SatSolver.copyResponse(response, body.slopes.sat.response);
+	this.responsePool.push(response);
+	
+	response = body.slopes.sat.response;
 	
 	// Update the overlap properties of the body
 	body.overlapX = response.overlapV.x;
 	body.overlapY = response.overlapV.y;
-	body.slopes.sat.response = response;
 	
 	// Set the tile that the body separated from
 	body.slopes.tile = tile;
