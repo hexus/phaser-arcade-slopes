@@ -31,9 +31,6 @@
     ([like this](http://www.wildbunny.co.uk/blog/2012/10/31/2d-polygonal-collision-detection-and-internal-edges/comment-page-1/#comment-1978))
   - [x] Debug rendering
     - [x] Tile edge collision normals
-  - [ ] More consistent naming
-    - [ ] Tile slope type constants
-    - [ ] Direction/neighbour names
   - [ ] Tunnelling solutions
     - [ ] Swept intersection tests
     - [ ] Raycasting
@@ -41,5 +38,9 @@
   - [ ] Automatic sprite rotation
     - [ ] Omni-directional
     - [ ] Selective
+  - [ ] Dynamic tilemap support
   - [ ] AABB collision margins
   - [x] Memory consumption improvements
+  - [ ] More consistent naming
+    - [ ] Tile slope type constants
+    - [ ] Direction/neighbour names
