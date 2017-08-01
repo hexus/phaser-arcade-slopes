@@ -4,10 +4,7 @@
   "description": "A Phaser plugin that brings sloped tile collision handling to Phaser's Arcade Physics engine",
   "main": "dist/phaser-arcade-slopes.js",
   "scripts": {},
-  "repository": {
-    "type": "git",
-    "url": "git@github.com:hexus/phaser-arcade-slopes.git"
-  },
+  "repository": "hexus/phaser-arcade-slopes",
   "keywords": [
     "phaser",
     "plugin",

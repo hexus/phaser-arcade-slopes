@@ -201,13 +201,11 @@ body.slopes.pullBottomRight
 
 ## Building
 
-If you want to build the plugin yourself from source, install Bower, clone the
-repository and run NPM, Bower and Gulp like so.
+If you want to build the plugin yourself from source, clone the repository and
+run NPM and Gulp like so.
 
 ```bash
-npm i -g bower
 npm install
-bower install
 gulp build
 ```
 
