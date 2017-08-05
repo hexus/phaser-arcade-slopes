@@ -27,17 +27,29 @@
   - [x] Tile collision direction flags
   - [x] Clearer yet more in-depth readme
 - [ ] v0.3.0
-  - [ ] Custom SAT.js implementation that can prevent internal edge collisions
+  - [x] Custom SAT.js implementation that can prevent internal edge collisions
     ([like this](http://www.wildbunny.co.uk/blog/2012/10/31/2d-polygonal-collision-detection-and-internal-edges/comment-page-1/#comment-1978))
-  - [ ] More consistent naming
-    - [ ] Tile slope type constants
-    - [ ] Direction/neighbour names
+  - [x] Debug rendering
+    - [x] Tile edge collision normals
+  - [x] Memory consumption improvements
+- [ ] v0.4.0
+  - [ ] Automatically set colliding tiles for Tilemaps
+  - [ ] Automatically update sprite body polygons
   - [ ] Tunnelling solutions
     - [ ] Swept intersection tests
     - [ ] Raycasting
-  - [ ] Raycasting for sticky slopes
+- [ ] v0.5.0
   - [ ] Automatic sprite rotation
     - [ ] Omni-directional
     - [ ] Selective
-  - [ ] AABB collision margins
-  - [ ] Memory consumption improvements
+  - [ ] Raycasting for sticky slopes
+  - [ ] Dynamic tilemap support
+- [ ] v1.0.0
+  - [ ] AMD/UMD
+  - [ ] More consistent naming
+    - [ ] Tile slope type constants
+    - [ ] Direction/neighbour names
+
+## Ideas
+
+- [ ] AABB collision margins

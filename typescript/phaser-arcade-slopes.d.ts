@@ -77,6 +77,7 @@ declare module Phaser {
 				restrainers:Phaser.Plugin.ArcadeSlopes.SatRestainer;
 
 				static prepareResponse(response:SAT.Response):SAT.Response;
+				static copyResponse(a:SAT.Response, b:SAT.Response):SAT.Response;
 				static minimumOffsetX(vector:SAT.Vector):number;
 				static minimumOffsetY(vector:SAT.Vector):number;
 				static movingAgainstY(body:Phaser.Physics.Arcade.Body, response:SAT.Response):boolean;
@@ -86,13 +87,12 @@ declare module Phaser {
 				applyVelocity(body:Phaser.Physics.Arcade.Body, tile:Phaser.Tile, response:SAT.Response):void;
 				updateValues(body:Phaser.Physics.Arcade.Body):void;
 				updateFlags(body:Phaser.Physics.Arcade.Body, response:SAT.Response):void;
-				snap(body:Phaser.Physics.Arcade.Body, tiles:Phaser.Tile[], tilemapLayer:Phaser.TilemapLayer):boolean;
 				pull(body:Phaser.Physics.Arcade.Body, response:SAT.Response):boolean;
-				snapCollide(body:Phaser.Physics.Arcade.Body, tile:Phaser.Tile, tilemapLayer:Phaser.TilemapLayer, current:Phaser.Point):boolean;
 				shouldCollide(body:Phaser.Physics.Arcade.Body, tile:Phaser.Tile):boolean;
+				static flattenPointsOn(points:SAT.Vector[], normal:SAT.Vector, result:number[]):void;
+				isSeparatingAxis(a:SAT.Polygon, b:SAT.Polygon, axis:SAT.Vector, response:SAT.Response):boolean;
+				testPolygonPolygon(a:SAT.Polygon, b:SAT.Polygon, response:SAT.Response, velocity:SAT.Vector, ignore:SAT.Vector[]):boolean;
 				collide(i:number, body:Phaser.Physics.Arcade.Body, tile:Phaser.Tile, tilemapLayer:Phaser.TilemapLayer, overlapOnly:boolean):boolean;
-				collideOnAxis(body:Phaser.Physics.Arcade.Body, tile:Phaser.Tile, axis:SAT.Vector, response:SAT.Response):boolean;
-				restrain(body:Phaser.Physics.Arcade.Body, tile:Phaser.Tile, response:SAT.Response):boolean;
 				shouldSeparate(i:number, body:Phaser.Physics.Arcade.Body, tile:Phaser.Tile, response:SAT.Response):boolean;
 				debug(position:Phaser.Point, response:SAT.Response):void;
 			}
@@ -104,13 +104,14 @@ declare module Phaser {
 			}
 
 			class TileSlope {
-				constructor(type:number, tile:Phaser.Tile, polygon:SAT.Polygon, line:Phaser.Line, edges:Object, axis:SAT.Vector);
+				constructor(type:number, tile:Phaser.Tile, polygon:SAT.Polygon, line:Phaser.Line, edges:Object, axis:SAT.Vector, ignormals?:SAT.Vector[]);
 				type:number;
 				tile:Phaser.Tile;
 				polygon:SAT.Polygon;
 				line:Phaser.Tile;
 				edges:Object;
 				axis:SAT.Vector;
+				ignormals:SAT.Vector[];
 				solver:string;
 				friction:Phaser.Point;
 				slope:number;
@@ -213,10 +214,6 @@ declare module Phaser {
 				pullBottomRight:number;
 				sat:Phaser.Plugin.ArcadeSlopes.BodySlopesSat;
 				skipFriction:boolean;
-				snapUp:number;
-				snapDown:number;
-				snapLeft:number;
-				snapRight:number;
 				tile:Phaser.Tile;
 				velocity:SAT.Vector;
 			}

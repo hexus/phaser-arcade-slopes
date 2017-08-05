@@ -1,5 +1,14 @@
 # Arcade Slopes Change Log
 
+## Unreleased
+- Removed the snap feature (#34)
+- Removed heuristics in favour of a custom SAT implementation that prevents
+  internal edge collisions (#36, #38, #40)
+- Implemented debug rendering for tile normals and ignored tile normals
+- Implemented simple object pooling for less memory-hungry calculations (#42)
+- Improved the consistency of SAT responses and overlap values set on physics
+  bodies
+
 ## v0.2.1 - 1st August 2017
 - Dropped bower in favour of npm to load in the SAT.js dependency.
 - Added a banner to the minified distributive as part of the build process.

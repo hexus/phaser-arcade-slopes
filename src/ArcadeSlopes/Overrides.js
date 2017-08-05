@@ -17,18 +17,18 @@ Phaser.Plugin.ArcadeSlopes.Overrides = {};
  * Collide a sprite against a single tile.
  *
  * @method Phaser.Plugin.ArcadeSlopes.Overrides#collideSpriteVsTile
- * @param  {integer}             i               - The tile index.
- * @param  {Phaser.Sprite}       sprite          - The sprite to check.
- * @param  {Phaser.Tile}         tile            - The tile to check.
- * @param  {Phaser.TilemapLayer} tilemapLayer    - The tilemap layer the tile belongs to.
- * @param  {function}            collideCallback - An optional collision callback.
- * @param  {function}            processCallback - An optional overlap processing callback.
- * @param  {object}              callbackContext - The context in which to run the callbacks.
- * @param  {boolean}             overlapOnly     - Whether to only check for an overlap.
- * @return {boolean}                             - Whether a collision occurred.
+ * @param  {integer}             i                 - The tile index.
+ * @param  {Phaser.Sprite}       sprite            - The sprite to check.
+ * @param  {Phaser.Tile}         tile              - The tile to check.
+ * @param  {Phaser.TilemapLayer} tilemapLayer      - The tilemap layer the tile belongs to.
+ * @param  {function}            [collideCallback] - An optional collision callback.
+ * @param  {function}            [processCallback] - An optional overlap processing callback.
+ * @param  {object}              [callbackContext] - The context in which to run the callbacks.
+ * @param  {boolean}             [overlapOnly]     - Whether to only check for an overlap.
+ * @return {boolean}                               - Whether a collision occurred.
  */
 Phaser.Plugin.ArcadeSlopes.Overrides.collideSpriteVsTile = function (i, sprite, tile, tilemapLayer, collideCallback, processCallback, callbackContext, overlapOnly) {
-	if (!sprite.body) {
+	if (!sprite.body || !tile || !tilemapLayer) {
 		return false;
 	}
 	
@@ -59,21 +59,21 @@ Phaser.Plugin.ArcadeSlopes.Overrides.collideSpriteVsTile = function (i, sprite, 
  * Collide a sprite against a set of tiles.
  *
  * @method Phaser.Plugin.ArcadeSlopes.Overrides#collideSpriteVsTiles
- * @param  {Phaser.Sprite}       sprite          - The sprite to check.
- * @param  {Phaser.Tile[]}       tiles           - The tiles to check.
- * @param  {Phaser.TilemapLayer} tilemapLayer    - The tilemap layer the tiles belong to.
- * @param  {function}            collideCallback - An optional collision callback.
- * @param  {function}            processCallback - An optional overlap processing callback.
- * @param  {object}              callbackContext - The context in which to run the callbacks.
- * @param  {boolean}             overlapOnly     - Whether to only check for an overlap.
- * @return {boolean}                             - Whether a collision occurred.
+ * @param  {Phaser.Sprite}       sprite            - The sprite to check.
+ * @param  {Phaser.Tile[]}       tiles             - The tiles to check.
+ * @param  {Phaser.TilemapLayer} tilemapLayer      - The tilemap layer the tiles belong to.
+ * @param  {function}            [collideCallback] - An optional collision callback.
+ * @param  {function}            [processCallback] - An optional overlap processing callback.
+ * @param  {object}              [callbackContext] - The context in which to run the callbacks.
+ * @param  {boolean}             [overlapOnly]     - Whether to only check for an overlap.
+ * @return {boolean}                               - Whether a collision occurred.
  */
 Phaser.Plugin.ArcadeSlopes.Overrides.collideSpriteVsTiles = function (sprite, tiles, tilemapLayer, collideCallback, processCallback, callbackContext, overlapOnly) {
-	var collided = false;
-	
-	if (!sprite.body) {
-		return collided;
+	if (!sprite.body || !tiles || !tiles.length || !tilemapLayer) {
+		return false;
 	}
+	
+	var collided = false;
 	
 	for (var i = 0; i < tiles.length; i++) {
 		if (processCallback) {
@@ -104,7 +104,7 @@ Phaser.Plugin.ArcadeSlopes.Overrides.collideSpriteVsTiles = function (sprite, ti
  * @return {boolean}                             - Whether a collision occurred.
  */
 Phaser.Plugin.ArcadeSlopes.Overrides.collideSpriteVsTilemapLayer = function (sprite, tilemapLayer, collideCallback, processCallback, callbackContext, overlapOnly) {
-	if (!sprite.body) {
+	if (!sprite.body || !tilemapLayer) {
 		return false;
 	}
 	
@@ -113,7 +113,7 @@ Phaser.Plugin.ArcadeSlopes.Overrides.collideSpriteVsTilemapLayer = function (spr
 		sprite.body.position.y - sprite.body.tilePadding.y - tilemapLayer.getCollisionOffsetY(),
 		sprite.body.width      + sprite.body.tilePadding.x,
 		sprite.body.height     + sprite.body.tilePadding.y,
-		false,
+		true,
 		false
 	);
 	
@@ -121,12 +121,9 @@ Phaser.Plugin.ArcadeSlopes.Overrides.collideSpriteVsTilemapLayer = function (spr
 		return false;
 	}
 	
-	var collided = this.collideSpriteVsTiles(sprite, tiles, tilemapLayer, collideCallback, processCallback, callbackContext, overlapOnly);
+	// TODO: Sort by distance from body center to tile center?
 	
-	if (!collided && !overlapOnly) {
-		// TODO: This call is too hacky and solver-specific
-		this.game.slopes.solvers.sat.snap(sprite.body, tiles, tilemapLayer);
-	}
+	var collided = this.collideSpriteVsTiles(sprite, tiles, tilemapLayer, collideCallback, processCallback, callbackContext, overlapOnly);
 	
 	return collided;
 };
@@ -254,8 +251,13 @@ Phaser.Plugin.ArcadeSlopes.Overrides.renderDebug = function () {
 	var height = this.layer.height;
 	var tw = this._mc.tileWidth * scaleX;
 	var th = this._mc.tileHeight * scaleY;
+	var htw = tw / 2;
+	var hth = th / 2;
+	var qtw = tw / 4;
+	var qth = th / 4;
 	var cw = this._mc.cw * scaleX;
 	var ch = this._mc.ch * scaleY;
+	var m = this._mc.edgeMidpoint;
 	
 	var left = Math.floor(scrollX / tw);
 	var right = Math.floor((renderW - 1 + scrollX) / tw);
@@ -281,7 +283,7 @@ Phaser.Plugin.ArcadeSlopes.Overrides.renderDebug = function () {
 	var normStartX = (left + ((1 << 20) * width)) % width;
 	var normStartY = (top + ((1 << 20) * height)) % height;
 	
-	var tx, ty, x, y, xmax, ymax, polygon, i, j;
+	var tx, ty, x, y, xmax, ymax, polygon, i, j, a, b, norm, gx, gy;
 	
 	for (y = normStartY, ymax = bottom - top, ty = baseY; ymax >= 0; y++, ymax--, ty += th) {
 		if (y >= height) {
@@ -369,8 +371,9 @@ Phaser.Plugin.ArcadeSlopes.Overrides.renderDebug = function () {
 						}
 					}
 					
-					// Stroke the colliding edges
+					// Stroke the colliding edges and edge normals
 					if (this.debugSettings.slopeCollidingEdgeStroke) {
+						// Colliding edges
 						context.beginPath();
 						
 						context.lineWidth = this.debugSettings.slopeCollidingEdgeStrokeWidth || 1;
@@ -379,11 +382,12 @@ Phaser.Plugin.ArcadeSlopes.Overrides.renderDebug = function () {
 						polygon = tile.slope.polygon;
 						
 						for (i = 0; i < polygon.points.length; i++) {
-							j = (i + 1) % polygon.points.length;
-							
-							// Skip internal edges
-							if (polygon.points[i].internal)
+							// Skip the edges with ignored normals
+							if (polygon.normals[i].ignore) {
 								continue;
+							}
+							
+							j = (i + 1) % polygon.points.length;
 							
 							context.moveTo(tx + polygon.points[i].x * scaleX, ty + polygon.points[i].y * scaleY);
 							context.lineTo(tx + polygon.points[j].x * scaleX, ty + polygon.points[j].y * scaleY);
@@ -392,6 +396,56 @@ Phaser.Plugin.ArcadeSlopes.Overrides.renderDebug = function () {
 						context.closePath();
 						
 						context.stroke();
+						
+						// Edge normals
+						for (i = 0; i < polygon.points.length; i++) {
+							context.beginPath();
+							
+							if (polygon.normals[i].ignore) {
+								context.lineWidth = this.debugSettings.slopeNormalStrokeWidth;
+								context.strokeStyle = this.debugSettings.slopeNormalStroke;
+							} else {
+								context.lineWidth = this.debugSettings.slopeCollidingNormalStrokeWidth;
+								context.strokeStyle = this.debugSettings.slopeCollidingNormalStroke;
+							}
+								
+							
+							j = (i + 1) % polygon.points.length;
+							
+							a = polygon.points[i];
+							b = polygon.points[j];
+							norm = polygon.normals[i];
+							
+							// Midpoint of the edge
+							m.x = (a.x + b.x) / 2;
+							m.y = (a.y + b.y) / 2;
+							
+							// Draw from the midpoint outwards using the normal
+							context.moveTo(tx + m.x * scaleX, ty + m.y * scaleY);
+							context.lineTo(tx + m.x * scaleX + norm.x * qtw, ty + m.y * scaleY + norm.y * qth);
+							
+							context.closePath();
+							context.stroke();
+						}
+						
+						// Ignormals
+						if (tile.slope.ignormals) {
+							for (i = 0; i < tile.slope.ignormals.length; i++) {
+								context.beginPath();
+								
+								context.lineWidth = 1;
+								context.strokeStyle = 'rgba(255, 0, 0, 1)';
+								
+								gx = tile.slope.ignormals[i].x;
+								gy = tile.slope.ignormals[i].y;
+								
+								context.moveTo(tx + htw, ty + hth);
+								context.lineTo(tx + htw + gx * qtw, ty + hth + gy * qth);
+								
+								context.closePath();
+								context.stroke();
+							}
+						}
 					}
 				}
 			}

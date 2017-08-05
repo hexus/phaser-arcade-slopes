@@ -9,14 +9,15 @@
  * 
  * @class Phaser.Plugin.ArcadeSlopes.TileSlope
  * @constructor
- * @param {integer}     type    - The type of the tile slope.
- * @param {Phaser.Tile} tile    - The tile this slope definition belongs to.
- * @param {SAT.Polygon} polygon - The polygon representing the shape of the tile.
- * @param {Phaser.Line} line    - The line representing the slope of the tile.
- * @param {object}      edges   - The flags for each edge of the tile.
- * @param {SAT.Vector}  axis    - The preferred axis for separating physics bodies.
+ * @param {integer}      type        - The type of the tile slope.
+ * @param {Phaser.Tile}  tile        - The tile this slope definition belongs to.
+ * @param {SAT.Polygon}  polygon     - The polygon representing the shape of the tile.
+ * @param {Phaser.Line}  line        - The line representing the slope of the tile.
+ * @param {object}       edges       - The flags for each edge of the tile.
+ * @param {SAT.Vector}   axis        - The preferred axis for separating physics bodies.
+ * @param {SAT.Vector[]} [ignormals] - An optional set of collision normals to ignore.
  */
-Phaser.Plugin.ArcadeSlopes.TileSlope = function (type, tile, polygon, line, edges, axis) {
+Phaser.Plugin.ArcadeSlopes.TileSlope = function (type, tile, polygon, line, edges, axis, ignormals) {
 	/**
 	 * The type of the tile slope.
 	 * 
@@ -63,6 +64,13 @@ Phaser.Plugin.ArcadeSlopes.TileSlope = function (type, tile, polygon, line, edge
 	 * @property {SAT.Vector} axis
 	 */
 	this.axis = axis || null;
+	
+	/**
+	 * An optional set of collision normals to ignore.
+	 * 
+	 * @property {SAT.Vector[]} ignormals
+	 */
+	this.ignormals = ignormals || [];
 	
 	/**
 	 * The preferred solver to use for this slope.

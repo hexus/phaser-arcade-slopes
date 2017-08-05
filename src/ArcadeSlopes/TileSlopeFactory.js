@@ -59,6 +59,17 @@ Phaser.Plugin.ArcadeSlopes.TileSlopeFactory = function () {
 	
 	this.mappings[Phaser.Plugin.ArcadeSlopes.TileSlopeFactory.ARCADESLOPES] = Phaser.Plugin.ArcadeSlopes.TileSlopeFactory.mapArcadeSlopes;
 	this.mappings[Phaser.Plugin.ArcadeSlopes.TileSlopeFactory.NINJA]        = Phaser.Plugin.ArcadeSlopes.TileSlopeFactory.mapNinjaPhysics;
+	
+	/**
+	 * A pool of vectors.
+	 * 
+	 * @property {SAT.Vector[]} vectorPool
+	 */
+	this.vectorPool = [];
+	
+	for (var i = 0; i < 100; i++) {
+		this.vectorPool.push(new SAT.Vector());
+	}
 };
 
 Phaser.Plugin.ArcadeSlopes.TileSlopeFactory.prototype.constructor = Phaser.Plugin.ArcadeSlopes.TileSlopeFactory;
@@ -200,20 +211,23 @@ Phaser.Plugin.ArcadeSlopes.TileSlopeFactory.prototype.convertTilemapLayer = func
 /**
  * Calculate the edge flags for each tile in the given tilemap layer.
  *
+ * TODO: Allow this to work with an optional range of tile coordinates.
+ * 
  * @method Phaser.Plugin.ArcadeSlopes.TileSlopeFactory#calculateEdges
  * @param {Phaser.TilemapLayer} layer - The tilemap layer to calculate edge flags for.
  */
 Phaser.Plugin.ArcadeSlopes.TileSlopeFactory.prototype.calculateEdges = function (layer) {
-	var above = null;
-	var below = null;
-	var left  = null;
-	var right = null;
+	var x, y, h, w, tile, above, below, left, right;
 	
-	for (var y = 0, h = layer.layer.height; y < h; y++) {
-		for (var x = 0, w = layer.layer.width; x < w; x++) {
-			var tile = layer.layer.data[y][x];
+	h = layer.layer.height;
+	w = layer.layer.width;
+	
+	for (y = 0; y < h; y++) {
+		for (x = 0; x < w; x++) {
+			tile = layer.layer.data[y][x];
 			
 			if (tile && tile.hasOwnProperty('slope')) {
+				// Compare edges and flag internal vertices
 				above = layer.map.getTileAbove(layer.index, x, y);
 				below = layer.map.getTileBelow(layer.index, x, y);
 				left  = layer.map.getTileLeft(layer.index, x, y);
@@ -243,6 +257,16 @@ Phaser.Plugin.ArcadeSlopes.TileSlopeFactory.prototype.calculateEdges = function 
 					this.flagInternalVertices(tile, right);
 				}
 			}
+		}
+	}
+	
+	// Flag further normals that we want to ignore for this tile, now that all
+	// of the edges have been set
+	for (y = 0; y < h; y++) {
+		for (x = 0; x < w; x++) {
+			tile = layer.layer.data[y][x];
+			
+			this.flagIgnormals(tile);
 		}
 	}
 };
@@ -278,9 +302,6 @@ Phaser.Plugin.ArcadeSlopes.TileSlopeFactory.prototype.compareEdges = function (f
  * Because the polygons are represented by a set of points, instead of actual
  * edges, the first vector (assuming they are specified clockwise) of each
  * potential edge is flagged instead.
- * 
- * TODO: Optimise by bailing if both first vertices are already flagged and
- *       possibly by avoiding SAT.Vector instantiation.
  *
  * @method Phaser.Plugin.ArcadeSlopes.TileSlopeFactory#flagInternalVertices
  * @param  {Phaser.Tile} firstTile  - The first tile to compare.
@@ -292,36 +313,189 @@ Phaser.Plugin.ArcadeSlopes.TileSlopeFactory.prototype.flagInternalVertices = fun
 		return;
 	}
 	
+	// Access the tile polygons and grab some vectors from the pool
 	var firstPolygon = firstTile.slope.polygon;
 	var secondPolygon = secondTile.slope.polygon;
-	var firstPosition = new SAT.Vector(firstTile.worldX, firstTile.worldY);
-	var secondPosition = new SAT.Vector(secondTile.worldX, secondTile.worldY);
+	var firstPosition = this.vectorPool.pop();
+	var secondPosition = this.vectorPool.pop();
+	var firstTileVertexOne = this.vectorPool.pop();
+	var firstTileVertexTwo = this.vectorPool.pop();
+	var secondTileVertexOne = this.vectorPool.pop();
+	var secondTileVertexTwo = this.vectorPool.pop();
+	var exactMatch;
+	var inverseMatch;
+	
+	// TODO: Take into account tilemap offset...
+	firstPosition.x = firstTile.worldX;
+	firstPosition.y = firstTile.worldY;
+	secondPosition.x = secondTile.worldX;
+	secondPosition.y = secondTile.worldY;
 	
 	for (var i = 0; i < firstPolygon.points.length; i++) {
-		var firstTileVertexOne = firstPolygon.points[i].clone().add(firstPosition);
-		var firstTileVertexTwo = firstPolygon.points[(i + 1) % firstPolygon.points.length].clone().add(firstPosition);
+		firstTileVertexOne.copy(firstPolygon.points[i]).add(firstPosition);
+		firstTileVertexTwo.copy(firstPolygon.points[(i + 1) % firstPolygon.points.length]).add(firstPosition);
 		
 		for (var j = 0; j < secondPolygon.points.length; j++) {
-			var secondTileVertexOne = secondPolygon.points[j].clone().add(secondPosition);
-			var secondTileVertexTwo = secondPolygon.points[(j + 1) % secondPolygon.points.length].clone().add(secondPosition);
+			secondTileVertexOne.copy(secondPolygon.points[j]).add(secondPosition);
+			secondTileVertexTwo.copy(secondPolygon.points[(j + 1) % secondPolygon.points.length]).add(secondPosition);
 			
 			// Now we can compare vertices for an exact or inverse match
-			var exactMatch = firstTileVertexOne.x === secondTileVertexOne.x &&
+			exactMatch = firstTileVertexOne.x === secondTileVertexOne.x &&
 				firstTileVertexOne.y === secondTileVertexOne.y &&
 				firstTileVertexTwo.x === secondTileVertexTwo.x &&
 				firstTileVertexTwo.y === secondTileVertexTwo.y;
 			
-			var inverseMatch = firstTileVertexOne.x === secondTileVertexTwo.x &&
+			inverseMatch = firstTileVertexOne.x === secondTileVertexTwo.x &&
 				firstTileVertexOne.y === secondTileVertexTwo.y &&
 				firstTileVertexTwo.x === secondTileVertexOne.x &&
 				firstTileVertexTwo.y === secondTileVertexOne.y;
 			
-			// Flag the vertices that begin an internal edge
+			// Flag the first vertex and the normal of the internal edge
 			if (exactMatch || inverseMatch) {
-				firstPolygon.points[i].internal = true;
-				secondPolygon.points[j].internal = true;
+				firstPolygon.normals[i].ignore = true;
+				secondPolygon.normals[j].ignore = true;
+				
+				firstTile.slope.ignormals.push(firstPolygon.normals[i]);
+				secondTile.slope.ignormals.push(secondPolygon.normals[j]);
 			}
 		}
+	}
+	
+	// Recycle the vectors we used
+	this.vectorPool.push(
+		firstPosition, secondPosition, firstTileVertexOne, firstTileVertexTwo,
+		secondTileVertexOne, secondTileVertexTwo
+	);
+};
+
+/**
+ * Flag further normals to ignore to prevent unwanted collision responses.
+ *
+ * Simply observes Phaser's edge flags of neighbouring tiles to decide whether
+ * axis-aligned collisions are desirable.
+ *
+ * Heuristics 2.0. Generalised instead of tile-specific.
+ *
+ * @method Phaser.Plugin.ArcadeSlopes.TileSlopeFactory#flagIgnormals
+ * @param {Phaser.Tile} tile  - The tile to flag ignormals for.
+ */
+Phaser.Plugin.ArcadeSlopes.TileSlopeFactory.prototype.flagIgnormals = function (tile) {
+	if (!tile.slope || !tile.slope.polygon) {
+		return;
+	}
+	
+	// Clear the current ignormals list for this tile
+	//tile.slope.ignormals.length = 0;
+	
+	// Skip full and half blocks
+	// TODO: Skip any tiles with purely axis-aligned edges
+	if (tile.slope.type === Phaser.Plugin.ArcadeSlopes.TileSlope.FULL ||
+		tile.slope.type === Phaser.Plugin.ArcadeSlopes.TileSlope.HALF_TOP ||
+		tile.slope.type === Phaser.Plugin.ArcadeSlopes.TileSlope.HALF_BOTTOM ||
+		tile.slope.type === Phaser.Plugin.ArcadeSlopes.TileSlope.HALF_LEFT ||
+		tile.slope.type === Phaser.Plugin.ArcadeSlopes.TileSlope.HALF_RIGHT
+	) {
+		return;
+	}
+	
+	// Define some shorthand variables to use in the conditions
+	var empty       = Phaser.Plugin.ArcadeSlopes.TileSlope.EMPTY;
+	var interesting = Phaser.Plugin.ArcadeSlopes.TileSlope.INTERESTING;
+	var solid       = Phaser.Plugin.ArcadeSlopes.TileSlope.SOLID;
+	var above       = tile.neighbours.above;
+	var below       = tile.neighbours.below;
+	var left        = tile.neighbours.left;
+	var right       = tile.neighbours.right;
+	var topLeft     = tile.neighbours.topLeft;
+	var topRight    = tile.neighbours.topRight;
+	var bottomLeft  = tile.neighbours.bottomLeft;
+	var bottomRight = tile.neighbours.bottomRight;
+	
+	// Skip neighbours without a TileSlope
+	if (above && !above.hasOwnProperty('slope')) {
+		above = null;
+	}
+	
+	if (below && !below.hasOwnProperty('slope')) {
+		below = null;
+	}
+	
+	if (left && !left.hasOwnProperty('slope')) {
+		left = null;
+	}
+	
+	if (right && !right.hasOwnProperty('slope')) {
+		right = null;
+	}
+	
+	if (topLeft && !topLeft.hasOwnProperty('slope')) {
+		topLeft = null;
+	}
+	
+	if (topRight && !topRight.hasOwnProperty('slope')) {
+		topRight = null;
+	}
+	
+	if (bottomLeft && !bottomLeft.hasOwnProperty('slope')) {
+		bottomLeft = null;
+	}
+	
+	if (bottomRight && !bottomRight.hasOwnProperty('slope')) {
+		bottomRight = null;
+	}
+	
+	// Determine the interesting edges of the current tile
+	var topInteresting    = tile.slope.edges.top === interesting;
+	var bottomInteresting = tile.slope.edges.bottom === interesting;
+	var leftInteresting   = tile.slope.edges.left === interesting;
+	var rightInteresting  = tile.slope.edges.right === interesting;
+	
+	// Skip top collisions
+	if (topInteresting && (
+		(topLeft && topLeft.slope.edges.right !== empty) ||
+		(topRight && topRight.slope.edges.left !== empty) ||
+		(leftInteresting && rightInteresting && (
+			(left && left.slope.edges.right !== empty && left.slope.edges.top !== solid && left.slope.edges.left !== interesting) ||
+			(right && right.slope.edges.left !== empty && right.slope.edges.top !== solid && right.slope.edges.right !== interesting)
+		))
+	)) {
+		tile.slope.ignormals.push(new SAT.Vector(0, -1));
+	}
+	
+	// Skip bottom collisions
+	if (bottomInteresting && (
+		(bottomLeft && bottomLeft.slope.edges.right !== empty) ||
+		(bottomRight && bottomRight.slope.edges.left !== empty) ||
+		(leftInteresting && rightInteresting && (
+			(left && left.slope.edges.right !== empty && left.slope.edges.bottom !== solid && left.slope.edges.left !== interesting) ||
+			(right && right.slope.edges.left !== empty && right.slope.edges.bottom !== solid && right.slope.edges.right !== interesting)
+		))
+	)) {
+		tile.slope.ignormals.push(new SAT.Vector(0, 1));
+	}
+	
+	// Skip left collisions
+	if (leftInteresting && (
+		(topLeft && topLeft.slope.edges.bottom !== empty) ||
+		(bottomLeft && bottomLeft.slope.edges.top !== empty) ||
+		(topInteresting && bottomInteresting && (
+			(above && above.slope.edges.bottom !== empty && above.slope.edges.left !== solid && above.slope.edges.top !== interesting) ||
+			(below && below.slope.edges.top !== empty && below.slope.edges.left !== solid && below.slope.edges.bottom !== interesting)
+		))
+	)) {
+		tile.slope.ignormals.push(new SAT.Vector(-1, 0));
+	}
+	
+	// Skip right collisions
+	if (rightInteresting && (
+		(topRight && topRight.slope.edges.bottom !== empty) ||
+		(bottomRight && bottomRight.slope.edges.top !== empty) ||
+		(topInteresting && bottomInteresting && (
+			(above && above.slope.edges.bottom !== empty && above.slope.edges.right !== solid && above.slope.edges.top !== interesting) ||
+			(below && below.slope.edges.top !== empty && below.slope.edges.right !== solid && below.slope.edges.bottom !== interesting)
+		))
+	)) {
+		tile.slope.ignormals.push(new SAT.Vector(1, 0));
 	}
 };
 
@@ -332,10 +506,15 @@ Phaser.Plugin.ArcadeSlopes.TileSlopeFactory.prototype.flagInternalVertices = fun
  * @param {Phaser.TilemapLayer} layer - The tilemap layer.
  */
 Phaser.Plugin.ArcadeSlopes.TileSlopeFactory.prototype.addDebugSettings = function (layer) {
+	layer._mc.edgeMidpoint = new SAT.Vector();
 	layer.debugSettings.slopeFill = 'rgba(255, 0, 255, 0.2)';
 	layer.debugSettings.slopeEdgeStroke = 'rgba(255, 0, 255, 0.4)';
 	layer.debugSettings.slopeCollidingEdgeStroke = 'rgba(255, 0, 255, 1)';
 	layer.debugSettings.slopeCollidingEdgeStrokeWidth = 2;
+	layer.debugSettings.slopeNormalStroke = 'rgba(0, 255, 255, 0.4)';
+	layer.debugSettings.slopeNormalStrokeWidth = 1;
+	layer.debugSettings.slopeCollidingNormalStroke = 'rgba(0, 255, 255, 1)';
+	layer.debugSettings.slopeCollidingNormalStrokeWidth = 2;
 };
 
 /**
@@ -930,7 +1109,7 @@ Phaser.Plugin.ArcadeSlopes.TileSlopeFactory.createQuarterRightTopLow = function 
 	var edges = {
 		top:    Phaser.Plugin.ArcadeSlopes.TileSlope.INTERESTING,
 		bottom: Phaser.Plugin.ArcadeSlopes.TileSlope.INTERESTING,
-		right:  Phaser.Plugin.ArcadeSlopes.TileSlope.INTERESTING
+		left:  Phaser.Plugin.ArcadeSlopes.TileSlope.INTERESTING
 	};
 	
 	var axis = new SAT.Vector(-0.8944271909999159, 0.4472135954999579);
@@ -959,7 +1138,7 @@ Phaser.Plugin.ArcadeSlopes.TileSlopeFactory.createQuarterRightTopHigh = function
 	
 	var edges = {
 		bottom: Phaser.Plugin.ArcadeSlopes.TileSlope.INTERESTING,
-		right:  Phaser.Plugin.ArcadeSlopes.TileSlope.INTERESTING
+		left:  Phaser.Plugin.ArcadeSlopes.TileSlope.INTERESTING
 	};
 	
 	var axis = new SAT.Vector(-0.8944271909999159, 0.4472135954999579);

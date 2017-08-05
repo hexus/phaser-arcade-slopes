@@ -102,7 +102,6 @@ Phaser.Plugin.ArcadeSlopes.Facade.prototype.enableBody = function (body) {
 	body.slopes = body.slopes || {
 		debug: false,
 		friction: new Phaser.Point(),
-		heuristics: null,
 		preferY: false,
 		pullUp: 0,
 		pullDown: 0,
@@ -116,10 +115,6 @@ Phaser.Plugin.ArcadeSlopes.Facade.prototype.enableBody = function (body) {
 			response: null,
 		},
 		skipFriction: false,
-		snapUp: 0,
-		snapDown: 0,
-		snapLeft: 0,
-		snapRight: 0,
 		tile: null,
 		velocity: new SAT.Vector()
 	};
