@@ -150,7 +150,7 @@ var DemoState = (function (Phaser) {
 			this.player = this.add.sprite(925, 360);
 			
 			// Create a graphics object for the player
-			this.playerGraphics = new Phaser.Graphics(this);
+			this.playerGraphics = new Phaser.Graphics(this.game);
 			
 			// Generate a texture for the player and give it a physics body
 			this.updatePlayer(this.player);
@@ -176,7 +176,7 @@ var DemoState = (function (Phaser) {
 			this.emitter = this.add.emitter(this.player.x, this.player.y, 2000);
 			
 			// Particle graphics
-			this.particleGraphics = new Phaser.Graphics(this)
+			this.particleGraphics = new Phaser.Graphics(this.game)
 				.beginFill(Phaser.Color.hexToRGB('#fff'), 0.5)
 				.drawCircle(0, 0, 16);
 			
@@ -200,7 +200,7 @@ var DemoState = (function (Phaser) {
 			this.emitter.width = this.player.width;
 			this.emitter.height = this.player.height;
 			this.emitter.setAlpha(1, 0, 6000);
-			this.emitter.setRotation(0, 0,);
+			this.emitter.setRotation(0, 0);
 			this.emitter.setXSpeed(500, 500);
 			this.emitter.setYSpeed(0, 0);
 			this.emitter._flowTotal = -1;
