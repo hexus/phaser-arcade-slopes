@@ -11,7 +11,7 @@
 - [x] v0.1.1
   - [x] Phaser 2.4.9/2.5.0 compatibility
   - [x] Corner collision pulling
-- [ ] v0.2.0
+- [x] v0.2.0
   - [x] Premade Arcade Slopes tilesets
   - [x] Mapping shortcuts
     - [x] Ninja Physics debug tileset
@@ -25,7 +25,7 @@
   - [x] Offset tilemap layer support
   - [x] Circular physics body support
   - [x] Tile collision direction flags
-  - [ ] Clearer yet more in-depth readme
+  - [x] Clearer yet more in-depth readme
 - [ ] v0.3.0
   - [x] Custom SAT.js implementation that can prevent internal edge collisions
     ([like this](http://www.wildbunny.co.uk/blog/2012/10/31/2d-polygonal-collision-detection-and-internal-edges/comment-page-1/#comment-1978))

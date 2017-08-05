@@ -1,23 +1,37 @@
-var gulp   = require('gulp'),
-	util   = require('gulp-util'),
-	concat = require('gulp-concat'),
-	rename = require('gulp-rename'),
-	uglify = require('gulp-uglify');
+var gulp    = require('gulp'),
+	util    = require('gulp-util'),
+	banner  = require('gulp-banner'),
+	concat  = require('gulp-concat'),
+	rename  = require('gulp-rename'),
+	uglify  = require('gulp-uglify');
+	pack    = require('./package.json');
 
-// Build by default
+var comment = ['/**',
+		' * Phaser Arcade Slopes v<%= package.version %>',
+		' *',
+		' * <%= package.description %>',
+		' *',
+		' * <%= package.homepage %>',
+		' * Copyright 2016-2017 <%= package.author %>',
+		' * Released under the <%= package.license %> license',
+		' */',
+		''
+	].join('\n');
+
 gulp.task('default', ['build']);
 
-// The build task
 gulp.task('build', function () {
-	gulp.src(['src/**/*.js', 'vendor/sat-js/SAT.js'])
+	return gulp.src(['src/**/*.js', 'node_modules/sat/SAT.js'])
 		.pipe(concat('phaser-arcade-slopes.js'))
 		.pipe(gulp.dest('dist'))
 		.pipe(rename({suffix: '.min'}))
 		.pipe(uglify())
+		.pipe(banner(comment, {
+			package: pack
+		}))
 		.pipe(gulp.dest('dist'));
 });
 
-// The watch task
 gulp.task('watch', function () {
 	gulp.watch('src/**/*.js', ['build']);
 });

@@ -1,5 +1,10 @@
 # Arcade Slopes Change Log
 
+## v0.2.1 - 1st August 2017
+- Dropped bower in favour of npm to load in the SAT.js dependency.
+- Added a banner to the minified distributive as part of the build process.
+- No functional changes.
+
 ## v0.2.0 - 18th June 2017
 - Added heuristics for square tiles to improve skipped collisions (#38) at the
   expense of some inconsistencies when bodies exit tiles from inside.

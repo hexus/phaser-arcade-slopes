@@ -24,12 +24,12 @@ Check out the **[demo](http://hexus.github.io/phaser-arcade-slopes)**!
 | Phaser Version  | Arcade Slopes Version                                               |
 | --------------- | ------------------------------------------------------------------- |
 | v2.4.1 - v2.4.8 | [v0.1.0](https://github.com/hexus/phaser-arcade-slopes/tree/v0.1.0) |
-| v2.5.0 - v2.7.9 | [v0.1.1](https://github.com/hexus/phaser-arcade-slopes/tree/v0.1.1) - [v0.2.0](https://github.com/hexus/phaser-arcade-slopes/tree/v0.2.0) |
+| v2.5.0 - v2.7.9 | [v0.1.1](https://github.com/hexus/phaser-arcade-slopes/tree/v0.1.1) - [v0.2.1](https://github.com/hexus/phaser-arcade-slopes/tree/v0.2.1) |
 
 ## Installation
 
 Grab a copy of the
-[latest release](https://raw.githubusercontent.com/hexus/phaser-arcade-slopes/v0.2.0/dist/phaser-arcade-slopes.min.js)
+[latest release](https://raw.githubusercontent.com/hexus/phaser-arcade-slopes/v0.2.1/dist/phaser-arcade-slopes.min.js)
 from the [**dist**](dist) directory in this repository and include it after
 Phaser.
 
@@ -80,6 +80,7 @@ that layer to work with Arcade Slopes.
 // Create the tilemap and make it aware of the tileset it uses
 map = game.add.tilemap('tilemap');
 map.addTilesetImage('collision', 'arcade-slopes-32');
+map.setCollisionBetween(1, 38);
 
 // Create the collision layer from the tilemap
 ground = map.createLayer('collision');
@@ -89,9 +90,12 @@ game.slopes.convertTilemapLayer(ground, 'arcadeslopes');
 ```
 
 In the case that the first tile ID of the collision tileset in your tilemap is
-not `1` (the default), you can provide a third argument to specify it.
+not `1` (the default), you can provide a third argument to specify it. The
+arguments provided to the `setCollisionBetween()` method may need to be adjusted
+as well.
 
 ```js
+map.setCollisionBetween(16, 53);
 game.slopes.convertTilemapLayer(ground, 'ninja', 16);
 ```
 
@@ -197,13 +201,11 @@ body.slopes.pullBottomRight
 
 ## Building
 
-If you want to build the plugin yourself from source, install Bower, clone the
-repository and run NPM, Bower and Gulp like so.
+If you want to build the plugin yourself from source, clone the repository and
+run NPM and Gulp like so.
 
 ```bash
-npm i -g bower
 npm install
-bower install
 gulp build
 ```
 
