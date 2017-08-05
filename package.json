@@ -1,6 +1,6 @@
 {
   "name": "phaser-arcade-slopes",
-  "version": "0.3.0-dev",
+  "version": "0.3.0",
   "description": "A Phaser plugin that brings sloped tile collision handling to Phaser's Arcade Physics engine",
   "main": "dist/phaser-arcade-slopes.js",
   "scripts": {},
@@ -14,6 +14,8 @@
     "tiles",
     "sloped",
     "tiles",
+    "tile slopes",
+    "slopes tiles",
     "collision",
     "collisions",
     "collision handling",

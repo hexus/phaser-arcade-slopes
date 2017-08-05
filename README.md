@@ -13,9 +13,8 @@ Check out the **[demo](http://hexus.github.io/phaser-arcade-slopes)**!
 ## Features
 
 - 24 new tile types :tada:
-- SAT-driven collision handling :ok_hand:
+- [SAT](https://github.com/jriecken/sat-js) collision handling :ok_hand:
 - Unobtrusive and cooperative integration with Arcade Physics :v:
-- Heuristic SAT restraints that prevent AABBs catching on hidden edges :clap:
 - Supports sprites :rocket:, groups :busts_in_silhouette:, particle
   emitters :sparkles: and circular physics bodies :white_circle:
 
@@ -24,12 +23,12 @@ Check out the **[demo](http://hexus.github.io/phaser-arcade-slopes)**!
 | Phaser Version  | Arcade Slopes Version                                               |
 | --------------- | ------------------------------------------------------------------- |
 | v2.4.1 - v2.4.8 | [v0.1.0](https://github.com/hexus/phaser-arcade-slopes/tree/v0.1.0) |
-| v2.5.0 - v2.7.9 | [v0.1.1](https://github.com/hexus/phaser-arcade-slopes/tree/v0.1.1) - [v0.2.1](https://github.com/hexus/phaser-arcade-slopes/tree/v0.2.1) |
+| v2.5.0 - v2.8.3 | [v0.1.1](https://github.com/hexus/phaser-arcade-slopes/tree/v0.1.1) - [v0.3.0](https://github.com/hexus/phaser-arcade-slopes/tree/v0.3.0) |
 
 ## Installation
 
 Grab a copy of the
-[latest release](https://raw.githubusercontent.com/hexus/phaser-arcade-slopes/v0.2.1/dist/phaser-arcade-slopes.min.js)
+[latest release](https://raw.githubusercontent.com/hexus/phaser-arcade-slopes/v0.3.0/dist/phaser-arcade-slopes.min.js)
 from the [**dist**](dist) directory in this repository and include it after
 Phaser.
 
@@ -46,7 +45,6 @@ Phaser.
 - [Collision](#collision)
 - [Debug rendering](#debug-rendering)
 - [Extras](#extras)
-  - [Heuristics](#heuristics)
   - [Minimum Y Offset](#minimum-y-offset)
   - [Collision pulling](#collision-pulling)
 
@@ -145,18 +143,6 @@ ground.debug = true;
 ```
 
 ### Extras
-
-#### Heuristics
-
-The plugin uses heuristics to prevent physics bodies from catching on
-undesirable tile edges; the touching edges of two adjacent tiles.
-
-**This is enabled by default.** If you don't need this feature, you can disable
-it.
-
-```js
-game.slopes.heuristics = false;
-```
 
 #### Minimum Y offset
 

@@ -54,7 +54,7 @@ Phaser.Plugin.ArcadeSlopes.prototype.constructor = Phaser.Plugin.ArcadeSlopes;
  * @constant
  * @type {string}
  */
-Phaser.Plugin.ArcadeSlopes.VERSION = '0.2.1';
+Phaser.Plugin.ArcadeSlopes.VERSION = '0.3.0';
 
 /**
  * The Separating Axis Theorem collision solver type.
@@ -232,7 +232,6 @@ Phaser.Plugin.ArcadeSlopes.Facade.prototype.enableBody = function (body) {
 	body.slopes = body.slopes || {
 		debug: false,
 		friction: new Phaser.Point(),
-		heuristics: null,
 		preferY: false,
 		pullUp: 0,
 		pullDown: 0,
@@ -246,10 +245,6 @@ Phaser.Plugin.ArcadeSlopes.Facade.prototype.enableBody = function (body) {
 			response: null,
 		},
 		skipFriction: false,
-		snapUp: 0,
-		snapDown: 0,
-		snapLeft: 0,
-		snapRight: 0,
 		tile: null,
 		velocity: new SAT.Vector()
 	};
@@ -355,18 +350,18 @@ Phaser.Plugin.ArcadeSlopes.Overrides = {};
  * Collide a sprite against a single tile.
  *
  * @method Phaser.Plugin.ArcadeSlopes.Overrides#collideSpriteVsTile
- * @param  {integer}             i               - The tile index.
- * @param  {Phaser.Sprite}       sprite          - The sprite to check.
- * @param  {Phaser.Tile}         tile            - The tile to check.
- * @param  {Phaser.TilemapLayer} tilemapLayer    - The tilemap layer the tile belongs to.
- * @param  {function}            collideCallback - An optional collision callback.
- * @param  {function}            processCallback - An optional overlap processing callback.
- * @param  {object}              callbackContext - The context in which to run the callbacks.
- * @param  {boolean}             overlapOnly     - Whether to only check for an overlap.
- * @return {boolean}                             - Whether a collision occurred.
+ * @param  {integer}             i                 - The tile index.
+ * @param  {Phaser.Sprite}       sprite            - The sprite to check.
+ * @param  {Phaser.Tile}         tile              - The tile to check.
+ * @param  {Phaser.TilemapLayer} tilemapLayer      - The tilemap layer the tile belongs to.
+ * @param  {function}            [collideCallback] - An optional collision callback.
+ * @param  {function}            [processCallback] - An optional overlap processing callback.
+ * @param  {object}              [callbackContext] - The context in which to run the callbacks.
+ * @param  {boolean}             [overlapOnly]     - Whether to only check for an overlap.
+ * @return {boolean}                               - Whether a collision occurred.
  */
 Phaser.Plugin.ArcadeSlopes.Overrides.collideSpriteVsTile = function (i, sprite, tile, tilemapLayer, collideCallback, processCallback, callbackContext, overlapOnly) {
-	if (!sprite.body) {
+	if (!sprite.body || !tile || !tilemapLayer) {
 		return false;
 	}
 	
@@ -397,21 +392,21 @@ Phaser.Plugin.ArcadeSlopes.Overrides.collideSpriteVsTile = function (i, sprite, 
  * Collide a sprite against a set of tiles.
  *
  * @method Phaser.Plugin.ArcadeSlopes.Overrides#collideSpriteVsTiles
- * @param  {Phaser.Sprite}       sprite          - The sprite to check.
- * @param  {Phaser.Tile[]}       tiles           - The tiles to check.
- * @param  {Phaser.TilemapLayer} tilemapLayer    - The tilemap layer the tiles belong to.
- * @param  {function}            collideCallback - An optional collision callback.
- * @param  {function}            processCallback - An optional overlap processing callback.
- * @param  {object}              callbackContext - The context in which to run the callbacks.
- * @param  {boolean}             overlapOnly     - Whether to only check for an overlap.
- * @return {boolean}                             - Whether a collision occurred.
+ * @param  {Phaser.Sprite}       sprite            - The sprite to check.
+ * @param  {Phaser.Tile[]}       tiles             - The tiles to check.
+ * @param  {Phaser.TilemapLayer} tilemapLayer      - The tilemap layer the tiles belong to.
+ * @param  {function}            [collideCallback] - An optional collision callback.
+ * @param  {function}            [processCallback] - An optional overlap processing callback.
+ * @param  {object}              [callbackContext] - The context in which to run the callbacks.
+ * @param  {boolean}             [overlapOnly]     - Whether to only check for an overlap.
+ * @return {boolean}                               - Whether a collision occurred.
  */
 Phaser.Plugin.ArcadeSlopes.Overrides.collideSpriteVsTiles = function (sprite, tiles, tilemapLayer, collideCallback, processCallback, callbackContext, overlapOnly) {
-	var collided = false;
-	
-	if (!sprite.body) {
-		return collided;
+	if (!sprite.body || !tiles || !tiles.length || !tilemapLayer) {
+		return false;
 	}
+	
+	var collided = false;
 	
 	for (var i = 0; i < tiles.length; i++) {
 		if (processCallback) {
@@ -442,7 +437,7 @@ Phaser.Plugin.ArcadeSlopes.Overrides.collideSpriteVsTiles = function (sprite, ti
  * @return {boolean}                             - Whether a collision occurred.
  */
 Phaser.Plugin.ArcadeSlopes.Overrides.collideSpriteVsTilemapLayer = function (sprite, tilemapLayer, collideCallback, processCallback, callbackContext, overlapOnly) {
-	if (!sprite.body) {
+	if (!sprite.body || !tilemapLayer) {
 		return false;
 	}
 	
@@ -451,7 +446,7 @@ Phaser.Plugin.ArcadeSlopes.Overrides.collideSpriteVsTilemapLayer = function (spr
 		sprite.body.position.y - sprite.body.tilePadding.y - tilemapLayer.getCollisionOffsetY(),
 		sprite.body.width      + sprite.body.tilePadding.x,
 		sprite.body.height     + sprite.body.tilePadding.y,
-		false,
+		true,
 		false
 	);
 	
@@ -459,12 +454,9 @@ Phaser.Plugin.ArcadeSlopes.Overrides.collideSpriteVsTilemapLayer = function (spr
 		return false;
 	}
 	
-	var collided = this.collideSpriteVsTiles(sprite, tiles, tilemapLayer, collideCallback, processCallback, callbackContext, overlapOnly);
+	// TODO: Sort by distance from body center to tile center?
 	
-	if (!collided && !overlapOnly) {
-		// TODO: This call is too hacky and solver-specific
-		this.game.slopes.solvers.sat.snap(sprite.body, tiles, tilemapLayer);
-	}
+	var collided = this.collideSpriteVsTiles(sprite, tiles, tilemapLayer, collideCallback, processCallback, callbackContext, overlapOnly);
 	
 	return collided;
 };
@@ -592,8 +584,13 @@ Phaser.Plugin.ArcadeSlopes.Overrides.renderDebug = function () {
 	var height = this.layer.height;
 	var tw = this._mc.tileWidth * scaleX;
 	var th = this._mc.tileHeight * scaleY;
+	var htw = tw / 2;
+	var hth = th / 2;
+	var qtw = tw / 4;
+	var qth = th / 4;
 	var cw = this._mc.cw * scaleX;
 	var ch = this._mc.ch * scaleY;
+	var m = this._mc.edgeMidpoint;
 	
 	var left = Math.floor(scrollX / tw);
 	var right = Math.floor((renderW - 1 + scrollX) / tw);
@@ -619,7 +616,7 @@ Phaser.Plugin.ArcadeSlopes.Overrides.renderDebug = function () {
 	var normStartX = (left + ((1 << 20) * width)) % width;
 	var normStartY = (top + ((1 << 20) * height)) % height;
 	
-	var tx, ty, x, y, xmax, ymax, polygon, i, j;
+	var tx, ty, x, y, xmax, ymax, polygon, i, j, a, b, norm, gx, gy;
 	
 	for (y = normStartY, ymax = bottom - top, ty = baseY; ymax >= 0; y++, ymax--, ty += th) {
 		if (y >= height) {
@@ -707,8 +704,9 @@ Phaser.Plugin.ArcadeSlopes.Overrides.renderDebug = function () {
 						}
 					}
 					
-					// Stroke the colliding edges
+					// Stroke the colliding edges and edge normals
 					if (this.debugSettings.slopeCollidingEdgeStroke) {
+						// Colliding edges
 						context.beginPath();
 						
 						context.lineWidth = this.debugSettings.slopeCollidingEdgeStrokeWidth || 1;
@@ -717,11 +715,12 @@ Phaser.Plugin.ArcadeSlopes.Overrides.renderDebug = function () {
 						polygon = tile.slope.polygon;
 						
 						for (i = 0; i < polygon.points.length; i++) {
-							j = (i + 1) % polygon.points.length;
-							
-							// Skip internal edges
-							if (polygon.points[i].internal)
+							// Skip the edges with ignored normals
+							if (polygon.normals[i].ignore) {
 								continue;
+							}
+							
+							j = (i + 1) % polygon.points.length;
 							
 							context.moveTo(tx + polygon.points[i].x * scaleX, ty + polygon.points[i].y * scaleY);
 							context.lineTo(tx + polygon.points[j].x * scaleX, ty + polygon.points[j].y * scaleY);
@@ -730,1000 +729,62 @@ Phaser.Plugin.ArcadeSlopes.Overrides.renderDebug = function () {
 						context.closePath();
 						
 						context.stroke();
+						
+						// Edge normals
+						for (i = 0; i < polygon.points.length; i++) {
+							context.beginPath();
+							
+							if (polygon.normals[i].ignore) {
+								context.lineWidth = this.debugSettings.slopeNormalStrokeWidth;
+								context.strokeStyle = this.debugSettings.slopeNormalStroke;
+							} else {
+								context.lineWidth = this.debugSettings.slopeCollidingNormalStrokeWidth;
+								context.strokeStyle = this.debugSettings.slopeCollidingNormalStroke;
+							}
+								
+							
+							j = (i + 1) % polygon.points.length;
+							
+							a = polygon.points[i];
+							b = polygon.points[j];
+							norm = polygon.normals[i];
+							
+							// Midpoint of the edge
+							m.x = (a.x + b.x) / 2;
+							m.y = (a.y + b.y) / 2;
+							
+							// Draw from the midpoint outwards using the normal
+							context.moveTo(tx + m.x * scaleX, ty + m.y * scaleY);
+							context.lineTo(tx + m.x * scaleX + norm.x * qtw, ty + m.y * scaleY + norm.y * qth);
+							
+							context.closePath();
+							context.stroke();
+						}
+						
+						// Ignormals
+						if (tile.slope.ignormals) {
+							for (i = 0; i < tile.slope.ignormals.length; i++) {
+								context.beginPath();
+								
+								context.lineWidth = 1;
+								context.strokeStyle = 'rgba(255, 0, 0, 1)';
+								
+								gx = tile.slope.ignormals[i].x;
+								gy = tile.slope.ignormals[i].y;
+								
+								context.moveTo(tx + htw, ty + hth);
+								context.lineTo(tx + htw + gx * qtw, ty + hth + gy * qth);
+								
+								context.closePath();
+								context.stroke();
+							}
+						}
 					}
 				}
 			}
 		}
 	}
 };
-
-/**
- * @author Chris Andrew <chris@hexus.io>
- * @copyright 2016-2017 Chris Andrew
- * @license MIT
- */
-
-/**
- * Restrains SAT tile collision handling based on their neighbouring tiles.
- *
- * Can separate on a tile's preferred axis if it has one.
- *
- * This is what keeps the sloped tile collisions smooth for AABBs.
- * 
- * Think of it as the equivalent of the Arcade Physics tile face checks for all
- * of the sloped tiles and their possible neighbour combinations.
- *
- * Thanks to some painstaking heuristics, it allows a set of touching tiles to
- * behave more like a single shape.
- * 
- * TODO: Change all of these rules to work with Phaser's own edge restraints.
- *       Will require checking all of these rules during tilemap convert.
- *       TileSlope specific edge flags would need to be set for this.
- *       See SatSolver.shouldSeparate(). That should deal with it.
- *       This would work because we're only trying to prevent
- *       axis-aligned overlap vectors, not anything else.
- *
- * TODO: Move away from these heuristics and start flagging edge visibility
- *       automatically, if that could at all work out as well as this has.
- *       Imagine using the normals of each face to prevent separation on
- *       that axis, and instead using the next shortest axis to collide.
- *       TL;DR: Disable separation on the normals of internal faces
- *       by flagging them and further customising SAT.js.
- * 
- * @class Phaser.Plugin.ArcadeSlopes.SatRestrainer
- * @constructor
- */
-Phaser.Plugin.ArcadeSlopes.SatRestrainer = function () {
-	/**
-	 * Restraint definitions for SAT collision handling.
-	 *
-	 * Each restraint is an array of rules, keyed by a corresponding tile type.
-	 *
-	 * Each rule defines a neighbour to check, overlap ranges to match and
-	 * optionally neighbouring tile slope types to match (the same type is used
-	 * otherwise). The separate property determines whether to attempt to
-	 * collide on the tile's preferred axis, if there is one.
-	 * 
-	 * Schema:
-	 *   [
-	 *     {
-	 *       neighbour: 'above'|'below'|'left'|'right'|'topLeft'|'topRight'|'bottomLeft'|'bottomRight'
-	 *       overlapX:  {integer}|[{integer}, {integer}]
-	 *       overlapY:  {integer}|[{integer}, {integer}]
-	 *       types:     {array of neighbour TileSlope type constants}
-	 *       separate:  {boolean|function(body, tile, response)}
-	 *    },
-	 *    {
-	 *      ...
-	 *    }
-	 *  ]
-	 *
-	 * Shorthand schema:
-	 *   [
-	 *     {
-	 *       neighbour: 'above'|'below'|'left'|'right'|'topLeft'|'topRight'|'bottomLeft'|'bottomRight'
-	 *       direction: 'up'|'down'|'left'|'right'
-	 *       types:     {array of neighbour TileSlope type constants}
-	 *       separate:  {boolean=true|function(body, tile, response)}
-	 *     },
-	 *     {
-	 *       ...
-	 *     }
-	 *   ]
-	 *
-	 * @property {object} restraints
-	 */
-	this.restraints = {};
-	
-	/**
-	 * A reusable separation axis vector.
-	 * 
-	 * @property {SAT.Vector} separationAxis
-	 */
-	this.separationAxis = new SAT.Vector();
-	
-	// Define all of the default restraints
-	this.setDefaultRestraints();
-};
-
-/**
- * Restrain the given SAT body-tile collision context based on the set rules.
- *
- * Returns false if the collision is handled by a restraint condition, either
- * triggering separation itself in the best case or skipping it entirely in the
- * worst case.
- * 
- * @method Phaser.Plugin.ArcadeSlopes.SatRestrainer#restrain
- * @param  {Phaser.Plugin.ArcadeSlopes.SatSolver} solver   - The SAT solver.
- * @param  {Phaser.Physics.Arcade.Body}           body     - The physics body.
- * @param  {Phaser.Tile}                          tile     - The tile.
- * @param  {SAT.Response}                         response - The initial collision response.
- * @return {boolean}                                       - Whether to continue collision handling.
- */
-Phaser.Plugin.ArcadeSlopes.SatRestrainer.prototype.restrain = function (solver, body, tile, response) {
-	// Bail out if there's no overlap, no neighbours, or no tile type restraint
-	if (!response.overlap || !tile.neighbours || !this.restraints.hasOwnProperty(tile.slope.type)) {
-		return true;
-	}
-
-	for (var r in this.restraints[tile.slope.type]) {
-		var rule = this.restraints[tile.slope.type][r];
-		
-		var neighbour = tile.neighbours[rule.neighbour];
-		
-		if (!(neighbour && neighbour.slope)) {
-			continue;
-		}
-		
-		// Restrain based on the same tile type by default
-		var condition = false;
-		
-		if (rule.types) {
-			condition = rule.types.indexOf(neighbour.slope.type) > -1;
-		} else {
-			condition = neighbour.slope.type === tile.slope.type;
-		}
-		
-		// Restrain based on the overlapN.x value
-		if (rule.hasOwnProperty('overlapX')) {
-			if (typeof rule.overlapX === 'number') {
-				condition = condition && response.overlapN.x === rule.overlapX;
-			} else {
-				condition = condition && response.overlapN.x >= rule.overlapX[0] && response.overlapN.x <= rule.overlapX[1];
-			}
-		}
-		
-		// Restrain based on the overlapN.y value
-		if (rule.hasOwnProperty('overlapY')) {
-			if (typeof rule.overlapY === 'number') {
-				condition = condition && response.overlapN.y === rule.overlapY;
-			} else {
-				condition = condition && response.overlapN.y >= rule.overlapY[0] && response.overlapN.y <= rule.overlapY[1];
-			}
-		}
-		
-		// Return false if the restraint condition has been matched
-		if (condition) {
-			var separate = rule.separate;
-			
-			// Resolve the restraint separation decision if it's a function
-			if (typeof separate === 'function') {
-				separate = separate.call(this, body, tile, response);
-			}
-			
-			// Separate on the tile's preferred axis by default
-			var separationAxis = tile.slope.axis;
-			
-			// Use the restraint decision as the axis if it's a vector
-			if (separate instanceof SAT.Vector) {
-				separationAxis = separate;
-			}
-			
-			// Collide on the separation axis if desired and available
-			if (separate && separationAxis) {
-				solver.collideOnAxis(body, tile, separationAxis);
-			}
-			
-			return false;
-		}
-	}
-	
-	return true;
-};
-
-/**
- * Resolve overlapX and overlapY restraints from the given direction string.
- *
- * @static
- * @method Phaser.Plugin.ArcadeSlopes.SatRestrainer#resolveOverlaps
- * @param  {string} direction
- * @return {object}
- */
-Phaser.Plugin.ArcadeSlopes.SatRestrainer.resolveOverlaps = function (direction) {
-	switch (direction) {
-		case 'up':
-			return {
-				overlapX: 0,
-				overlapY: [-1, 0]
-			};
-		case 'down':
-			return {
-				overlapX: 0,
-				overlapY: [0, 1]
-			};
-		case 'left':
-			return {
-				overlapX: [-1, 0],
-				overlapY: 0
-			};
-		case 'right':
-			return {
-				overlapX: [0, 1],
-				overlapY: 0
-			};
-		case 'any':
-			return {};
-	}
-	
-	console.warn('Unknown overlap direction \'' + direction + '\'');
-	
-	return {};
-};
-
-/**
- * Formalizes the given informally defined restraints.
- *
- * Converts direction properties into overlapX and overlapY properties and
- * tile type strings into tile type constants.
- *
- * This simply allows for more convenient constraint definitions.
- *
- * @static
- * @method Phaser.Plugin.ArcadeSlopes.SatRestrainer#createRestraints
- * @param  {object}        restraints - The restraints to prepare.
- * @return {object}                   - The prepared restraints.
- */
-Phaser.Plugin.ArcadeSlopes.SatRestrainer.prepareRestraints = function (restraints) {
-	var prepared = {};
-	
-	for (var type in restraints) {
-		var restraint = restraints[type];
-		
-		// Resolve each rule in the restraint
-		for (var r in restraint) {
-			var rule = restraint[r];
-			
-			// Resolve overlapX and overlapY restraints from a direction
-			if (rule.direction) {
-				var resolved = Phaser.Plugin.ArcadeSlopes.SatRestrainer.resolveOverlaps(rule.direction);
-				
-				if (resolved.hasOwnProperty('overlapX')) {
-					rule.overlapX = resolved.overlapX;
-				}
-				
-				if (resolved.hasOwnProperty('overlapY')) {
-					rule.overlapY = resolved.overlapY;
-				}
-			}
-			
-			// Resolve neighbour types from their string representations
-			for (var nt in rule.types) {
-				rule.types[nt] = Phaser.Plugin.ArcadeSlopes.TileSlope.resolveType(rule.types[nt]);
-			}
-			
-			// Conveniently set separate to true unless it's already false or
-			// it's a function that resolves a separation decision
-			if (rule.separate !== false && typeof rule.separate !== 'function') {
-				rule.separate = true;
-			}
-		}
-		
-		var restraintType = Phaser.Plugin.ArcadeSlopes.TileSlope.resolveType(type);
-		
-		prepared[restraintType] = restraint;
-	}
-	
-	return prepared;
-};
-
-/**
- * Eagerly separate a body from a square tile.
- * 
- * This is used for full tile separation constraints to avoid tiny bodies
- * slipping between tile seams.
- *
- * Ignores any non-colliding or internal edges.
- * 
- * Returns a desired axis to separate on, if it can.
- * 
- * @param  {Phaser.Physics.Arcade.Body} body     - The physics body.
- * @param  {Phaser.Tile}                tile     - The tile.
- * @param  {SAT.Response}               response - The initial collision response.
- * @return {SAT.Vector|boolean}
- */
-Phaser.Plugin.ArcadeSlopes.SatRestrainer.prototype.fullTileSeparation = function (body, tile, response) {
-	// If the body is above the tile center and top collisions are allowed,
-	// and we're moving down, and more vertically than horizontally
-	if (body.top < tile.worldY + tile.centerY && tile.collideUp && tile.slope.edges.top !== Phaser.Plugin.ArcadeSlopes.TileSlope.EMPTY && body.velocity.y > 0 && Math.abs(body.velocity.y) > Math.abs(body.velocity.x)) {
-		this.separationAxis.x = 0;
-		this.separationAxis.y = -1;
-		
-		return this.separationAxis;
-	}
-	
-	// If the body is below the tile center and bottom collisions are allowed,
-	// and we're moving up, and more vertically than horizontally
-	if (body.bottom > tile.worldY + tile.centerY && tile.collideDown && tile.slope.edges.bottom !== Phaser.Plugin.ArcadeSlopes.TileSlope.EMPTY && body.slopes.velocity.y < 0 && Math.abs(body.slopes.velocity.y) > Math.abs(body.slopes.velocity.x)) {
-		this.separationAxis.x = 0;
-		this.separationAxis.y = 1;
-		
-		return this.separationAxis;
-	}
-	
-	// If the body is left of the tile center and left collisions are allowed,
-	// and we're moving right, and more horizontally than vertically
-	if (body.left < tile.worldX + tile.centerX && tile.collideLeft && tile.slope.edges.left !== Phaser.Plugin.ArcadeSlopes.TileSlope.EMPTY && body.slopes.velocity.x > 0 && Math.abs(body.slopes.velocity.x) > Math.abs(body.slopes.velocity.y)) {
-		this.separationAxis.x = -1;
-		this.separationAxis.y = 0;
-		
-		return this.separationAxis;
-	}
-	
-	// If the body is right of the tile center and right collisions are allowed,
-	// and we're moving left, and more horizontally than vertically
-	if (body.right > tile.worldX + tile.centerX && tile.collideRight && tile.slope.edges.right !== Phaser.Plugin.ArcadeSlopes.TileSlope.EMPTY && body.slopes.velocity.x < 0 && Math.abs(body.slopes.velocity.x) > Math.abs(body.slopes.velocity.y)) {
-		this.separationAxis.x = 1;
-		this.separationAxis.y = 0;
-		
-		return this.separationAxis;
-	}
-	
-	// Otherwise separate normally
-	return true;
-};
-
-/**
- * Set all of the default SAT collision handling restraints.
- *
- * These are the informally defined hueristics that get refined and utilised
- * above.
- *
- * They were cumbersome to write but they definitely pay off.
- *
- * @method Phaser.Plugin.ArcadeSlopes.SatRestrainer#setDefaultRestraints
- */
-Phaser.Plugin.ArcadeSlopes.SatRestrainer.prototype.setDefaultRestraints = function () {
-	var restraints = {};
-	
-	restraints.FULL = [
-		{
-			direction: 'up',
-			neighbour: 'above',
-			types: this.resolve('bottomLeft', 'bottomRight'),
-			separate: this.fullTileSeparation
-		},
-		{
-			direction: 'down',
-			neighbour: 'below',
-			types: this.resolve('topLeft', 'topRight'),
-			separate: this.fullTileSeparation
-		},
-		{
-			direction: 'left',
-			neighbour: 'left',
-			types: this.resolve('topRight', 'bottomRight'),
-			separate: this.fullTileSeparation
-		},
-		{
-			direction: 'right',
-			neighbour: 'right',
-			types: this.resolve('topLeft', 'bottomLeft'),
-			separate: this.fullTileSeparation
-		}
-	];
-	
-	restraints.HALF_TOP = [
-		{
-			direction: 'left',
-			neighbour: 'left',
-			types: this.resolve('topRight', 'right'),
-			separate: false
-		},
-		{
-			direction: 'right',
-			neighbour: 'right',
-			types: this.resolve('topLeft', 'left'),
-			separate: false
-		}
-	];
-
-	restraints.HALF_BOTTOM = [
-		{
-			direction: 'left',
-			neighbour: 'left',
-			types: this.resolve('right', 'bottomRight'),
-			separate: false
-		},
-		{
-			direction: 'right',
-			neighbour: 'right',
-			types: this.resolve('left', 'bottomLeft'),
-			separate: false
-		}
-	];
-
-	restraints.HALF_LEFT = [
-		{
-			direction: 'up',
-			neighbour: 'above',
-			types: this.resolve('bottomLeft', 'bottom'),
-			separate: false
-		},
-		{
-			direction: 'down',
-			neighbour: 'below',
-			types: this.resolve('topLeft', 'top'),
-			separate: false
-		}
-	];
-
-	restraints.HALF_RIGHT = [
-		{
-			direction: 'up',
-			neighbour: 'above',
-			types: this.resolve('bottom', 'bottomRight'),
-			separate: false
-		},
-		{
-			direction: 'down',
-			neighbour: 'below',
-			types: this.resolve('top', 'topRight'),
-			separate: false
-		}
-	];
-
-	restraints.HALF_BOTTOM_LEFT = [
-		{
-			direction: 'right',
-			neighbour: 'bottomRight',
-			types: this.resolve('topLeft')
-		},
-		{
-			direction: 'up',
-			neighbour: 'topLeft',
-			types: this.resolve('bottomRight')
-		}
-	];
-
-	restraints.HALF_BOTTOM_RIGHT = [
-		{
-			direction: 'left',
-			neighbour: 'bottomLeft',
-			types: this.resolve('topRight'),
-		},
-		{
-			direction: 'up',
-			neighbour: 'topRight',
-			types: this.resolve('bottomLeft')
-		}
-	];
-
-	restraints.HALF_TOP_LEFT = [
-		{
-			direction: 'right',
-			neighbour: 'topRight',
-			types: this.resolve('bottomLeft')
-		},
-		{
-			direction: 'down',
-			neighbour: 'bottomLeft',
-			types: this.resolve('topRight')
-		}
-	];
-
-	restraints.HALF_TOP_RIGHT = [
-		{
-			direction: 'left',
-			neighbour: 'topLeft',
-			types: this.resolve('bottomRight')
-		},
-		{
-			direction: 'down',
-			neighbour: 'bottomRight',
-			types: this.resolve('topLeft')
-		}
-	];
-
-	restraints.QUARTER_BOTTOM_LEFT_LOW = [
-		{
-			direction: 'right',
-			neighbour: 'bottomRight',
-			types: this.resolve('topLeft')
-		},
-		{
-			direction: 'up',
-			neighbour: 'left',
-			types: this.resolve('topLeft', 'right', 'bottomRight')
-		},
-		{
-			direction: 'left',
-			neighbour: 'left',
-			types: this.resolve('right', 'bottomRight'),
-			separate: false
-		}
-	];
-
-	restraints.QUARTER_BOTTOM_LEFT_HIGH = [
-		{
-			direction: 'right',
-			neighbour: 'right',
-			types: this.resolve('left', 'bottomLeft'),
-			separate: function (body, tile) {
-				return body.bottom < tile.bottom;
-			}
-		},
-		{
-			direction: 'up',
-			neighbour: 'topLeft',
-			types: this.resolve('bottomRight')
-		}
-	];
-
-	restraints.QUARTER_BOTTOM_RIGHT_LOW = [
-		{
-			direction: 'left',
-			neighbour: 'bottomLeft',
-			types: this.resolve('topRight')
-		},
-		{
-			direction: 'up',
-			neighbour: 'right',
-			types: this.resolve('topRight', 'left', 'bottomLeft')
-		},
-		{
-			direction: 'right',
-			neighbour: 'right',
-			types: this.resolve('left', 'bottomLeft'),
-			separate: false
-		}
-	];
-
-	restraints.QUARTER_BOTTOM_RIGHT_HIGH = [
-		{
-			direction: 'left',
-			neighbour: 'left',
-			types: this.resolve('right', 'bottomRight'),
-			separate: function (body, tile) {
-				return body.bottom < tile.bottom;
-			}
-		},
-		{
-			direction: 'up',
-			neighbour: 'topRight',
-			types: this.resolve('bottomLeft')
-		}
-	];
-	
-	restraints.QUARTER_LEFT_BOTTOM_LOW = [
-		{
-			direction: 'up',
-			neighbour: 'above',
-			types: this.resolve('bottomLeft', 'bottom'),
-			separate: function (body, tile) {
-				return body.left > tile.left;
-			}
-		},
-		{
-			direction: 'right',
-			neighbour: 'bottomRight',
-			types: this.resolve('topLeft')
-		}
-	];
-	
-	restraints.QUARTER_LEFT_BOTTOM_HIGH = [
-		{
-			direction: 'up',
-			neighbour: 'topLeft',
-			types: this.resolve('bottomRight')
-		},
-		{
-			direction: 'down',
-			neighbour: 'below',
-			types: this.resolve('topLeft', 'top'),
-			separate: false
-		},
-		{
-			direction: 'right',
-			neighbour: 'below',
-			types: this.resolve('topLeft', 'top', 'bottomRight')
-		}
-	];
-	
-	restraints.QUARTER_RIGHT_BOTTOM_LOW = [
-		{
-			direction: 'up',
-			neighbour: 'above',
-			types: this.resolve('bottom', 'bottomRight'),
-			separate: function (body, tile) {
-				return body.right < tile.right;
-			}
-		},
-		{
-			direction: 'left',
-			neighbour: 'bottomLeft',
-			types: this.resolve('topRight')
-		}
-	];
-	
-	restraints.QUARTER_RIGHT_BOTTOM_HIGH = [
-		{
-			direction: 'up',
-			neighbour: 'topRight',
-			types: this.resolve('bottomLeft')
-		},
-		{
-			direction: 'down',
-			neighbour: 'below',
-			types: this.resolve('top', 'topRight'),
-			separate: false
-		},
-		{
-			direction: 'left',
-			neighbour: 'below',
-			types: this.resolve('top', 'topRight', 'bottomLeft')
-		}
-	];
-	
-	restraints.QUARTER_LEFT_TOP_LOW = [
-		{
-			direction: 'up',
-			neighbour: 'above',
-			types: this.resolve('bottomLeft', 'bottom')
-		},
-		{
-			direction: 'right',
-			neighbour: 'above',
-			types: this.resolve('bottomLeft', 'bottom'),
-			separate: false
-		},
-		{
-			direction: 'down',
-			neighbour: 'bottomLeft',
-			types: this.resolve('topRight')
-		}
-	];
-	
-	restraints.QUARTER_LEFT_TOP_HIGH = [
-		{
-			direction: 'right',
-			neighbour: 'topRight',
-			types: this.resolve('bottomLeft')
-		},
-		{
-			direction: 'down',
-			neighbour: 'below',
-			types: this.resolve('topLeft', 'top'),
-			separate: function (body, tile) {
-				return body.left > tile.left;
-			}
-		}
-	];
-	
-	restraints.QUARTER_RIGHT_TOP_LOW = [
-		{
-			direction: 'up',
-			neighbour: 'above',
-			types: this.resolve('bottom', 'bottomRight')
-		},
-		{
-			direction: 'left',
-			neighbour: 'above',
-			types: this.resolve('bottom', 'bottomRight'),
-			separate: false
-		},
-		{
-			direction: 'down',
-			neighbour: 'bottomRight',
-			types: this.resolve('topLeft')
-		}
-	];
-	
-	restraints.QUARTER_RIGHT_TOP_HIGH = [
-		{
-			direction: 'left',
-			neighbour: 'topLeft',
-			types: this.resolve('bottomRight')
-		},
-		{
-			direction: 'down',
-			neighbour: 'below',
-			types: this.resolve('top', 'topRight'),
-			separate: function (body, tile) {
-				return body.right < tile.right;
-			}
-		}
-	];
-	
-	restraints.QUARTER_TOP_LEFT_LOW = [
-		{
-			direction: 'right',
-			neighbour: 'topRight',
-			types: this.resolve('bottomLeft')
-		},
-		{
-			direction: 'left',
-			neighbour: 'left',
-			types: this.resolve('topRight', 'right'),
-			separate: false
-		},
-		{
-			direction: 'down',
-			neighbour: 'left',
-			types: this.resolve('bottomLeft', 'topRight', 'right')
-		}
-	];
-	
-	restraints.QUARTER_TOP_LEFT_HIGH = [
-		{
-			direction: 'right',
-			neighbour: 'right',
-			types: this.resolve('topLeft', 'left'),
-			separate: function (body, tile) {
-				return body.top > tile.top;
-			}
-		},
-		{
-			direction: 'down',
-			neighbour: 'bottomLeft',
-			types: this.resolve('topRight')
-		}
-	];
-	
-	restraints.QUARTER_TOP_RIGHT_LOW = [
-		{
-			direction: 'left',
-			neighbour: 'topLeft',
-			types: this.resolve('bottomRight')
-		},
-		{
-			direction: 'right',
-			neighbour: 'right',
-			types: this.resolve('topLeft', 'left'),
-			separate: false
-		},
-		{
-			direction: 'down',
-			neighbour: 'right',
-			types: this.resolve('bottomRight', 'topLeft', 'left')
-		}
-	];
-	
-	restraints.QUARTER_TOP_RIGHT_HIGH = [
-		{
-			direction: 'left',
-			neighbour: 'left',
-			types: this.resolve('topRight', 'right'),
-			separate: function (body, tile) {
-				return body.top > tile.top;
-			}
-		},
-		{
-			direction: 'down',
-			neighbour: 'bottomRight',
-			types: this.resolve('topLeft')
-		}
-	];
-	
-	// Keep a copy of the informal restraints for inspection
-	this.informalRestraints = JSON.parse(JSON.stringify(restraints));
-	
-	this.restraints = Phaser.Plugin.ArcadeSlopes.SatRestrainer.prepareRestraints(restraints);
-};
-
-/**
- * Compute the intersection of two arrays.
- * 
- * Returns a unique set of values that exist in both arrays.
- *
- * @method Phaser.Plugin.ArcadeSlopes.SatRestrainer#intersectArrays
- * @param  {array} a - The first array.
- * @param  {array} b - The second array.
- * @return {array}   - The unique set of values shared by both arrays.
- */
-Phaser.Plugin.ArcadeSlopes.SatRestrainer.intersectArrays = function (a, b) {
-	return a.filter(function (value) {
-		return b.indexOf(value) !== -1;
-	}).filter(function (value, index, array) {
-		return array.indexOf(value) === index;
-	});
-};
-
-/**
- * Resolve the types of all tiles with vertices in all of the given locations.
- *
- * Locations can be:
- *   'topLeft',    'top',       'topRight',
- *   'left',                       'right',
- *   'bottomLeft', 'bottom', 'bottomRight'
- * 
- * @method Phaser.Plugin.ArcadeSlopes.TileSlopeFactory#resolve
- * @param  {...string} locations - A set of AABB vertex locations as strings.
- * @return {array}               - The tile slope types with matching vertices.
- */
-Phaser.Plugin.ArcadeSlopes.SatRestrainer.prototype.resolve = function () {
-	var types = [];
-	
-	if (!arguments.length) {
-		return types;
-	}
-	
-	// Check the vertex maps of the given locations
-	for (var l in arguments) {
-		var location = arguments[l];
-		
-		if (!Phaser.Plugin.ArcadeSlopes.SatRestrainer.hasOwnProperty(location + 'Vertices')) {
-			console.warn('Tried to resolve types from undefined vertex map location \'' + location + '\'');
-			continue;
-		}
-		
-		var vertexMap = Array.prototype.slice.call(Phaser.Plugin.ArcadeSlopes.SatRestrainer[location + 'Vertices']);
-		
-		// If we only have one location to match, we can return its vertex map
-		if (arguments.length === 1) {
-			return vertexMap;
-		}
-		
-		// If we don't have any types yet, use this vertex map to start with,
-		// otherwise intersect this vertex map with the current types
-		if (!types.length) {
-			types = vertexMap;
-		} else {
-			types = Phaser.Plugin.ArcadeSlopes.SatRestrainer.intersectArrays(types, vertexMap);
-		}
-	}
-	
-	return types;
-};
-
-// TODO: Automate these definitions instead of relying on tedious heuristics.
-//       Store them in a single vertexMaps property object, too.
-
-/**
- * The set of tile slope types with a top center vertex.
- *
- * @static
- * @property {array} topVertices
- */
-Phaser.Plugin.ArcadeSlopes.SatRestrainer.topVertices = [
-	'HALF_LEFT',
-	'HALF_RIGHT',
-	'QUARTER_LEFT_TOP_LOW',
-	'QUARTER_RIGHT_TOP_LOW',
-	'QUARTER_LEFT_BOTTOM_LOW',
-	'QUARTER_RIGHT_BOTTOM_LOW'
-];
-
-/**
- * The set of tile slope types with a bottom center vertex.
- *
- * @static
- * @property {array} bottomVertices
- */
-Phaser.Plugin.ArcadeSlopes.SatRestrainer.bottomVertices = [
-	'HALF_LEFT',
-	'HALF_RIGHT',
-	'QUARTER_LEFT_TOP_HIGH',
-	'QUARTER_LEFT_BOTTOM_HIGH',
-	'QUARTER_RIGHT_TOP_HIGH',
-	'QUARTER_RIGHT_BOTTOM_HIGH'
-];
-
-/**
- * The set of tile slope types with a left center vertex.
- *
- * @static
- * @property {array} leftVertices
- */
-Phaser.Plugin.ArcadeSlopes.SatRestrainer.leftVertices = [
-	'HALF_TOP',
-	'HALF_BOTTOM',
-	'QUARTER_TOP_LEFT_LOW',
-	'QUARTER_TOP_RIGHT_HIGH',
-	'QUARTER_BOTTOM_LEFT_LOW',
-	'QUARTER_BOTTOM_RIGHT_HIGH'
-];
-
-/**
- * The set of tile slope types with a right center vertex.
- *
- * @static
- * @property {array} rightVertices
- */
-Phaser.Plugin.ArcadeSlopes.SatRestrainer.rightVertices = [
-	'HALF_TOP',
-	'HALF_BOTTOM',
-	'QUARTER_TOP_LEFT_HIGH',
-	'QUARTER_TOP_RIGHT_LOW',
-	'QUARTER_BOTTOM_LEFT_HIGH',
-	'QUARTER_BOTTOM_RIGHT_LOW',
-];
-
-/**
- * The set of tile slope types with a top left vertex.
- *
- * @static
- * @property {array} topLeftVertices
- */
-Phaser.Plugin.ArcadeSlopes.SatRestrainer.topLeftVertices = [
-	'FULL',
-	'HALF_TOP',
-	'HALF_LEFT',
-	'HALF_TOP_LEFT',
-	'HALF_TOP_RIGHT',
-	'HALF_BOTTOM_LEFT',
-	'QUARTER_TOP_LEFT_LOW',
-	'QUARTER_TOP_LEFT_HIGH',
-	'QUARTER_TOP_RIGHT_HIGH',
-	'QUARTER_BOTTOM_LEFT_HIGH',
-	'QUARTER_LEFT_TOP_LOW',
-	'QUARTER_LEFT_TOP_HIGH',
-	'QUARTER_LEFT_BOTTOM_LOW',
-	'QUARTER_LEFT_BOTTOM_HIGH',
-	'QUARTER_RIGHT_TOP_HIGH'
-];
-
-/**
- * The set of tile slope types with a top right vertex.
- *
- * @static
- * @property {array} topRightVertices
- */
-Phaser.Plugin.ArcadeSlopes.SatRestrainer.topRightVertices = [
-	'FULL',
-	'HALF_TOP',
-	'HALF_RIGHT',
-	'HALF_TOP_LEFT',
-	'HALF_TOP_RIGHT',
-	'HALF_BOTTOM_RIGHT',
-	'QUARTER_TOP_LEFT_LOW',
-	'QUARTER_TOP_LEFT_HIGH',
-	'QUARTER_TOP_RIGHT_LOW',
-	'QUARTER_TOP_RIGHT_HIGH',
-	'QUARTER_BOTTOM_RIGHT_HIGH',
-	'QUARTER_LEFT_TOP_HIGH',
-	'QUARTER_RIGHT_TOP_LOW',
-	'QUARTER_RIGHT_TOP_HIGH',
-	'QUARTER_RIGHT_BOTTOM_LOW',
-	'QUARTER_RIGHT_BOTTOM_HIGH'
-];
-
-/**
- * The set of tile slope types with a bottom left vertex.
- *
- * @static
- * @property {array} bottomLeftVertices
- */
-Phaser.Plugin.ArcadeSlopes.SatRestrainer.bottomLeftVertices = [
-	'FULL',
-	'HALF_LEFT',
-	'HALF_BOTTOM',
-	'HALF_TOP_LEFT',
-	'HALF_BOTTOM_LEFT',
-	'HALF_BOTTOM_RIGHT',
-	'QUARTER_TOP_LEFT_HIGH',
-	'QUARTER_BOTTOM_LEFT_LOW',
-	'QUARTER_BOTTOM_LEFT_HIGH',
-	'QUARTER_BOTTOM_RIGHT_LOW',
-	'QUARTER_BOTTOM_RIGHT_HIGH',
-	'QUARTER_LEFT_TOP_HIGH',
-	'QUARTER_LEFT_BOTTOM_LOW',
-	'QUARTER_LEFT_BOTTOM_HIGH',
-	'QUARTER_RIGHT_BOTTOM_LOW'
-];
-
-/**
- * The set of tile slope types with a bottom right vertex.
- *
- * @static
- * @property {array} bottomRightVertices
- */
-Phaser.Plugin.ArcadeSlopes.SatRestrainer.bottomRightVertices = [
-	'FULL',
-	'HALF_RIGHT',
-	'HALF_BOTTOM',
-	'HALF_TOP_RIGHT',
-	'HALF_BOTTOM_LEFT',
-	'HALF_BOTTOM_RIGHT',
-	'QUARTER_TOP_RIGHT_HIGH',
-	'QUARTER_BOTTOM_LEFT_LOW',
-	'QUARTER_BOTTOM_LEFT_HIGH',
-	'QUARTER_BOTTOM_RIGHT_LOW',
-	'QUARTER_BOTTOM_RIGHT_HIGH',
-	'QUARTER_LEFT_BOTTOM_LOW',
-	'QUARTER_RIGHT_TOP_HIGH',
-	'QUARTER_RIGHT_BOTTOM_LOW',
-	'QUARTER_RIGHT_BOTTOM_HIGH'
-];
 
 /**
  * @author Chris Andrew <chris@hexus.io>
@@ -1749,22 +810,41 @@ Phaser.Plugin.ArcadeSlopes.SatSolver = function (options) {
 		debug: false,
 		
 		// Whether to prefer the minimum Y offset over the smallest separation
-		preferY: false,
-		
-		// Whether to restrain SAT collisions
-		restrain: true
+		preferY: false
 	});
 	
 	/**
-	 * Objects that have the chance to process collisions themselves.
-	 *
-	 * They should expose a restrain() function.
-	 *
-	 * @property {object[]} restrainers
+	 * A pool of arrays to use for calculations.
+	 * 
+	 * @property {Array[]} arrayPool
 	 */
-	this.restrainers = [
-		new Phaser.Plugin.ArcadeSlopes.SatRestrainer()
-	];
+	this.arrayPool = [];
+	
+	for (var i = 0; i < 10; i++) {
+		this.arrayPool.push([]);
+	}
+	
+	/**
+	 * A pool of vectors to use for calculations.
+	 * 
+	 * @property {SAT.Vector[]} vectorPool
+	 */
+	this.vectorPool = [];
+	
+	for (i = 0; i < 20; i++) {
+		this.vectorPool.push(new SAT.Vector());
+	}
+	
+	/**
+	 * A pool of responses to use for collision tests.
+	 * 
+	 * @property {SAT.Response[]} responsePool
+	 */
+	this.responsePool = [];
+	
+	for (i = 0; i < 20; i++) {
+		this.responsePool.push(new SAT.Response());
+	}
 };
 
 /**
@@ -1799,6 +879,27 @@ Phaser.Plugin.ArcadeSlopes.SatSolver.resetResponse = function (response) {
 	response.clear();
 	
 	return response;
+};
+
+/**
+ * Copy the values of one SAT response to another.
+ * 
+ * @static
+ * @method Phaser.Plugin.ArcadeSlopes.SatSolver#copyResponse
+ * @param  {SAT.Response} a - The source response.
+ * @param  {SAT.Response} b - The target response.
+ * @return {SAT.Response}
+ */
+Phaser.Plugin.ArcadeSlopes.SatSolver.copyResponse = function (a, b) {
+	b.a = a.a;
+	b.b = a.b;
+	b.aInB = a.aInB;
+	b.bInA = a.bInA;
+	b.overlap = a.overlap;
+	b.overlapN.copy(a.overlapN);
+	b.overlapV.copy(a.overlapV);
+	
+	return b;
 };
 
 /**
@@ -1863,29 +964,6 @@ Phaser.Plugin.ArcadeSlopes.SatSolver.prototype.shouldPreferY = function (body, r
 };
 
 /**
- * Determine whether two polygons intersect on a given axis.
- *
- * @static
- * @method Phaser.Plugin.ArcadeSlopes.SatSolver#isSeparatingAxis
- * @param  {SAT.Polygon}  a        - The first polygon.
- * @param  {SAT.Polygon}  b        - The second polygon.
- * @param  {SAT.Vector}   axis     - The axis to test.
- * @param  {SAT.Response} response - The response to populate.
- * @return {boolean}               - Whether a separating axis was found.
- */
-Phaser.Plugin.ArcadeSlopes.SatSolver.isSeparatingAxis = function (a, b, axis, response) {
-	var result = SAT.isSeparatingAxis(a.pos, b.pos, a.points, b.points, axis, response || null);
-	
-	if (response) {
-		response.a = a;
-		response.b = b;
-		response.overlapV = response.overlapN.clone().scale(response.overlap);
-	}
-	
-	return result;
-};
-
-/**
  * Separate a body from a tile using the given SAT response.
  *
  * @method Phaser.Plugin.ArcadeSlopes.SatSolver#separate
@@ -1910,7 +988,7 @@ Phaser.Plugin.ArcadeSlopes.SatSolver.prototype.separate = function (body, tile, 
 		return false;
 	}
 	
-	// Separate the body from the tile
+	// Separate the body from the tile, using the minimum Y offset if preferred
 	if (this.shouldPreferY(body, response)) {
 		body.position.y += Phaser.Plugin.ArcadeSlopes.SatSolver.minimumOffsetY(response.overlapV);
 	} else {
@@ -1934,10 +1012,10 @@ Phaser.Plugin.ArcadeSlopes.SatSolver.prototype.separate = function (body, tile, 
  */
 Phaser.Plugin.ArcadeSlopes.SatSolver.prototype.applyVelocity = function (body, tile, response) {
 	// Project our velocity onto the overlap normal for the bounce vector (Vn)
-	var bounce = body.slopes.velocity.clone().projectN(response.overlapN);
+	var bounce = this.vectorPool.pop().copy(body.slopes.velocity).projectN(response.overlapN);
 	
 	// Then work out the surface vector (Vt)
-	var friction = body.slopes.velocity.clone().sub(bounce);
+	var friction = this.vectorPool.pop().copy(body.slopes.velocity).sub(bounce);
 	
 	// Apply bounce coefficients
 	bounce.x = bounce.x * (-body.bounce.x);
@@ -1953,6 +1031,9 @@ Phaser.Plugin.ArcadeSlopes.SatSolver.prototype.applyVelocity = function (body, t
 	
 	// Process collision pulling
 	this.pull(body, response);
+	
+	// Recycle the vectors we used for bounce and friction
+	this.vectorPool.push(bounce, friction);
 };
 
 /**
@@ -1991,79 +1072,6 @@ Phaser.Plugin.ArcadeSlopes.SatSolver.prototype.updateFlags = function (body, res
 	body.blocked.down  = body.blocked.down  || response.overlapV.x === 0 && response.overlapV.y < 0;
 	body.blocked.left  = body.blocked.left  || response.overlapV.y === 0 && response.overlapV.x > 0;
 	body.blocked.right = body.blocked.right || response.overlapV.y === 0 && response.overlapV.x < 0;
-};
-
-/**
- * Attempt to snap the body to a given set of tiles based on its slopes options.
- *
- * TODO: Maybe remove snapping altogether.
- * 
- * @method Phaser.Plugin.ArcadeSlopes.SatSolver#snap
- * @param  {Phaser.Physics.Arcade.Body} body         - The physics body.
- * @param  {Phaser.Tile[]}              tiles        - The tiles.
- * @param  {Phaser.TilemapLayer}        tilemapLayer - The tilemap layer.
- * @return {boolean}                                 - Whether the body was snapped to any tiles.
- */
-Phaser.Plugin.ArcadeSlopes.SatSolver.prototype.snap = function (body, tiles, tilemapLayer) {
-	if (!body.slopes || (!body.slopes.snapUp && !body.slopes.snapDown && !body.slopes.snapLeft && !body.slopes.snapRight)) {
-		return false;
-	}
-	
-	// Keep the current body position to snap from
-	// TODO: Get rid of the instantiation
-	var current = new Phaser.Point(body.position.x, body.position.y);
-	
-	// Keep track of whether the body has snapped to a tile
-	var snapped = false;
-	
-	// For each tile, move the body in each direction by the configured amount,
-	// and try to collide, returning the body to its original position if no
-	// collision occurs
-	for (var t in tiles) {
-		var tile = tiles[t];
-		
-		if (!tile.slope) {
-			continue;
-		}
-		
-		if (body.slopes.snapUp) {
-			body.position.x = current.x;
-			body.position.y = current.y - body.slopes.snapUp;
-			
-			if (this.snapCollide(body, tile, tilemapLayer, current)) {
-				return true;
-			}
-		}
-		
-		if (body.slopes.snapDown) {
-			body.position.x = current.x;
-			body.position.y = current.y + body.slopes.snapDown;
-			
-			if (this.snapCollide(body, tile, tilemapLayer, current)) {
-				return true;
-			}
-		}
-		
-		if (body.slopes.snapLeft) {
-			body.position.x = current.x - body.slopes.snapLeft;
-			body.position.y = current.y;
-			
-			if (this.snapCollide(body, tile, tilemapLayer, current)) {
-				return true;
-			}
-		}
-		
-		if (body.slopes.snapRight) {
-			body.position.x = current.x + body.slopes.snapRight;
-			body.position.y = current.y;
-			
-			if (this.snapCollide(body, tile, tilemapLayer, current)) {
-				return true;
-			}
-		}
-	}
-	
-	return false;
 };
 
 /**
@@ -2164,29 +1172,6 @@ Phaser.Plugin.ArcadeSlopes.SatSolver.prototype.pull = function (body, response) 
 };
 
 /**
- * Perform a snap collision between the given body and tile, setting the body
- * back to the given current position if it fails.
- *
- * @method Phaser.Plugin.ArcadeSlopes.SatSolver#snapCollide
- * @param  {Phaser.Physics.Arcade.Body} body         - The translated physics body.
- * @param  {Phaser.Tile}                tile         - The tile.
- * @param  {Phaser.TilemapLayer}        tilemapLayer - The tilemap layer.
- * @param  {Phaser.Point}               current      - The original position of the body.
- * @return {boolean}                                 - Whether the body snapped to the tile.
- */
-Phaser.Plugin.ArcadeSlopes.SatSolver.prototype.snapCollide = function (body, tile, tilemapLayer, current) {
-	if (this.collide(0, body, tile, tilemapLayer)) {
-		return true;
-	}
-	
-	// There was no collision, so reset the body position
-	body.position.x = current.x;
-	body.position.y = current.y;
-	
-	return false;
-};
-
-/**
  * Determine whether everything required to process a collision is available.
  *
  * @method Phaser.Plugin.ArcadeSlopes.SatSolver#shouldCollide
@@ -2196,6 +1181,279 @@ Phaser.Plugin.ArcadeSlopes.SatSolver.prototype.snapCollide = function (body, til
  */
 Phaser.Plugin.ArcadeSlopes.SatSolver.prototype.shouldCollide = function (body, tile) {
 	return body.enable && body.polygon && body.slopes && tile.collides && tile.slope && tile.slope.polygon;
+};
+
+/**
+ * Flattens the specified array of points onto a unit vector axis,
+ * resulting in a one dimensional range of the minimum and
+ * maximum value on that axis.
+ *
+ * Copied verbatim from SAT.flattenPointsOn.
+ * 
+ * @see SAT.flattenPointsOn
+ * @static
+ * @method Phaser.Plugin.ArcadeSlopes.SatSolver#flattenPointsOn
+ * @param {SAT.Vector[]} points - The points to flatten.
+ * @param {SAT.Vector}   normal - The unit vector axis to flatten on.
+ * @param {number[]}     result - An array. After calling this,
+ *   result[0] will be the minimum value,
+ *   result[1] will be the maximum value.
+ */
+Phaser.Plugin.ArcadeSlopes.SatSolver.flattenPointsOn = function (points, normal, result) {
+	var min = Number.MAX_VALUE;
+	var max = -Number.MAX_VALUE;
+	var len = points.length;
+	
+	for (var i = 0; i < len; i++ ) {
+		// The magnitude of the projection of the point onto the normal
+		var dot = points[i].dot(normal);
+		if (dot < min) { min = dot; }
+		if (dot > max) { max = dot; }
+	}
+	
+	result[0] = min; result[1] = max;
+};
+
+/**
+ * Determine whether two polygons are separated by a given axis.
+ *
+ * Tailored to only push out in the direction of the given axis.
+ * 
+ * Adapted from SAT.isSeparatingAxis.
+ *
+ * @see    {SAT.isSeparatingAxis}
+ * @method Phaser.Plugin.ArcadeSlopes.SatSolver#isSeparatingAxis
+ * @param  {SAT.Polygon}  a        - The first polygon.
+ * @param  {SAT.Polygon}  b        - The second polygon.
+ * @param  {SAT.Vector}   axis     - The axis (unit sized) to test against.
+ *                                   The points of both polygons are projected
+ *                                   onto this axis.
+ * @param  {SAT.Response} response - The response to populate if the polygons are
+ *                                   not separated by the given axis.
+ * @return {boolean} true if it is a separating axis, false otherwise. If false,
+ *   and a response is passed in, information about how much overlap and
+ *   the direction of the overlap will be populated.
+ */
+Phaser.Plugin.ArcadeSlopes.SatSolver.prototype.isSeparatingAxis = function (a, b, axis, response) {
+	var aPos = a.pos;
+	var bPos = b.pos;
+	var aPoints = a.calcPoints;
+	var bPoints = b.calcPoints;
+	
+	var rangeA = this.arrayPool.pop();
+	var rangeB = this.arrayPool.pop();
+	
+	// The magnitude of the offset between the two polygons
+	var offsetV = this.vectorPool.pop().copy(bPos).sub(aPos);
+	var projectedOffset = offsetV.dot(axis);
+	
+	// Project the polygons onto the axis.
+	Phaser.Plugin.ArcadeSlopes.SatSolver.flattenPointsOn(aPoints, axis, rangeA);
+	Phaser.Plugin.ArcadeSlopes.SatSolver.flattenPointsOn(bPoints, axis, rangeB);
+	
+	// Move B's range to its position relative to A.
+	rangeB[0] += projectedOffset;
+	rangeB[1] += projectedOffset;
+	
+	// Check if there is a gap. If there is, this is a separating axis and we can stop
+	if (rangeA[0] >= rangeB[1] || rangeB[0] >= rangeA[1]) {
+		this.vectorPool.push(offsetV);
+		this.arrayPool.push(rangeA);
+		this.arrayPool.push(rangeB);
+		return true;
+	}
+	
+	var option1, option2;
+	
+	// This is not a separating axis. If we're calculating a response, calculate
+	// the overlap
+	var overlap = 0;
+	
+	if (rangeA[0] < rangeB[0]) {
+		// A starts further left than B
+		response.aInB = false;
+		
+		if (rangeA[1] < rangeB[1]) {
+			// A ends before B does. We have to pull A out of B
+			//overlap = rangeA[1] - rangeB[0];
+			response.bInA = false;
+		}// else {
+			// B is fully inside A. Pick the shortest way out.
+			//option1 = rangeA[1] - rangeB[0];
+			//option2 = rangeB[1] - rangeA[0];
+			//overlap = option1 < option2 ? option1 : -option2;
+		//}
+	} else {
+		// B starts further left than A
+		response.bInA = false;
+		
+		if (rangeA[1] > rangeB[1]) {
+			// B ends before A ends. We have to push A out of B
+			overlap = rangeA[0] - rangeB[1];
+			response.aInB = false;
+		} else {
+			// A is fully inside B.  Pick the shortest way out.
+			option1 = rangeA[1] - rangeB[0];
+			option2 = rangeB[1] - rangeA[0];
+			//overlap = option1 < option2 ? option1 : -option2;
+			
+			if (option1 >= option2) {
+				overlap = -option2;
+			}
+		}
+	}
+	
+	// If this is the smallest amount of overlap we've seen so far, set it
+	// as the minimum overlap.
+	var absOverlap = Math.abs(overlap);
+	
+	if (absOverlap < response.overlap) {
+		response.overlap = absOverlap;
+		response.overlapN.copy(axis);
+		
+		if (overlap < 0) {
+			response.overlapN.reverse();
+		}
+	}
+	
+	this.vectorPool.push(offsetV);
+	this.arrayPool.push(rangeA);
+	this.arrayPool.push(rangeB);
+	
+	return false;
+};
+
+/**
+ * Test whether two polygons overlap.
+ *
+ * Takes a response object that will be populated with the shortest
+ * viable separation vector. Ignores collision responses that don't oppose
+ * velocity enough.
+ * 
+ * Returns true if there is a collision and false otherwise.
+ *
+ * Tailored to work with an AABB as the first polygon.
+ * 
+ * Adapted from SAT.testPolygonPolygon.
+ * 
+ * @see    {SAT.testPolygonPolygon}
+ * @method Phaser.Plugin.ArcadeSlopes.SatSolver#testPolygonPolygon
+ * @param  {SAT.Polygon}  a        - The first polygon.
+ * @param  {SAT.Polygon}  b        - The second polygon.
+ * @param  {SAT.Response} response - The response object to populate with overlap information.
+ * @param  {SAT.Vector}   velocity - The velocity vector to ignore.
+ * @param  {SAT.Vector[]} ignore   - The axes to ignore.
+ * @return {boolean}               - Whether the the two polygons overlap.
+ */
+Phaser.Plugin.ArcadeSlopes.SatSolver.prototype.testPolygonPolygon = function (a, b, response, velocity, ignore) {
+	var aPoints = a.calcPoints;
+	var aLen = aPoints.length;
+	var bPoints = b.calcPoints;
+	var bLen = bPoints.length;
+	
+	var i, j, k;
+	var responses = this.arrayPool.pop();
+	var axes = this.arrayPool.pop();
+	
+	responses.length = 0;
+	axes.length = 0;
+	
+	// If any of the edge normals of A is a separating axis, no intersection
+	for (i = 0; i < aLen; i++) {
+		responses[i] = this.responsePool.pop();
+		responses[i].clear();
+		axes[i] = a.normals[i];
+		
+		if (this.isSeparatingAxis(a, b, a.normals[i], responses[i])) {
+			for (k = 0; k < responses.length; k++) {
+				this.responsePool.push(responses[k]);
+			}
+			
+			this.arrayPool.push(responses, axes);
+			
+			return false;
+		}
+	}
+	
+	// If any of the edge normals of B is a separating axis, no intersection
+	for (i = 0, j = aLen; i < bLen; i++, j++) {
+		responses[j] = this.responsePool.pop();
+		responses[j].clear();
+		axes[j] = b.normals[i];
+		
+		if (this.isSeparatingAxis(a, b, b.normals[i], responses[j])) {
+			for (k = 0; k < responses.length; k++) {
+				this.responsePool.push(responses[k]);
+			}
+			
+			this.arrayPool.push(responses, axes);
+			
+			return false;
+		}
+	}
+	
+	// Since none of the edge normals of A or B are a separating axis, there is
+	// an intersection
+	
+	var viable = false;
+	var ignored = false;
+	var velocityTestVector = this.vectorPool.pop();
+	
+	// Determine the shortest desirable and viable separation from the responses
+	for (i = 0; i < responses.length; i++) {
+		// Is the overlap in the range we want?
+		// TODO: Less than the max of tile width/height?
+		if (!(responses[i].overlap > 0 && responses[i].overlap < Number.MAX_VALUE)) {
+			continue;
+		}
+		
+		// Is the overlap direction too close to that of the velocity direction?
+		if (velocity && velocityTestVector.copy(responses[i].overlapN).scale(-1).dot(velocity) > 0) {
+			continue;
+		}
+		
+		ignored = false;
+		
+		// Is the axis of the overlap in the extra ignore list?
+		for (j = 0; j < ignore.length; j++) {
+			if (axes[i].x === ignore[j].x && axes[i].y === ignore[j].y) {
+				ignored = true;
+				
+				break;
+			}
+		}
+		
+		// Skip this response if its normal is ignored
+		if (ignored) {
+			continue;
+		}
+		
+		// Is this response's overlap shorter than that of the current?
+		if (responses[i].overlap < response.overlap) {
+			viable = true;
+			response.aInB = responses[i].aInB;
+			response.bInA = responses[i].bInA;
+			response.overlap = responses[i].overlap;
+			response.overlapN = responses[i].overlapN;
+		}
+	}
+	
+	// Set the polygons on the response and calculate the overlap vector
+	if (viable) {
+		response.a = a;
+		response.b = b;
+		response.overlapV.copy(response.overlapN).scale(response.overlap);
+	}
+	
+	// Recycle the temporary responses, arrays and vectors used for calculations
+	for (k = 0; k < responses.length; k++) {
+		this.responsePool.push(responses[k]);
+	}
+	
+	this.arrayPool.push(responses, axes);
+	this.vectorPool.push(velocityTestVector);
+	
+	return viable;
 };
 
 /**
@@ -2229,34 +1487,51 @@ Phaser.Plugin.ArcadeSlopes.SatSolver.prototype.collide = function (i, body, tile
 	tile.slope.polygon.pos.x = tile.worldX + tilemapLayer.getCollisionOffsetX();
 	tile.slope.polygon.pos.y = tile.worldY + tilemapLayer.getCollisionOffsetY();
 	
-	// Reuse the body's response or create one for it
-	var response = body.slopes.sat.response || new SAT.Response();
+	// Create the body's response if it doesn't have one
+	body.slopes.sat.response = body.slopes.sat.response || new SAT.Response();
 	
-	// Reset the response
+	// Acquire a temporary response from the pool
+	var response = this.responsePool.pop();
 	Phaser.Plugin.ArcadeSlopes.SatSolver.resetResponse(response);
 	
-	// Test for an overlap and bail if there isn't one
-	if ((body.isCircle && !SAT.testCirclePolygon(body.polygon, tile.slope.polygon, response)) || (!body.isCircle && !SAT.testPolygonPolygon(body.polygon, tile.slope.polygon, response))) {
-		return false;
-	}
+	// Test for an overlap
+	var circleOverlap = body.isCircle && SAT.testCirclePolygon(body.polygon, tile.slope.polygon, response);
+	var polygonOverlap = !body.isCircle && this.testPolygonPolygon(body.polygon, tile.slope.polygon, response, body.slopes.velocity, tile.slope.ignormals);
 	
-	// If we're only testing for the overlap, we can bail here
-	if (overlapOnly) {
-		return true;
+	// Bail if there isn't one, leaving the body's response as is
+	if (!circleOverlap && !polygonOverlap) {
+		this.responsePool.push(response);
+		
+		return false;
 	}
 	
 	// Invert our overlap vectors so that we have them facing outwards
 	Phaser.Plugin.ArcadeSlopes.SatSolver.prepareResponse(response);
 	
-	// Bail out if no separation occurred, resetting the response
+	// If we're only testing for the overlap, we can bail here
+	if (overlapOnly) {
+		Phaser.Plugin.ArcadeSlopes.SatSolver.copyResponse(response, body.slopes.sat.response);
+		this.responsePool.push(response);
+		
+		return true;
+	}
+	
+	// Bail out if no separation occurred
 	if (!this.separate(body, tile, response)) {
+		this.responsePool.push(response);
+		
 		return false;
 	}
+	
+	// Copy the temporary response into the body's response, then recycle it
+	Phaser.Plugin.ArcadeSlopes.SatSolver.copyResponse(response, body.slopes.sat.response);
+	this.responsePool.push(response);
+	
+	response = body.slopes.sat.response;
 	
 	// Update the overlap properties of the body
 	body.overlapX = response.overlapV.x;
 	body.overlapY = response.overlapV.y;
-	body.slopes.sat.response = response;
 	
 	// Set the tile that the body separated from
 	body.slopes.tile = tile;
@@ -2268,79 +1543,6 @@ Phaser.Plugin.ArcadeSlopes.SatSolver.prototype.collide = function (i, body, tile
 	this.updateFlags(body, response);
 	
 	return true;
-};
-
-/**
- * Collide a body with a tile on a specific axis.
- *
- * @method Phaser.Plugin.ArcadeSlopes.SatSolver#collideOnAxis
- * @param  {Phaser.Physics.Arcade.Body} body     - The physics body.
- * @param  {Phaser.Tile}                tile     - The tile.
- * @param  {SAT.Vector}                 axis     - The axis unit vector.
- * @param  {SAT.Response}               response - The SAT response to use.
- * @return {boolean}                             - Whether the body was separated.
- */
-Phaser.Plugin.ArcadeSlopes.SatSolver.prototype.collideOnAxis = function (body, tile, axis, response) {
-	// Update the body's polygon position and velocity vector
-	this.updateValues(body);
-	
-	// Bail out if we don't have everything we need or the body is circular
-	if (!this.shouldCollide(body, tile) || body.isCircle) {
-		return false;
-	}
-	
-	response = response || new SAT.Response();
-	
-	var separatingAxis = Phaser.Plugin.ArcadeSlopes.SatSolver.isSeparatingAxis(body.polygon, tile.slope.polygon, axis, response);
-	
-	if (separatingAxis) {
-		return false;
-	}
-	
-	// Invert our overlap vectors so that we have them facing outwards
-	Phaser.Plugin.ArcadeSlopes.SatSolver.prepareResponse(response);
-	
-	// Bail out if no separation occurred, resetting the response
-	if (!this.separate(body, tile, response, true)) {
-		return false;
-	}
-	
-	// Update the overlap properties of the body
-	body.overlapX = response.overlapV.x;
-	body.overlapY = response.overlapV.y;
-	body.slopes.sat.response = response;
-	
-	this.applyVelocity(body, tile, response);
-	this.updateFlags(body, response);
-	
-	return true;
-};
-
-/**
- * Run a constraint check for the given physics body, tile and response.
- *
- * @method Phaser.Plugin.ArcadeSlopes.SatSolver#restrain
- * @param  {Phaser.Physics.Arcade.Body} body     - The physics body.
- * @param  {Phaser.Tile}                tile     - The tile.
- * @param  {SAT.Response}               response - The initial collision response.
- * @return {boolean}                             - Whether the collision was restrained.
- */
-Phaser.Plugin.ArcadeSlopes.SatSolver.prototype.restrain = function (body, tile, response) {
-	for (var r in this.restrainers) {
-		var restrainer = this.restrainers[r];
-		
-		// Skip anything without a restrain function
-		if (typeof restrainer.restrain !== 'function') {
-			continue;
-		}
-		
-		// Bail if the restrainer dealt with the collision by itself
-		if (!restrainer.restrain(this, body, tile, response)) {
-			return true;
-		}
-	}
-	
-	return false;
 };
 
 /**
@@ -2361,34 +1563,10 @@ Phaser.Plugin.ArcadeSlopes.SatSolver.prototype.shouldSeparate = function (i, bod
 		return false;
 	}
 	
-	// Only separate if the body is moving into the tile
-	if (response.overlapV.clone().scale(-1).dot(body.slopes.velocity) < 0) {
-		return false;
-	}
-	
-	// Run any separation restrainers if appropriate
-	if ((this.options.restrain || body.slopes.heuristics) && body.slopes.heuristics !== false && !body.isCircle) {
-		if (this.restrain(body, tile, response)) {
-			return false;
-		}
-	}
-	
-	// Ignore any non-colliding or internal edges
-	if ((!tile.collideUp || tile.slope.edges.top === Phaser.Plugin.ArcadeSlopes.TileSlope.EMPTY) && response.overlapN.y < 0 && response.overlapN.x === 0) {
-		return false;
-	}
-	
-	if ((!tile.collideDown || tile.slope.edges.bottom === Phaser.Plugin.ArcadeSlopes.TileSlope.EMPTY) && response.overlapN.y > 0 && response.overlapN.x === 0) {
-		return false;
-	}
-	
-	if ((!tile.collideLeft || tile.slope.edges.left === Phaser.Plugin.ArcadeSlopes.TileSlope.EMPTY) && response.overlapN.x < 0 && response.overlapN.y === 0) {
-		return false;
-	}
-	
-	if ((!tile.collideRight || tile.slope.edges.right === Phaser.Plugin.ArcadeSlopes.TileSlope.EMPTY) && response.overlapN.x > 0 && response.overlapN.y === 0) {
-		return false;
-	}
+	// Only separate if the body is moving into the collision
+	// if (response.overlapV.clone().scale(-1).dot(body.slopes.velocity) < 0) {
+	// 	return false;
+	// }
 	
 	// Otherwise we should separate normally
 	return true;
@@ -2420,14 +1598,15 @@ Phaser.Plugin.ArcadeSlopes.SatSolver.prototype.debug = function (position, respo
  * 
  * @class Phaser.Plugin.ArcadeSlopes.TileSlope
  * @constructor
- * @param {integer}     type    - The type of the tile slope.
- * @param {Phaser.Tile} tile    - The tile this slope definition belongs to.
- * @param {SAT.Polygon} polygon - The polygon representing the shape of the tile.
- * @param {Phaser.Line} line    - The line representing the slope of the tile.
- * @param {object}      edges   - The flags for each edge of the tile.
- * @param {SAT.Vector}  axis    - The preferred axis for separating physics bodies.
+ * @param {integer}      type        - The type of the tile slope.
+ * @param {Phaser.Tile}  tile        - The tile this slope definition belongs to.
+ * @param {SAT.Polygon}  polygon     - The polygon representing the shape of the tile.
+ * @param {Phaser.Line}  line        - The line representing the slope of the tile.
+ * @param {object}       edges       - The flags for each edge of the tile.
+ * @param {SAT.Vector}   axis        - The preferred axis for separating physics bodies.
+ * @param {SAT.Vector[]} [ignormals] - An optional set of collision normals to ignore.
  */
-Phaser.Plugin.ArcadeSlopes.TileSlope = function (type, tile, polygon, line, edges, axis) {
+Phaser.Plugin.ArcadeSlopes.TileSlope = function (type, tile, polygon, line, edges, axis, ignormals) {
 	/**
 	 * The type of the tile slope.
 	 * 
@@ -2474,6 +1653,13 @@ Phaser.Plugin.ArcadeSlopes.TileSlope = function (type, tile, polygon, line, edge
 	 * @property {SAT.Vector} axis
 	 */
 	this.axis = axis || null;
+	
+	/**
+	 * An optional set of collision normals to ignore.
+	 * 
+	 * @property {SAT.Vector[]} ignormals
+	 */
+	this.ignormals = ignormals || [];
 	
 	/**
 	 * The preferred solver to use for this slope.
@@ -2983,6 +2169,17 @@ Phaser.Plugin.ArcadeSlopes.TileSlopeFactory = function () {
 	
 	this.mappings[Phaser.Plugin.ArcadeSlopes.TileSlopeFactory.ARCADESLOPES] = Phaser.Plugin.ArcadeSlopes.TileSlopeFactory.mapArcadeSlopes;
 	this.mappings[Phaser.Plugin.ArcadeSlopes.TileSlopeFactory.NINJA]        = Phaser.Plugin.ArcadeSlopes.TileSlopeFactory.mapNinjaPhysics;
+	
+	/**
+	 * A pool of vectors.
+	 * 
+	 * @property {SAT.Vector[]} vectorPool
+	 */
+	this.vectorPool = [];
+	
+	for (var i = 0; i < 100; i++) {
+		this.vectorPool.push(new SAT.Vector());
+	}
 };
 
 Phaser.Plugin.ArcadeSlopes.TileSlopeFactory.prototype.constructor = Phaser.Plugin.ArcadeSlopes.TileSlopeFactory;
@@ -3124,20 +2321,23 @@ Phaser.Plugin.ArcadeSlopes.TileSlopeFactory.prototype.convertTilemapLayer = func
 /**
  * Calculate the edge flags for each tile in the given tilemap layer.
  *
+ * TODO: Allow this to work with an optional range of tile coordinates.
+ * 
  * @method Phaser.Plugin.ArcadeSlopes.TileSlopeFactory#calculateEdges
  * @param {Phaser.TilemapLayer} layer - The tilemap layer to calculate edge flags for.
  */
 Phaser.Plugin.ArcadeSlopes.TileSlopeFactory.prototype.calculateEdges = function (layer) {
-	var above = null;
-	var below = null;
-	var left  = null;
-	var right = null;
+	var x, y, h, w, tile, above, below, left, right;
 	
-	for (var y = 0, h = layer.layer.height; y < h; y++) {
-		for (var x = 0, w = layer.layer.width; x < w; x++) {
-			var tile = layer.layer.data[y][x];
+	h = layer.layer.height;
+	w = layer.layer.width;
+	
+	for (y = 0; y < h; y++) {
+		for (x = 0; x < w; x++) {
+			tile = layer.layer.data[y][x];
 			
 			if (tile && tile.hasOwnProperty('slope')) {
+				// Compare edges and flag internal vertices
 				above = layer.map.getTileAbove(layer.index, x, y);
 				below = layer.map.getTileBelow(layer.index, x, y);
 				left  = layer.map.getTileLeft(layer.index, x, y);
@@ -3167,6 +2367,16 @@ Phaser.Plugin.ArcadeSlopes.TileSlopeFactory.prototype.calculateEdges = function 
 					this.flagInternalVertices(tile, right);
 				}
 			}
+		}
+	}
+	
+	// Flag further normals that we want to ignore for this tile, now that all
+	// of the edges have been set
+	for (y = 0; y < h; y++) {
+		for (x = 0; x < w; x++) {
+			tile = layer.layer.data[y][x];
+			
+			this.flagIgnormals(tile);
 		}
 	}
 };
@@ -3202,9 +2412,6 @@ Phaser.Plugin.ArcadeSlopes.TileSlopeFactory.prototype.compareEdges = function (f
  * Because the polygons are represented by a set of points, instead of actual
  * edges, the first vector (assuming they are specified clockwise) of each
  * potential edge is flagged instead.
- * 
- * TODO: Optimise by bailing if both first vertices are already flagged and
- *       possibly by avoiding SAT.Vector instantiation.
  *
  * @method Phaser.Plugin.ArcadeSlopes.TileSlopeFactory#flagInternalVertices
  * @param  {Phaser.Tile} firstTile  - The first tile to compare.
@@ -3216,36 +2423,189 @@ Phaser.Plugin.ArcadeSlopes.TileSlopeFactory.prototype.flagInternalVertices = fun
 		return;
 	}
 	
+	// Access the tile polygons and grab some vectors from the pool
 	var firstPolygon = firstTile.slope.polygon;
 	var secondPolygon = secondTile.slope.polygon;
-	var firstPosition = new SAT.Vector(firstTile.worldX, firstTile.worldY);
-	var secondPosition = new SAT.Vector(secondTile.worldX, secondTile.worldY);
+	var firstPosition = this.vectorPool.pop();
+	var secondPosition = this.vectorPool.pop();
+	var firstTileVertexOne = this.vectorPool.pop();
+	var firstTileVertexTwo = this.vectorPool.pop();
+	var secondTileVertexOne = this.vectorPool.pop();
+	var secondTileVertexTwo = this.vectorPool.pop();
+	var exactMatch;
+	var inverseMatch;
+	
+	// TODO: Take into account tilemap offset...
+	firstPosition.x = firstTile.worldX;
+	firstPosition.y = firstTile.worldY;
+	secondPosition.x = secondTile.worldX;
+	secondPosition.y = secondTile.worldY;
 	
 	for (var i = 0; i < firstPolygon.points.length; i++) {
-		var firstTileVertexOne = firstPolygon.points[i].clone().add(firstPosition);
-		var firstTileVertexTwo = firstPolygon.points[(i + 1) % firstPolygon.points.length].clone().add(firstPosition);
+		firstTileVertexOne.copy(firstPolygon.points[i]).add(firstPosition);
+		firstTileVertexTwo.copy(firstPolygon.points[(i + 1) % firstPolygon.points.length]).add(firstPosition);
 		
 		for (var j = 0; j < secondPolygon.points.length; j++) {
-			var secondTileVertexOne = secondPolygon.points[j].clone().add(secondPosition);
-			var secondTileVertexTwo = secondPolygon.points[(j + 1) % secondPolygon.points.length].clone().add(secondPosition);
+			secondTileVertexOne.copy(secondPolygon.points[j]).add(secondPosition);
+			secondTileVertexTwo.copy(secondPolygon.points[(j + 1) % secondPolygon.points.length]).add(secondPosition);
 			
 			// Now we can compare vertices for an exact or inverse match
-			var exactMatch = firstTileVertexOne.x === secondTileVertexOne.x &&
+			exactMatch = firstTileVertexOne.x === secondTileVertexOne.x &&
 				firstTileVertexOne.y === secondTileVertexOne.y &&
 				firstTileVertexTwo.x === secondTileVertexTwo.x &&
 				firstTileVertexTwo.y === secondTileVertexTwo.y;
 			
-			var inverseMatch = firstTileVertexOne.x === secondTileVertexTwo.x &&
+			inverseMatch = firstTileVertexOne.x === secondTileVertexTwo.x &&
 				firstTileVertexOne.y === secondTileVertexTwo.y &&
 				firstTileVertexTwo.x === secondTileVertexOne.x &&
 				firstTileVertexTwo.y === secondTileVertexOne.y;
 			
-			// Flag the vertices that begin an internal edge
+			// Flag the first vertex and the normal of the internal edge
 			if (exactMatch || inverseMatch) {
-				firstPolygon.points[i].internal = true;
-				secondPolygon.points[j].internal = true;
+				firstPolygon.normals[i].ignore = true;
+				secondPolygon.normals[j].ignore = true;
+				
+				firstTile.slope.ignormals.push(firstPolygon.normals[i]);
+				secondTile.slope.ignormals.push(secondPolygon.normals[j]);
 			}
 		}
+	}
+	
+	// Recycle the vectors we used
+	this.vectorPool.push(
+		firstPosition, secondPosition, firstTileVertexOne, firstTileVertexTwo,
+		secondTileVertexOne, secondTileVertexTwo
+	);
+};
+
+/**
+ * Flag further normals to ignore to prevent unwanted collision responses.
+ *
+ * Simply observes Phaser's edge flags of neighbouring tiles to decide whether
+ * axis-aligned collisions are desirable.
+ *
+ * Heuristics 2.0. Generalised instead of tile-specific.
+ *
+ * @method Phaser.Plugin.ArcadeSlopes.TileSlopeFactory#flagIgnormals
+ * @param {Phaser.Tile} tile  - The tile to flag ignormals for.
+ */
+Phaser.Plugin.ArcadeSlopes.TileSlopeFactory.prototype.flagIgnormals = function (tile) {
+	if (!tile.slope || !tile.slope.polygon) {
+		return;
+	}
+	
+	// Clear the current ignormals list for this tile
+	//tile.slope.ignormals.length = 0;
+	
+	// Skip full and half blocks
+	// TODO: Skip any tiles with purely axis-aligned edges
+	if (tile.slope.type === Phaser.Plugin.ArcadeSlopes.TileSlope.FULL ||
+		tile.slope.type === Phaser.Plugin.ArcadeSlopes.TileSlope.HALF_TOP ||
+		tile.slope.type === Phaser.Plugin.ArcadeSlopes.TileSlope.HALF_BOTTOM ||
+		tile.slope.type === Phaser.Plugin.ArcadeSlopes.TileSlope.HALF_LEFT ||
+		tile.slope.type === Phaser.Plugin.ArcadeSlopes.TileSlope.HALF_RIGHT
+	) {
+		return;
+	}
+	
+	// Define some shorthand variables to use in the conditions
+	var empty       = Phaser.Plugin.ArcadeSlopes.TileSlope.EMPTY;
+	var interesting = Phaser.Plugin.ArcadeSlopes.TileSlope.INTERESTING;
+	var solid       = Phaser.Plugin.ArcadeSlopes.TileSlope.SOLID;
+	var above       = tile.neighbours.above;
+	var below       = tile.neighbours.below;
+	var left        = tile.neighbours.left;
+	var right       = tile.neighbours.right;
+	var topLeft     = tile.neighbours.topLeft;
+	var topRight    = tile.neighbours.topRight;
+	var bottomLeft  = tile.neighbours.bottomLeft;
+	var bottomRight = tile.neighbours.bottomRight;
+	
+	// Skip neighbours without a TileSlope
+	if (above && !above.hasOwnProperty('slope')) {
+		above = null;
+	}
+	
+	if (below && !below.hasOwnProperty('slope')) {
+		below = null;
+	}
+	
+	if (left && !left.hasOwnProperty('slope')) {
+		left = null;
+	}
+	
+	if (right && !right.hasOwnProperty('slope')) {
+		right = null;
+	}
+	
+	if (topLeft && !topLeft.hasOwnProperty('slope')) {
+		topLeft = null;
+	}
+	
+	if (topRight && !topRight.hasOwnProperty('slope')) {
+		topRight = null;
+	}
+	
+	if (bottomLeft && !bottomLeft.hasOwnProperty('slope')) {
+		bottomLeft = null;
+	}
+	
+	if (bottomRight && !bottomRight.hasOwnProperty('slope')) {
+		bottomRight = null;
+	}
+	
+	// Determine the interesting edges of the current tile
+	var topInteresting    = tile.slope.edges.top === interesting;
+	var bottomInteresting = tile.slope.edges.bottom === interesting;
+	var leftInteresting   = tile.slope.edges.left === interesting;
+	var rightInteresting  = tile.slope.edges.right === interesting;
+	
+	// Skip top collisions
+	if (topInteresting && (
+		(topLeft && topLeft.slope.edges.right !== empty) ||
+		(topRight && topRight.slope.edges.left !== empty) ||
+		(leftInteresting && rightInteresting && (
+			(left && left.slope.edges.right !== empty && left.slope.edges.top !== solid && left.slope.edges.left !== interesting) ||
+			(right && right.slope.edges.left !== empty && right.slope.edges.top !== solid && right.slope.edges.right !== interesting)
+		))
+	)) {
+		tile.slope.ignormals.push(new SAT.Vector(0, -1));
+	}
+	
+	// Skip bottom collisions
+	if (bottomInteresting && (
+		(bottomLeft && bottomLeft.slope.edges.right !== empty) ||
+		(bottomRight && bottomRight.slope.edges.left !== empty) ||
+		(leftInteresting && rightInteresting && (
+			(left && left.slope.edges.right !== empty && left.slope.edges.bottom !== solid && left.slope.edges.left !== interesting) ||
+			(right && right.slope.edges.left !== empty && right.slope.edges.bottom !== solid && right.slope.edges.right !== interesting)
+		))
+	)) {
+		tile.slope.ignormals.push(new SAT.Vector(0, 1));
+	}
+	
+	// Skip left collisions
+	if (leftInteresting && (
+		(topLeft && topLeft.slope.edges.bottom !== empty) ||
+		(bottomLeft && bottomLeft.slope.edges.top !== empty) ||
+		(topInteresting && bottomInteresting && (
+			(above && above.slope.edges.bottom !== empty && above.slope.edges.left !== solid && above.slope.edges.top !== interesting) ||
+			(below && below.slope.edges.top !== empty && below.slope.edges.left !== solid && below.slope.edges.bottom !== interesting)
+		))
+	)) {
+		tile.slope.ignormals.push(new SAT.Vector(-1, 0));
+	}
+	
+	// Skip right collisions
+	if (rightInteresting && (
+		(topRight && topRight.slope.edges.bottom !== empty) ||
+		(bottomRight && bottomRight.slope.edges.top !== empty) ||
+		(topInteresting && bottomInteresting && (
+			(above && above.slope.edges.bottom !== empty && above.slope.edges.right !== solid && above.slope.edges.top !== interesting) ||
+			(below && below.slope.edges.top !== empty && below.slope.edges.right !== solid && below.slope.edges.bottom !== interesting)
+		))
+	)) {
+		tile.slope.ignormals.push(new SAT.Vector(1, 0));
 	}
 };
 
@@ -3256,10 +2616,15 @@ Phaser.Plugin.ArcadeSlopes.TileSlopeFactory.prototype.flagInternalVertices = fun
  * @param {Phaser.TilemapLayer} layer - The tilemap layer.
  */
 Phaser.Plugin.ArcadeSlopes.TileSlopeFactory.prototype.addDebugSettings = function (layer) {
+	layer._mc.edgeMidpoint = new SAT.Vector();
 	layer.debugSettings.slopeFill = 'rgba(255, 0, 255, 0.2)';
 	layer.debugSettings.slopeEdgeStroke = 'rgba(255, 0, 255, 0.4)';
 	layer.debugSettings.slopeCollidingEdgeStroke = 'rgba(255, 0, 255, 1)';
 	layer.debugSettings.slopeCollidingEdgeStrokeWidth = 2;
+	layer.debugSettings.slopeNormalStroke = 'rgba(0, 255, 255, 0.4)';
+	layer.debugSettings.slopeNormalStrokeWidth = 1;
+	layer.debugSettings.slopeCollidingNormalStroke = 'rgba(0, 255, 255, 1)';
+	layer.debugSettings.slopeCollidingNormalStrokeWidth = 2;
 };
 
 /**
@@ -3854,7 +3219,7 @@ Phaser.Plugin.ArcadeSlopes.TileSlopeFactory.createQuarterRightTopLow = function 
 	var edges = {
 		top:    Phaser.Plugin.ArcadeSlopes.TileSlope.INTERESTING,
 		bottom: Phaser.Plugin.ArcadeSlopes.TileSlope.INTERESTING,
-		right:  Phaser.Plugin.ArcadeSlopes.TileSlope.INTERESTING
+		left:  Phaser.Plugin.ArcadeSlopes.TileSlope.INTERESTING
 	};
 	
 	var axis = new SAT.Vector(-0.8944271909999159, 0.4472135954999579);
@@ -3883,7 +3248,7 @@ Phaser.Plugin.ArcadeSlopes.TileSlopeFactory.createQuarterRightTopHigh = function
 	
 	var edges = {
 		bottom: Phaser.Plugin.ArcadeSlopes.TileSlope.INTERESTING,
-		right:  Phaser.Plugin.ArcadeSlopes.TileSlope.INTERESTING
+		left:  Phaser.Plugin.ArcadeSlopes.TileSlope.INTERESTING
 	};
 	
 	var axis = new SAT.Vector(-0.8944271909999159, 0.4472135954999579);
