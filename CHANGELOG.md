@@ -1,6 +1,6 @@
 # Arcade Slopes Change Log
 
-## Unreleased
+## v0.3.0 - 5th August 2017
 - Removed the snap feature (#34)
 - Removed heuristics in favour of a custom SAT implementation that prevents
   internal edge collisions (#36, #38, #40)
