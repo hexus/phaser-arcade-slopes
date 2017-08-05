@@ -33,16 +33,19 @@
     - [x] Tile edge collision normals
   - [x] Memory consumption improvements
 - [ ] v0.4.0
+  - [ ] Automatically set colliding tiles for Tilemaps
+  - [ ] Automatically update sprite body polygons
   - [ ] Tunnelling solutions
     - [ ] Swept intersection tests
     - [ ] Raycasting
+- [ ] v0.5.0
   - [ ] Automatic sprite rotation
     - [ ] Omni-directional
     - [ ] Selective
-- [ ] v0.5.0
   - [ ] Raycasting for sticky slopes
   - [ ] Dynamic tilemap support
 - [ ] v1.0.0
+  - [ ] AMD/UMD
   - [ ] More consistent naming
     - [ ] Tile slope type constants
     - [ ] Direction/neighbour names
