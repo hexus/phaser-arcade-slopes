@@ -405,9 +405,9 @@ Phaser.Plugin.ArcadeSlopes.SatSolver.prototype.shouldCollide = function (body, t
  * @see SAT.flattenPointsOn
  * @static
  * @method Phaser.Plugin.ArcadeSlopes.SatSolver#flattenPointsOn
- * @param {Vector[]} points - The points to flatten.
- * @param {Vector}   normal - The unit vector axis to flatten on.
- * @param {number[]} result - An array. After calling this,
+ * @param {SAT.Vector[]} points - The points to flatten.
+ * @param {SAT.Vector}   normal - The unit vector axis to flatten on.
+ * @param {number[]}     result - An array. After calling this,
  *   result[0] will be the minimum value,
  *   result[1] will be the maximum value.
  */
@@ -435,13 +435,13 @@ Phaser.Plugin.ArcadeSlopes.SatSolver.flattenPointsOn = function (points, normal,
  *
  * @see    {SAT.isSeparatingAxis}
  * @method Phaser.Plugin.ArcadeSlopes.SatSolver#isSeparatingAxis
- * @param  {SAT.Polygon} a        - The first polygon.
- * @param  {SAT.Polygon} b        - The second polygon.
- * @param  {Vector}      axis     - The axis (unit sized) to test against.
- *                                  The points of both polygons are projected
- *                                  onto this axis.
- * @param  {Response}    response - The response to populate if the polygons are
- *                                  not separated by the given axis.
+ * @param  {SAT.Polygon}  a        - The first polygon.
+ * @param  {SAT.Polygon}  b        - The second polygon.
+ * @param  {SAT.Vector}   axis     - The axis (unit sized) to test against.
+ *                                   The points of both polygons are projected
+ *                                   onto this axis.
+ * @param  {SAT.Response} response - The response to populate if the polygons are
+ *                                   not separated by the given axis.
  * @return {boolean} true if it is a separating axis, false otherwise. If false,
  *   and a response is passed in, information about how much overlap and
  *   the direction of the overlap will be populated.
