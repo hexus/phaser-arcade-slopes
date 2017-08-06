@@ -148,6 +148,7 @@ var DemoState = (function (Phaser) {
 			
 			// Create a player sprite
 			this.player = this.add.sprite(925, 360);
+			this.player.name = 'player';
 			
 			// Create a graphics object for the player
 			this.playerGraphics = new Phaser.Graphics(this.game);
@@ -400,6 +401,7 @@ var DemoState = (function (Phaser) {
 			// Update camera linear interpolation and pixel rounding
 			camera.lerp.set(features.cameraLerp);
 			camera.roundPx = features.cameraRoundPixels;
+			this.game.renderer.renderSession.roundPixels = features.cameraRoundPixels;
 			
 			// Toggle camera follow
 			if (features.cameraFollow && !camera.target) {
@@ -646,11 +648,11 @@ var DemoState = (function (Phaser) {
 			}
 			
 			if (features.debugCameraInfo) {
-				debug.cameraInfo(this.camera, 32, 628);
+				debug.cameraInfo(this.camera, 32, 550);
 			}
 			
 			if (features.debugInputInfo) {
-				debug.inputInfo(540, 628);
+				debug.inputInfo(540, 550);
 			}
 			
 			if (features.debugParticleBodies) {
