@@ -1,6 +1,6 @@
 declare module Phaser {
 	interface Game {
-		slopes:Phaser.Plugin.ArcadeSlopes;
+		slopes:Phaser.Plugin.ArcadeSlopes.Facade;
 	}
 
 	module Physics.Arcade {
