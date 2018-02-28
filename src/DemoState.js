@@ -34,6 +34,11 @@ var DemoState = (function (Phaser) {
 			// Collision controls
 			particleSelfCollide: 0,
 			
+			// Feature detection
+			supports: {
+				circleBody: !!Phaser.Physics.Arcade.Body.prototype.setCircle,
+			},
+			
 			// Debug controls
 			debugStepMode: function () {
 				if (state.game.stepping) {
@@ -217,9 +222,15 @@ var DemoState = (function (Phaser) {
 			this.emitter.makeParticles('particle', 0, 2000, true, true);
 			
 			// Give each particle a circular collision body
-			this.emitter.forEach(function (particle) {
-				particle.body.setCircle(8);
-			});
+			if (this.features.supports.circleBody) {
+				this.emitter.forEach(function (particle) {
+					particle.body.setCircle(8);
+				});
+			} else {
+				this.emitter.forEach(function (particle) {
+					particle.body.setSize(8, 8);
+				});
+			}
 			
 			// Attach Arcade Physics polygon data to the particle bodies
 			this.game.slopes.enable(this.emitter);
@@ -303,16 +314,16 @@ var DemoState = (function (Phaser) {
 			graphics._currentBounds = null; // Get Phaser to behave
 			graphics.beginFill(Phaser.Color.hexToRGB('#e3cce9'), 1);
 			
-			// Set an AABB physics body
-			if (features.shape === 'aabb') {
-				player.body.setSize(halfSize, size);
-				graphics.drawRect(0, 0, halfSize, size);
-			}
-			
 			// Set a circular physics body
 			if (features.shape == 'circle') {
 				player.body.setCircle(halfSize);
 				graphics.drawCircle(0, 0, features.size);
+			}
+			
+			// Set an AABB physics body
+			if (features.shape === 'aabb') {
+				player.body.setSize(halfSize, size);
+				graphics.drawRect(0, 0, halfSize, size);
 			}
 			
 			// Create a Pixi texture from the graphics and give it to the player
@@ -379,7 +390,8 @@ var DemoState = (function (Phaser) {
 			emitter.forEach(function (particle) {
 				if (features.particleShape === 'circle') {
 					particle.body.setCircle(halfSize);
-				};
+					features.particleShape = 'aabb';
+				}
 				
 				if (features.particleShape === 'aabb') {
 					particle.body.setSize(size, size);
@@ -394,12 +406,6 @@ var DemoState = (function (Phaser) {
 		},
 		
 		update: function () {
-			// Update the player
-			this.updatePlayer(this.player);
-			
-			// Update the particle emitter
-			this.updateEmitter(this.emitter);
-			
 			// Define some shortcuts to some useful objects
 			var body = this.player.body;
 			var camera = this.camera;
@@ -408,6 +414,16 @@ var DemoState = (function (Phaser) {
 			var touching = body.touching;
 			var controls = this.controls;
 			var features = this.features;
+			
+			// Phaser feature detection fallbacks
+			features.shape = features.shape === 'circle' && !features.supports.circleBody ? 'aabb' : features.shape;
+			features.particleShape = features.particleShape === 'circle' && !features.supports.circleBody ? 'aabb' : features.particleShape;
+			
+			// Update the player
+			this.updatePlayer(this.player);
+			
+			// Update the particle emitter
+			this.updateEmitter(this.emitter);
 			
 			// Update slow motion values; these two are great fun together
 			// ( ͡° ͜ʖ ͡°)
