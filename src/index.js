@@ -59,7 +59,7 @@
 		// Particles
 		gui.particleFolder = gui.addFolder('Particles');
 		gui.particleFolder.add(features, 'fireParticle').name('Fire Particle');
-		gui.particleFolder.add(features, 'particleFlow').name('Enable');
+		gui.particleFolder.add(features, 'particleFlow').name('Enable').listen();
 		gui.particleFolder.add(features, 'particleGravity').name('Gravity');
 		gui.particleFolder.add(features, 'particleSelfCollide').name('Self-collision');
 		gui.particleFolder.add(features, 'particleShape', {

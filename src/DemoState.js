@@ -286,6 +286,11 @@ var DemoState = (function (Phaser) {
 				this.physics.arcade.isPaused = !this.physics.arcade.isPaused;
 			}, this);
 			
+			// Register a particle toggle handler
+			this.controls.particles.onDown.add(function () {
+				that.features.particleFlow = !that.features.particleFlow;
+			});
+			
 			// Prevent the debug text from rendering with a shadow
 			this.game.debug.renderShadow = false;
 		},
