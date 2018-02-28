@@ -118,6 +118,8 @@ var DemoState = (function (Phaser) {
 		},
 		
 		create: function () {
+			var that = this;
+			
 			// I always have this on :)
 			this.time.advancedTiming = true;
 			
@@ -213,7 +215,7 @@ var DemoState = (function (Phaser) {
 			// Particle graphics
 			this.particleGraphics = new Phaser.Graphics(this.game)
 				.beginFill(Phaser.Color.hexToRGB('#fff'), 0.5)
-				.drawCircle(0, 0, 16);
+				.drawCircle(0, 0, this.features.particleSize);
 			
 			// Cache the particle graphics as an image
 			this.cache.addImage('particle', null, this.particleGraphics.generateTexture().baseTexture.source);
@@ -224,11 +226,11 @@ var DemoState = (function (Phaser) {
 			// Give each particle a circular collision body
 			if (this.features.supports.circleBody) {
 				this.emitter.forEach(function (particle) {
-					particle.body.setCircle(8);
+					particle.body.setCircle(Math.floor(that.features.particleSize * 0.5));
 				});
 			} else {
 				this.emitter.forEach(function (particle) {
-					particle.body.setSize(8, 8);
+					particle.body.setSize(that.features.particleSize, that.features.particleSize);
 				});
 			}
 			
@@ -269,8 +271,6 @@ var DemoState = (function (Phaser) {
 			
 			// Smooth out the camera movement with linear interpolation (lerp)
 			this.camera.lerp.setTo(this.features.cameraLerp);
-			
-			var that = this;
 			
 			// Register a pointer input event handler that teleports the player
 			this.input.onDown.add(function (pointer, mouseEvent) {
