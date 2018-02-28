@@ -1,5 +1,10 @@
 # Arcade Slopes Change Log
 
+## Unreleased - 28th Feb 2018
+- Implemented Facade.resetCollision() helper method. This can be used to reset
+  all Arcade Physics body collision flags to their default values.
+- Fixed typescript definition for `game.slopes`.
+
 ## v0.3.0 - 5th August 2017
 - Removed the snap feature (#34)
 - Removed heuristics in favour of a custom SAT implementation that prevents
