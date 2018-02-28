@@ -141,10 +141,39 @@ var DemoState = (function (Phaser) {
 			this.map.setCollisionBetween(1, 38, true, 'collision');
 			this.map.setCollisionBetween(1, 38, true, 'collision2');
 			
+			var newSlopesVersion = compareVersions(Phaser.Plugin.ArcadeSlopes.VERSION, '0.2.0-beta') >= 0;
+			var slopeMap = newSlopesVersion ? 'arcadeslopes' : {
+				1: 'FULL',
+				2: 'HALF_TOP',
+				3: 'HALF_BOTTOM',
+				4: 'HALF_LEFT',
+				5: 'HALF_RIGHT',
+				6: 'HALF_BOTTOM_LEFT',
+				7: 'HALF_BOTTOM_RIGHT',
+				8: 'HALF_TOP_LEFT',
+				9: 'HALF_TOP_RIGHT',
+				10: 'QUARTER_TOP_LEFT_HIGH',
+				11: 'QUARTER_TOP_LEFT_LOW',
+				12: 'QUARTER_TOP_RIGHT_LOW',
+				13: 'QUARTER_TOP_RIGHT_HIGH',
+				14: 'QUARTER_BOTTOM_LEFT_HIGH',
+				15: 'QUARTER_BOTTOM_LEFT_LOW',
+				16: 'QUARTER_BOTTOM_RIGHT_LOW',
+				17: 'QUARTER_BOTTOM_RIGHT_HIGH',
+				18: 'QUARTER_LEFT_BOTTOM_HIGH',
+				19: 'QUARTER_RIGHT_BOTTOM_HIGH',
+				20: 'QUARTER_LEFT_TOP_HIGH',
+				21: 'QUARTER_RIGHT_TOP_HIGH',
+				35: 'QUARTER_LEFT_BOTTOM_LOW',
+				36: 'QUARTER_RIGHT_BOTTOM_LOW',
+				37: 'QUARTER_LEFT_TOP_LOW',
+				38: 'QUARTER_RIGHT_TOP_LOW'
+			};
+			
 			// Map Arcade Slopes tile types to the correct tilesets, preparing
 			// slope data for each tile in the layers
-			this.game.slopes.convertTilemapLayer(this.ground, 'arcadeslopes');
-			this.game.slopes.convertTilemapLayer(this.ground2, 'arcadeslopes');
+			this.game.slopes.convertTilemapLayer(this.ground, slopeMap);
+			this.game.slopes.convertTilemapLayer(this.ground2, slopeMap);
 			
 			// Create a player sprite
 			this.player = this.add.sprite(925, 360);
@@ -452,10 +481,12 @@ var DemoState = (function (Phaser) {
 			body.slopes.snapRight  = features.snapRight;
 			
 			// Offset the tilemap layers
-			this.ground.tileOffset.x = features.tilemapOffsetX1;
-			this.ground.tileOffset.y = features.tilemapOffsetY1;
-			this.ground2.tileOffset.x = features.tilemapOffsetX2;
-			this.ground2.tileOffset.y = features.tilemapOffsetY2;
+			if (this.ground.tileOffset) {
+				this.ground.tileOffset.x = features.tilemapOffsetX1;
+				this.ground.tileOffset.y = features.tilemapOffsetY1;
+				this.ground2.tileOffset.x = features.tilemapOffsetX2;
+				this.ground2.tileOffset.y = features.tilemapOffsetY2;
+			}
 			
 			// Debug rendering for the tilemaps
 			this.ground.debug = features.debugLayers;

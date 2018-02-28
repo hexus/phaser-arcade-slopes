@@ -65,7 +65,7 @@
 					}));
 				});
 				
-				var tag = parameters.get('phaser');
+				var tag = parameters.get('slopes');
 				
 				if (tag) {
 					slopesSelect.val(tag);
@@ -89,15 +89,11 @@
 			var stateUrl = 'src/DemoState.js';
 			
 			// Destroy Phaser
-			if (typeof Phaser !== 'undefined') {
-				//Phaser = undefined;
-			}
-			
 			if (typeof game !== 'undefined') {
 				game.destroy();
 				game = undefined;
 			}
-
+			
 			$('#phaser').html(null);
 			
 			// Reload the scripts and recreate the Phaser game
