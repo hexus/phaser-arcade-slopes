@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8"/>
+		<title>Phaser Arcade Slopes Version Tester</title>
+		<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css"/>
+		<link rel="stylesheet" href="assets/css/style.css"/>
+		<script src="http://code.jquery.com/jquery-3.3.1.min.js"></script>
+		<script src="src/versions.js"></script>
+	</head>
+	<body>
+		<nav class="navbar navbar-inverse navbar-fixed-top">
+			<div class="container">
+				<div class="navbar-header">
+					<button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
+						<span class="sr-only">Toggle navigation</span>
+						<span class="icon-bar"></span>
+						<span class="icon-bar"></span>
+						<span class="icon-bar"></span>
+					</button>
+					<a class="navbar-brand" href="./">Phaser Arcade Slopes</a>
+				</div>
+				<div id="navbar" class="navbar-collapse collapse">
+					<ul class="nav navbar-nav">
+						<li><a href="./">Demo</a></li>
+						<li><a href="generator.html">Tileset Generator</a></li>
+						<li class="active"><a href="versions.html">Version Tester</a></li>
+					</ul>
+				</div>
+			</div>
+		</nav>
+		
+		<div class="container">
+			<div class="row">
+				<form class="form-horizontal">
+					<div class="form-group">
+						<label for="phaser-version" class="col-sm-2 control-label">Phaser Version:</label>
+						<div class="col-sm-2">
+							<select id="phaser-version" class="form-control"></select>
+						</div>
+					</div>
+					<div class="form-group">
+						<label for="slopes-version" class="col-sm-2 control-label">Arcade Slopes Version:</label>
+						<div class="col-sm-2">
+							<select id="slopes-version" class="form-control"></select>
+						</div>
+					</div>
+				</form>
+			</div>
+			<div class="row">
+				<p>
+					<div id="phaser"></div>
+				</p>
+			</div>
+			<div class="row">
+				<p>Test different versions of Phaser 2 or Phaser CE with different versions of the Phaser Arcade Slopes Plugin.</p>
+			</div>
+		</div>
+	</body>
+</html>
