@@ -12,17 +12,6 @@
 		// URL parameters
 		var parameters = new URLSearchParams(location.search.slice(1));
 		
-		// Script elements
-		// var phaserScript = $('<script>');
-		// var slopesScript = $('<script>');
-		// var stateScript = $('<script>');
-		// $('head').append(phaserScript, slopesScript, stateScript);
-		// 
-		// stateScript.on('load', function () {
-		// 	state = new DemoState();
-		// 	game = new Phaser.Game(1280, 720, Phaser.CANVAS, 'phaser', state, null, false);
-		// });
-		
 		// Grab the Phaser CE tags
 		var phaserTagsRequest = $.ajax('https://api.github.com/repos/photonstorm/phaser-ce/tags', {
 			headers: {
@@ -74,11 +63,10 @@
 		});
 		
 		/**
-		 * Update the 
-		 * @return {[type]} [description]
+		 * Update the currently running Phaser game by reloading all scripts.
 		 */
 		function updateState() {
-			// Determine the URLs to use
+			// Determine the script URLs to use
 			var phaserVersion = phaserSelect.val();
 			var slopesVersion = slopesSelect.val();
 			

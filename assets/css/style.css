@@ -4,6 +4,10 @@ body {
 	padding-top: 70px;
 }
 
+#phaser {
+	height: 720px;
+}
+
 .navbar-inverse {
 	background-image: none;
 	background-color: #8d549b;
