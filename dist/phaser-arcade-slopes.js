@@ -1,6 +1,6 @@
 /**
  * @author Chris Andrew <chris@hexus.io>
- * @copyright 2016-2017 Chris Andrew
+ * @copyright 2016-2018 Chris Andrew
  * @license MIT
  */
 
@@ -54,7 +54,7 @@ Phaser.Plugin.ArcadeSlopes.prototype.constructor = Phaser.Plugin.ArcadeSlopes;
  * @constant
  * @type {string}
  */
-Phaser.Plugin.ArcadeSlopes.VERSION = '0.3.0';
+Phaser.Plugin.ArcadeSlopes.VERSION = '0.3.1';
 
 /**
  * The Separating Axis Theorem collision solver type.
@@ -130,7 +130,7 @@ Phaser.Plugin.ArcadeSlopes.prototype.destroy = function () {
 
 /**
  * @author Chris Andrew <chris@hexus.io>
- * @copyright 2016-2017 Chris Andrew
+ * @copyright 2016-2018 Chris Andrew
  * @license MIT
  */
 
@@ -296,6 +296,39 @@ Phaser.Plugin.ArcadeSlopes.Facade.prototype.collide = function (i, body, tile, t
 };
 
 /**
+ * Reset all the collision properties on a physics body.
+ *
+ * Resets body.touching, body.blocked, body.overlap*, body.slopes.sat.response.
+ * 
+ * Leaves wasTouching alone.
+ * 
+ * @method Phaser.Plugin.ArcadeSlopes.Facade#resetBodyFlags
+ * @param  {Phaser.Physics.Arcade.Body} body - The physics body.
+ */
+Phaser.Plugin.ArcadeSlopes.Facade.prototype.resetCollision = function (body) {
+	body.touching.none  = true;
+	body.touching.up    = false;
+	body.touching.down  = false;
+	body.touching.left  = false;
+	body.touching.right = false;
+	
+	body.blocked.none  = true;
+	body.blocked.up    = false;
+	body.blocked.down  = false;
+	body.blocked.left  = false;
+	body.blocked.right = false;
+	
+	body.overlapX = 0;
+	body.overlapY = 0;
+	
+	if (!body.slopes) {
+		return;
+	}
+	
+	body.slopes.sat.response = null;
+};
+
+/**
  * Whether to prefer Y axis separation in an attempt to prevent physics bodies
  * from sliding down slopes when they are separated.
  *
@@ -333,7 +366,7 @@ Object.defineProperty(Phaser.Plugin.ArcadeSlopes.Facade.prototype, 'heuristics',
 
 /**
  * @author Chris Andrew <chris@hexus.io>
- * @copyright 2016-2017 Chris Andrew
+ * @copyright 2016-2018 Chris Andrew
  * @license MIT
  */
 
@@ -788,7 +821,7 @@ Phaser.Plugin.ArcadeSlopes.Overrides.renderDebug = function () {
 
 /**
  * @author Chris Andrew <chris@hexus.io>
- * @copyright 2016-2017 Chris Andrew
+ * @copyright 2016-2018 Chris Andrew
  * @license MIT
  */
 
@@ -1589,7 +1622,7 @@ Phaser.Plugin.ArcadeSlopes.SatSolver.prototype.debug = function (position, respo
 
 /**
  * @author Chris Andrew <chris@hexus.io>
- * @copyright 2016-2017 Chris Andrew
+ * @copyright 2016-2018 Chris Andrew
  * @license MIT
  */
 
@@ -2110,7 +2143,7 @@ Phaser.Plugin.ArcadeSlopes.TileSlope.QUARTER_TOP_RIGHT_HIGH = 20;
 
 /**
  * @author Chris Andrew <chris@hexus.io>
- * @copyright 2016-2017 Chris Andrew
+ * @copyright 2016-2018 Chris Andrew
  * @license MIT
  */
 

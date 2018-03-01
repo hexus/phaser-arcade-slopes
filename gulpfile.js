@@ -11,9 +11,9 @@ var comment = ['/**',
 		' *',
 		' * <%= package.description %>',
 		' *',
-		' * @copyright 2016-2017 <%= package.author %>',
-		' * @license <%= package.license %>',
-		' * @see <%= package.homepage %>',
+		' * @copyright 2016-2018 <%= package.author %>',
+		' * @license   <%= package.license %>',
+		' * @see       <%= package.homepage %>',
 		' */',
 		''
 	].join('\n');

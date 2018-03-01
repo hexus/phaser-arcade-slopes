@@ -1,6 +1,6 @@
 /**
  * @author Chris Andrew <chris@hexus.io>
- * @copyright 2016-2017 Chris Andrew
+ * @copyright 2016-2018 Chris Andrew
  * @license MIT
  */
 
@@ -54,7 +54,7 @@ Phaser.Plugin.ArcadeSlopes.prototype.constructor = Phaser.Plugin.ArcadeSlopes;
  * @constant
  * @type {string}
  */
-Phaser.Plugin.ArcadeSlopes.VERSION = '0.3.0';
+Phaser.Plugin.ArcadeSlopes.VERSION = '0.3.1';
 
 /**
  * The Separating Axis Theorem collision solver type.

@@ -1,6 +1,6 @@
 # Arcade Slopes Change Log
 
-## Unreleased - 28th Feb 2018
+## v0.3.1 - 1st March 2018
 - Implemented Facade.resetCollision() helper method. This can be used to reset
   all Arcade Physics body collision flags to their default values.
 - Fixed typescript definition for `game.slopes`.
