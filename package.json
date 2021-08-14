@@ -3,7 +3,10 @@
   "version": "0.3.1",
   "description": "A Phaser CE plugin that brings sloped tile collision handling to Phaser's Arcade Physics engine",
   "main": "dist/phaser-arcade-slopes.js",
-  "scripts": {},
+  "scripts": {
+    "build": "gulp build",
+    "watch": "gulp watch"
+  },
   "repository": "hexus/phaser-arcade-slopes",
   "keywords": [
     "phaser",
@@ -26,7 +29,7 @@
   "license": "MIT",
   "homepage": "https://github.com/hexus/phaser-arcade-slopes",
   "dependencies": {
-      "sat": "0.6.0"
+    "sat": "0.6.0"
   },
   "devDependencies": {
     "gulp": "^3.9.1",
