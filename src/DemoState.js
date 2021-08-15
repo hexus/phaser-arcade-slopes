@@ -10,7 +10,7 @@ var DemoState = (function (Phaser) {
 		this.features = {
 			// Arcade slopes
 			slopes: true,
-			heuristics: true,
+			heuristics: false,
 			minimumOffsetY: false,
 			pullUp: 0,
 			pullDown: 0,
@@ -31,9 +31,6 @@ var DemoState = (function (Phaser) {
 			cameraRoundPixels: true,
 			cameraSpeed: 20,
 			
-			// Collision controls
-			particleSelfCollide: 0,
-			
 			// Feature detection
 			supports: {
 				circleBody: !!Phaser.Physics.Arcade.Body.prototype.setCircle,
@@ -50,16 +47,16 @@ var DemoState = (function (Phaser) {
 			debugStep: function () {
 				state.game.step();
 			},
-			debugLayers: false,
+			debugLayers: true,
 			debugLayersFullRedraw: true,
-			debugPlayerBody: false,
-			debugPlayerBodyInfo: false,
+			debugPlayerBody: true,
+			debugPlayerBodyInfo: true,
 			debugParticleBodies: false,
 			debugCameraInfo: false,
 			debugInputInfo: false,
 			
 			// Player controls
-			playerHeuristics: true,
+			playerHeuristics: false,
 			playerMinimumOffsetY: true,
 			acceleration: 2000,
 			dragX: 1200,
@@ -113,7 +110,7 @@ var DemoState = (function (Phaser) {
 		
 		preload: function () {
 			// Load our assets (a demo map and two tilesets)
-			this.load.tilemap('demo-tilemap', 'assets/maps/demo2.json', null, Phaser.Tilemap.TILED_JSON);
+			this.load.tilemap('demo-tilemap', 'assets/maps/debug.json', null, Phaser.Tilemap.TILED_JSON);
 			this.load.spritesheet('arcade-slopes-spritesheet', 'assets/tilesets/arcade-slopes-32-white-8.png', 32, 32);
 		},
 		
@@ -183,7 +180,7 @@ var DemoState = (function (Phaser) {
 			this.game.slopes.convertTilemapLayer(this.ground2, slopeMap);
 			
 			// Create a player sprite
-			this.player = this.add.sprite(925, 360);
+			this.player = this.add.sprite(519, 800);
 			this.player.name = 'player';
 			
 			// Create a graphics object for the player

@@ -75,7 +75,7 @@
 		gui.particleFolder.add(features, 'particleMaxY').min(-500).max(500).name('Maximum Y Speed');
 		gui.particleFolder.add(features, 'emitterWidth').min(0).max(1).step(0.01).name('Emitter Width');
 		gui.particleFolder.add(features, 'emitterHeight').min(0).max(1).step(0.01).name('Emitter Height');
-		gui.particleFolder.open();
+		// gui.particleFolder.open();
 		
 		// World
 		gui.worldFolder = gui.addFolder('World');
@@ -102,6 +102,6 @@
 		gui.debugFolder.add(features, 'debugParticleBodies').name('Particle Bodies');
 		gui.debugFolder.add(features, 'debugCameraInfo').name('Camera Info');
 		gui.debugFolder.add(features, 'debugInputInfo').name('Input Info');
-		gui.debugFolder.open();
+		// gui.debugFolder.open();
 	});
 })(Phaser, DemoState);
