@@ -402,6 +402,7 @@ Phaser.Plugin.ArcadeSlopes.TileSlopeFactory.prototype.flagIgnormals = function (
 	var empty       = Phaser.Plugin.ArcadeSlopes.TileSlope.EMPTY;
 	var interesting = Phaser.Plugin.ArcadeSlopes.TileSlope.INTERESTING;
 	var solid       = Phaser.Plugin.ArcadeSlopes.TileSlope.SOLID;
+	var slope       = tile.slope.slope;
 	var above       = tile.neighbours.above;
 	var below       = tile.neighbours.below;
 	var left        = tile.neighbours.left;
@@ -452,26 +453,23 @@ Phaser.Plugin.ArcadeSlopes.TileSlopeFactory.prototype.flagIgnormals = function (
 	
 	// Skip top collisions
 	if (topInteresting && (
-		(topLeft && topLeft.slope.edges.right !== empty) ||
-		(topRight && topRight.slope.edges.left !== empty) ||
+		(topLeft && topLeft.slope.edges.right === interesting && slope === topLeft.slope.slope) ||
+		(topRight && topRight.slope.edges.left === interesting && slope === topRight.slope.slope) ||
 		(leftInteresting && rightInteresting && (
-			(left && left.slope.edges.right !== empty && left.slope.edges.top !== solid && left.slope.edges.left === empty) ||
-			(right && right.slope.edges.left !== empty && right.slope.edges.top !== solid && right.slope.edges.right === empty)
+			(left && left.slope.edges.top !== solid && left.slope.edges.right === interesting && slope === left.slope.slope) ||
+			(right && right.slope.edges.top !== solid && right.slope.edges.left === interesting && slope === right.slope.slope)
 		))
 	)) {
 		tile.slope.ignormals.push(new SAT.Vector(0, -1));
-
-		// if (tile.slope.type === Phaser.Plugin.ArcadeSlopes.TileSlope.QUARTER_BOTTOM_RIGHT_LOW && tile.x === 15)
-		// 	debugger;
 	}
 	
 	// Skip bottom collisions
 	if (bottomInteresting && (
-		(bottomLeft && bottomLeft.slope.edges.right !== empty) ||
-		(bottomRight && bottomRight.slope.edges.left !== empty) ||
+		(bottomLeft && bottomLeft.slope.edges.right === interesting) ||
+		(bottomRight && bottomRight.slope.edges.left === interesting) ||
 		(leftInteresting && rightInteresting && (
-			(left && left.slope.edges.right !== empty && left.slope.edges.bottom !== solid && left.slope.edges.left === empty) ||
-			(right && right.slope.edges.left !== empty && right.slope.edges.bottom !== solid && right.slope.edges.right === empty)
+			(left && left.slope.edges.bottom !== solid && left.slope.edges.right === interesting && slope === left.slope.slope) ||
+			(right && right.slope.edges.bottom !== solid && right.slope.edges.left === interesting && slope === right.slope.slope)
 		))
 	)) {
 		tile.slope.ignormals.push(new SAT.Vector(0, 1));
@@ -482,8 +480,8 @@ Phaser.Plugin.ArcadeSlopes.TileSlopeFactory.prototype.flagIgnormals = function (
 		(topLeft && topLeft.slope.edges.bottom !== empty) ||
 		(bottomLeft && bottomLeft.slope.edges.top !== empty) ||
 		(topInteresting && bottomInteresting && (
-			(above && above.slope.edges.bottom !== empty && above.slope.edges.left !== solid && above.slope.edges.top === empty) ||
-			(below && below.slope.edges.top !== empty && below.slope.edges.left !== solid && below.slope.edges.bottom === empty)
+			(above && above.slope.edges.left !== solid && above.slope.edges.bottom === interesting && slope === above.slope.slope) ||
+			(below && below.slope.edges.left !== solid && below.slope.edges.top === interesting && slope === below.slope.slope)
 		))
 	)) {
 		tile.slope.ignormals.push(new SAT.Vector(-1, 0));
@@ -494,8 +492,8 @@ Phaser.Plugin.ArcadeSlopes.TileSlopeFactory.prototype.flagIgnormals = function (
 		(topRight && topRight.slope.edges.bottom !== empty) ||
 		(bottomRight && bottomRight.slope.edges.top !== empty) ||
 		(topInteresting && bottomInteresting && (
-			(above && above.slope.edges.bottom !== empty && above.slope.edges.right !== solid && above.slope.edges.top === empty) ||
-			(below && below.slope.edges.top !== empty && below.slope.edges.right !== solid && below.slope.edges.bottom === empty)
+			(above && above.slope.edges.right !== solid && above.slope.edges.bottom === interesting && slope === above.slope.slope) ||
+			(below && below.slope.edges.right !== solid && below.slope.edges.top === interesting && slope === below.slope.slope)
 		))
 	)) {
 		tile.slope.ignormals.push(new SAT.Vector(1, 0));
