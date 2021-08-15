@@ -105,6 +105,7 @@ declare module Phaser {
 
 			class TileSlope {
 				constructor(type:number, tile:Phaser.Tile, polygon:SAT.Polygon, line:Phaser.Line, edges:Object, axis:SAT.Vector, ignormals?:SAT.Vector[]);
+				meets(slope:TileSlope);
 				type:number;
 				tile:Phaser.Tile;
 				polygon:SAT.Polygon;

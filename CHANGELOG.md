@@ -1,5 +1,8 @@
 # Arcade Slopes Change Log
 
+## v0.3.2 - Unreleased
+- Fixed overzealous ignorance of collision normals for less common tile configurations (\#55, \#56)
+
 ## v0.3.1 - 1st March 2018
 - Implemented Facade.resetCollision() helper method. This can be used to reset
   all Arcade Physics body collision flags to their default values.

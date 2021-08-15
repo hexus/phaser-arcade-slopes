@@ -384,9 +384,6 @@ Phaser.Plugin.ArcadeSlopes.TileSlopeFactory.prototype.flagIgnormals = function (
 		return;
 	}
 	
-	// Clear the current ignormals list for this tile
-	//tile.slope.ignormals.length = 0;
-	
 	// Skip full and half blocks
 	// TODO: Skip any tiles with purely axis-aligned edges
 	if (tile.slope.type === Phaser.Plugin.ArcadeSlopes.TileSlope.FULL ||
@@ -402,7 +399,6 @@ Phaser.Plugin.ArcadeSlopes.TileSlopeFactory.prototype.flagIgnormals = function (
 	var empty       = Phaser.Plugin.ArcadeSlopes.TileSlope.EMPTY;
 	var interesting = Phaser.Plugin.ArcadeSlopes.TileSlope.INTERESTING;
 	var solid       = Phaser.Plugin.ArcadeSlopes.TileSlope.SOLID;
-	//var line        = tile.slope.line;
 	var slope       = tile.slope.slope;
 	var above       = tile.neighbours.above;
 	var below       = tile.neighbours.below;

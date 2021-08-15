@@ -814,16 +814,12 @@ Phaser.Plugin.ArcadeSlopes.Overrides.renderDebug = function () {
 					}
 					
 					// Slope line segments
-					if (this.debugSettings.slopeLineStroke) {
+					if (this.debugSettings.slopeLineStroke && tile.slope.line) {
 						line = tile.slope.line;
-
-						if (!line) {
-							continue;
-						}
 
 						context.beginPath();
 						
-						context.lineWidth = this.debugSettings.slopeLineWidth || 3;
+						context.lineWidth = this.debugSettings.slopeLineWidth || 2;
 						context.strokeStyle = this.debugSettings.slopeLineStroke;
 
 						context.moveTo(line.start.x - scrollX, line.start.y - scrollY);
@@ -2557,9 +2553,6 @@ Phaser.Plugin.ArcadeSlopes.TileSlopeFactory.prototype.flagIgnormals = function (
 		return;
 	}
 	
-	// Clear the current ignormals list for this tile
-	//tile.slope.ignormals.length = 0;
-	
 	// Skip full and half blocks
 	// TODO: Skip any tiles with purely axis-aligned edges
 	if (tile.slope.type === Phaser.Plugin.ArcadeSlopes.TileSlope.FULL ||
@@ -2575,7 +2568,6 @@ Phaser.Plugin.ArcadeSlopes.TileSlopeFactory.prototype.flagIgnormals = function (
 	var empty       = Phaser.Plugin.ArcadeSlopes.TileSlope.EMPTY;
 	var interesting = Phaser.Plugin.ArcadeSlopes.TileSlope.INTERESTING;
 	var solid       = Phaser.Plugin.ArcadeSlopes.TileSlope.SOLID;
-	//var line        = tile.slope.line;
 	var slope       = tile.slope.slope;
 	var above       = tile.neighbours.above;
 	var below       = tile.neighbours.below;

@@ -448,16 +448,12 @@ Phaser.Plugin.ArcadeSlopes.Overrides.renderDebug = function () {
 					}
 					
 					// Slope line segments
-					if (this.debugSettings.slopeLineStroke) {
+					if (this.debugSettings.slopeLineStroke && tile.slope.line) {
 						line = tile.slope.line;
-
-						if (!line) {
-							continue;
-						}
 
 						context.beginPath();
 						
-						context.lineWidth = this.debugSettings.slopeLineWidth || 3;
+						context.lineWidth = this.debugSettings.slopeLineWidth || 2;
 						context.strokeStyle = this.debugSettings.slopeLineStroke;
 
 						context.moveTo(line.start.x - scrollX, line.start.y - scrollY);
