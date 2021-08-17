@@ -23,13 +23,13 @@ Check out the **[demo](http://hexus.github.io/phaser-arcade-slopes)**!
 | Phaser Version   | Arcade Slopes Version                                               |
 | ---------------- | ------------------------------------------------------------------- |
 | v2.4.1 - v2.4.8  | [v0.1.0](https://github.com/hexus/phaser-arcade-slopes/tree/v0.1.0) |
-| v2.5.0 - v2.10.1 | [v0.1.1](https://github.com/hexus/phaser-arcade-slopes/tree/v0.1.1) - [v0.3.1](https://github.com/hexus/phaser-arcade-slopes/tree/v0.3.1) |
+| v2.5.0 - v2.10.1 | [v0.1.1](https://github.com/hexus/phaser-arcade-slopes/tree/v0.1.1) - [v0.3.2](https://github.com/hexus/phaser-arcade-slopes/tree/v0.3.2) |
 | v3.x             | [hexus/phaser-slopes](https://github.com/hexus/phaser-slopes)       |
 
 ## Installation
 
 Grab a copy of the
-[latest release](https://raw.githubusercontent.com/hexus/phaser-arcade-slopes/v0.3.1/dist/phaser-arcade-slopes.min.js)
+[latest release](https://raw.githubusercontent.com/hexus/phaser-arcade-slopes/v0.3.2/dist/phaser-arcade-slopes.min.js)
 from the [**dist**](dist) directory in this repository and include it after
 Phaser.
 

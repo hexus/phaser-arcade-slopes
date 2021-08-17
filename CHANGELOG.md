@@ -1,6 +1,6 @@
 # Arcade Slopes Change Log
 
-## v0.3.2 - Unreleased
+## v0.3.2 - 17th August 2021
 - Fixed overzealous ignorance of collision normals for less common tile configurations (\#55, \#56)
 
 ## v0.3.1 - 1st March 2018
