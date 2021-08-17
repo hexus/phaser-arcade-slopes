@@ -225,4 +225,6 @@ And to contributors who have been generous with their time, talents and support:
 
 - [@IkonOne](https://github.com/IkonOne)
 - [@michaeljcalkins](https://github.com/michaeljcalkins)
-- [@kevinchau321](https://github.com/kevinchau321)
+- [@kevin-chau](https://github.com/kevin-chau)
+- [@dave-kennedy](https://github.com/dave-kennedy)
+- [@SHG42](https://github.com/SHG42)
