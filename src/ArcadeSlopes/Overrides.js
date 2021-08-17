@@ -1,6 +1,6 @@
 /**
  * @author Chris Andrew <chris@hexus.io>
- * @copyright 2016-2018 Chris Andrew
+ * @copyright 2016-2021 Chris Andrew
  * @license MIT
  */
 
@@ -249,12 +249,12 @@ Phaser.Plugin.ArcadeSlopes.Overrides.renderDebug = function () {
 	
 	var width = this.layer.width;
 	var height = this.layer.height;
-	var tw = this._mc.tileWidth * scaleX;
-	var th = this._mc.tileHeight * scaleY;
-	var htw = tw / 2;
-	var hth = th / 2;
-	var qtw = tw / 4;
-	var qth = th / 4;
+	var tw = this._mc.tileWidth * scaleX;  // Tile width
+	var th = this._mc.tileHeight * scaleY; // Tile height
+	var htw = tw / 2; // Half-tile width
+	var hth = th / 2; // Half-tile height
+	var qtw = tw / 4; // Quarter-tile width
+	var qth = th / 4; // Quarter-tile height
 	var cw = this._mc.cw * scaleX;
 	var ch = this._mc.ch * scaleY;
 	var m = this._mc.edgeMidpoint;
@@ -283,7 +283,7 @@ Phaser.Plugin.ArcadeSlopes.Overrides.renderDebug = function () {
 	var normStartX = (left + ((1 << 20) * width)) % width;
 	var normStartY = (top + ((1 << 20) * height)) % height;
 	
-	var tx, ty, x, y, xmax, ymax, polygon, i, j, a, b, norm, gx, gy;
+	var tx, ty, x, y, xmax, ymax, polygon, i, j, a, b, norm, gx, gy, line;
 	
 	for (y = normStartY, ymax = bottom - top, ty = baseY; ymax >= 0; y++, ymax--, ty += th) {
 		if (y >= height) {
@@ -408,7 +408,6 @@ Phaser.Plugin.ArcadeSlopes.Overrides.renderDebug = function () {
 								context.lineWidth = this.debugSettings.slopeCollidingNormalStrokeWidth;
 								context.strokeStyle = this.debugSettings.slopeCollidingNormalStroke;
 							}
-								
 							
 							j = (i + 1) % polygon.points.length;
 							
@@ -446,6 +445,22 @@ Phaser.Plugin.ArcadeSlopes.Overrides.renderDebug = function () {
 								context.stroke();
 							}
 						}
+					}
+					
+					// Slope line segments
+					if (this.debugSettings.slopeLineStroke && tile.slope.line) {
+						line = tile.slope.line;
+
+						context.beginPath();
+						
+						context.lineWidth = this.debugSettings.slopeLineWidth || 2;
+						context.strokeStyle = this.debugSettings.slopeLineStroke;
+
+						context.moveTo(line.start.x - scrollX, line.start.y - scrollY);
+						context.lineTo(line.end.x - scrollX, line.end.y - scrollY);
+
+						context.closePath();
+						context.stroke();
 					}
 				}
 			}

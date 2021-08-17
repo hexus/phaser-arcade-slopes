@@ -1,6 +1,6 @@
 /**
  * @author Chris Andrew <chris@hexus.io>
- * @copyright 2016-2018 Chris Andrew
+ * @copyright 2016-2021 Chris Andrew
  * @license MIT
  */
 
@@ -85,6 +85,17 @@ Phaser.Plugin.ArcadeSlopes.TileSlope = function (type, tile, polygon, line, edge
 	 * @property {Phaser.Point} friction
 	 */
 	this.friction = new Phaser.Point();
+};
+
+/**
+ * Determine whether the start or end of one slope line meets the start or end
+ * of another's.
+ *
+ * @param {Phaser.Plugin.ArcadeSlopes.TileSlope} slope - The tile slope to check intersection with.
+ */
+Phaser.Plugin.ArcadeSlopes.TileSlope.prototype.meets = function (slope) {
+	return this.line.start.equals(slope.line.end)
+		|| this.line.end.equals(slope.line.start);
 };
 
 /**

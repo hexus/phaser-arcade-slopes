@@ -1,6 +1,6 @@
 /**
  * @author Chris Andrew <chris@hexus.io>
- * @copyright 2016-2018 Chris Andrew
+ * @copyright 2016-2021 Chris Andrew
  * @license MIT
  */
 
@@ -272,7 +272,7 @@ Phaser.Plugin.ArcadeSlopes.TileSlopeFactory.prototype.calculateEdges = function 
 };
 
 /**
- * Resolve the given flags of two shared tile edges.
+ * Resolve the given flags of two contiguous tile edges.
  * 
  * Returns the new flag to use for the first edge after comparing it with the
  * second edge.
@@ -384,9 +384,6 @@ Phaser.Plugin.ArcadeSlopes.TileSlopeFactory.prototype.flagIgnormals = function (
 		return;
 	}
 	
-	// Clear the current ignormals list for this tile
-	//tile.slope.ignormals.length = 0;
-	
 	// Skip full and half blocks
 	// TODO: Skip any tiles with purely axis-aligned edges
 	if (tile.slope.type === Phaser.Plugin.ArcadeSlopes.TileSlope.FULL ||
@@ -402,6 +399,7 @@ Phaser.Plugin.ArcadeSlopes.TileSlopeFactory.prototype.flagIgnormals = function (
 	var empty       = Phaser.Plugin.ArcadeSlopes.TileSlope.EMPTY;
 	var interesting = Phaser.Plugin.ArcadeSlopes.TileSlope.INTERESTING;
 	var solid       = Phaser.Plugin.ArcadeSlopes.TileSlope.SOLID;
+	var slope       = tile.slope.slope;
 	var above       = tile.neighbours.above;
 	var below       = tile.neighbours.below;
 	var left        = tile.neighbours.left;
@@ -452,11 +450,11 @@ Phaser.Plugin.ArcadeSlopes.TileSlopeFactory.prototype.flagIgnormals = function (
 	
 	// Skip top collisions
 	if (topInteresting && (
-		(topLeft && topLeft.slope.edges.right !== empty) ||
-		(topRight && topRight.slope.edges.left !== empty) ||
+		(topLeft && topLeft.slope.edges.right === interesting && slope === topLeft.slope.slope && tile.slope.meets(topLeft.slope)) ||
+		(topRight && topRight.slope.edges.left === interesting && slope === topRight.slope.slope && tile.slope.meets(topRight.slope)) ||
 		(leftInteresting && rightInteresting && (
-			(left && left.slope.edges.right !== empty && left.slope.edges.top !== solid && left.slope.edges.left !== interesting) ||
-			(right && right.slope.edges.left !== empty && right.slope.edges.top !== solid && right.slope.edges.right !== interesting)
+			(left && left.slope.edges.top !== solid && left.slope.edges.right === interesting && slope === left.slope.slope && tile.slope.meets(left.slope)) ||
+			(right && right.slope.edges.top !== solid && right.slope.edges.left === interesting && slope === right.slope.slope && tile.slope.meets(right.slope))
 		))
 	)) {
 		tile.slope.ignormals.push(new SAT.Vector(0, -1));
@@ -464,11 +462,11 @@ Phaser.Plugin.ArcadeSlopes.TileSlopeFactory.prototype.flagIgnormals = function (
 	
 	// Skip bottom collisions
 	if (bottomInteresting && (
-		(bottomLeft && bottomLeft.slope.edges.right !== empty) ||
-		(bottomRight && bottomRight.slope.edges.left !== empty) ||
+		(bottomLeft && bottomLeft.slope.edges.right === interesting && slope === bottomLeft.slope.slope && tile.slope.meets(bottomLeft.slope)) ||
+		(bottomRight && bottomRight.slope.edges.left === interesting && slope === bottomRight.slope.slope && tile.slope.meets(bottomRight.slope)) ||
 		(leftInteresting && rightInteresting && (
-			(left && left.slope.edges.right !== empty && left.slope.edges.bottom !== solid && left.slope.edges.left !== interesting) ||
-			(right && right.slope.edges.left !== empty && right.slope.edges.bottom !== solid && right.slope.edges.right !== interesting)
+			(left && left.slope.edges.bottom !== solid && left.slope.edges.right === interesting && slope === left.slope.slope && tile.slope.meets(left.slope)) ||
+			(right && right.slope.edges.bottom !== solid && right.slope.edges.left === interesting && slope === right.slope.slope && tile.slope.meets(right.slope))
 		))
 	)) {
 		tile.slope.ignormals.push(new SAT.Vector(0, 1));
@@ -476,11 +474,11 @@ Phaser.Plugin.ArcadeSlopes.TileSlopeFactory.prototype.flagIgnormals = function (
 	
 	// Skip left collisions
 	if (leftInteresting && (
-		(topLeft && topLeft.slope.edges.bottom !== empty) ||
-		(bottomLeft && bottomLeft.slope.edges.top !== empty) ||
+		(topLeft && topLeft.slope.edges.bottom === interesting && slope === topLeft.slope.slope && tile.slope.meets(topLeft.slope)) ||
+		(bottomLeft && bottomLeft.slope.edges.top === interesting && slope === bottomLeft.slope.slope && tile.slope.meets(bottomLeft.slope)) ||
 		(topInteresting && bottomInteresting && (
-			(above && above.slope.edges.bottom !== empty && above.slope.edges.left !== solid && above.slope.edges.top !== interesting) ||
-			(below && below.slope.edges.top !== empty && below.slope.edges.left !== solid && below.slope.edges.bottom !== interesting)
+			(above && above.slope.edges.left !== solid && above.slope.edges.bottom === interesting && slope === above.slope.slope && tile.slope.meets(above.slope)) ||
+			(below && below.slope.edges.left !== solid && below.slope.edges.top === interesting && slope === below.slope.slope && tile.slope.meets(below.slope))
 		))
 	)) {
 		tile.slope.ignormals.push(new SAT.Vector(-1, 0));
@@ -488,11 +486,11 @@ Phaser.Plugin.ArcadeSlopes.TileSlopeFactory.prototype.flagIgnormals = function (
 	
 	// Skip right collisions
 	if (rightInteresting && (
-		(topRight && topRight.slope.edges.bottom !== empty) ||
-		(bottomRight && bottomRight.slope.edges.top !== empty) ||
+		(topRight && topRight.slope.edges.bottom === interesting && slope === topRight.slope.slope && tile.slope.meets(topRight.slope)) ||
+		(bottomRight && bottomRight.slope.edges.top === interesting && slope === bottomRight.slope.slope && tile.slope.meets(bottomRight.slope)) ||
 		(topInteresting && bottomInteresting && (
-			(above && above.slope.edges.bottom !== empty && above.slope.edges.right !== solid && above.slope.edges.top !== interesting) ||
-			(below && below.slope.edges.top !== empty && below.slope.edges.right !== solid && below.slope.edges.bottom !== interesting)
+			(above && above.slope.edges.right !== solid && above.slope.edges.bottom === interesting && slope === above.slope.slope && tile.slope.meets(above.slope)) ||
+			(below && below.slope.edges.right !== solid && below.slope.edges.top === interesting && slope === below.slope.slope && tile.slope.meets(below.slope))
 		))
 	)) {
 		tile.slope.ignormals.push(new SAT.Vector(1, 0));
@@ -509,6 +507,7 @@ Phaser.Plugin.ArcadeSlopes.TileSlopeFactory.prototype.addDebugSettings = functio
 	layer._mc.edgeMidpoint = new SAT.Vector();
 	layer.debugSettings.slopeFill = 'rgba(255, 0, 255, 0.2)';
 	layer.debugSettings.slopeEdgeStroke = 'rgba(255, 0, 255, 0.4)';
+	layer.debugSettings.slopeLineStroke = 'rgba(255, 128, 128, 1)';
 	layer.debugSettings.slopeCollidingEdgeStroke = 'rgba(255, 0, 255, 1)';
 	layer.debugSettings.slopeCollidingEdgeStrokeWidth = 2;
 	layer.debugSettings.slopeNormalStroke = 'rgba(0, 255, 255, 0.4)';
@@ -612,7 +611,7 @@ Phaser.Plugin.ArcadeSlopes.TileSlopeFactory.createHalfTop = function (type, tile
 		new SAT.Vector(0, halfHeight)
 	]);
 	
-	var line = new Phaser.Line(tile.left, tile.top, tile.right, tile.top);
+	var line = new Phaser.Line(tile.left, tile.top + tile.height / 2, tile.right, tile.top + tile.height / 2);
 	
 	var edges = {
 		bottom: Phaser.Plugin.ArcadeSlopes.TileSlope.INTERESTING,
@@ -899,7 +898,7 @@ Phaser.Plugin.ArcadeSlopes.TileSlopeFactory.createQuarterBottomRightHigh = funct
 		new SAT.Vector(0, tile.height)           // Bottom left
 	]);
 	
-	var line = new Phaser.Line(tile.left, tile.bottom, tile.right, tile.top + tile.height / 2);
+	var line = new Phaser.Line(tile.left, tile.top + tile.height / 2, tile.right, tile.top);
 	
 	var edges = {
 		top:  Phaser.Plugin.ArcadeSlopes.TileSlope.INTERESTING,
@@ -1046,7 +1045,7 @@ Phaser.Plugin.ArcadeSlopes.TileSlopeFactory.createQuarterLeftTopLow = function (
 		new SAT.Vector(0, tile.height)     // Bottom left
 	]);
 	
-	var line = new Phaser.Line(0, tile.height, tile.width / 2, 0);
+	var line = new Phaser.Line(tile.left, tile.bottom, tile.left + tile.width / 2, tile.top);
 	
 	var edges = {
 		top:    Phaser.Plugin.ArcadeSlopes.TileSlope.INTERESTING,
@@ -1076,7 +1075,7 @@ Phaser.Plugin.ArcadeSlopes.TileSlopeFactory.createQuarterLeftTopHigh = function 
 		new SAT.Vector(0, tile.height)               // Bottom left
 	]);
 	
-	var line = new Phaser.Line(tile.left + tile.width / 2, tile.bottom, tile.right, tile.bottom);
+	var line = new Phaser.Line(tile.left + tile.width / 2, tile.bottom, tile.right, tile.top);
 	
 	var edges = {
 		bottom: Phaser.Plugin.ArcadeSlopes.TileSlope.INTERESTING,
